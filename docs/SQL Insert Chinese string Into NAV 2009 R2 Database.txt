@@ -1,0 +1,7 @@
+insert into [PH_Dev].[dbo].[PH System Setting]
+  ([Brand]
+      ,[Type]
+      ,[Code]
+      ,[Value]
+      ,[Description])
+   select '1','1','1','Test',cast(cast('测试' collate Chinese_PRC_CI_AS as varchar(250)) as varbinary(max))
