@@ -34,7 +34,7 @@ class InterfaceInfo(db.Model):
     Other_Transaction_Total_Count = db.Column("[Other Transaction Total Count]", db.Integer, nullable=False, comment="Other记录数, 对应Other文件或接口")
     # FA记录数, 对应FA文件或接口
     FA_Total_Count = db.Column("[FA Total Count]", db.Integer, nullable=False, comment="FA记录数, 对应FA文件或接口")
-    
+
 
 class InterfaceInfo(db.Model):
     __tablename__ = "DMSInterfaceInfo"
