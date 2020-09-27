@@ -4,6 +4,9 @@ from flask_sqlalchemy import SQLAlchemy
 db = SQLAlchemy()
 
 from .models.dms import *
+from .models.system import *
+from .models.log import *
+from .models.nav import *
 
 
 def create_app():

@@ -16,7 +16,7 @@ class InterfaceInfo(db.Model):
     # 导入时间
     DateTime_Imported = db.Column("[DateTime Imported]", db.DateTime, nullable=False, comment="导入时间")
     # 处理时间, 初始插入数据时插入('1753-01-01 00:00:00.000')
-    DateTime_Handled = db.Column("[DateTime Handled]", db.DateTime, nullable=False, comment="处理时间")
+    DateTime_Handled = db.Column("[DateTime Handled]", db.DateTime, nullable=False, default="1753-01-01 00:00:00.000", comment="处理时间")
     # 处理人, 初始插入数据时插入空字符('')
     Handled_by = db.Column("[Handled by]", db.String(20), nullable=False, comment="处理人")
     # 状态(INIT, PROCESSING, ERROR, COMPLETED), 初始插入数据INIT
@@ -59,7 +59,7 @@ class CustVendBuffer(db.Model):
     PaymentTermsCode = db.Column(db.String(10), nullable=False)
     Template = db.Column(db.String(20), nullable=False)
     # Link to Table: DMSInterfaceInfo
-    Entry_No_ = db.Column("[Entry No_]", db.Integer, db.ForeignKey("DMSInterfaceInfo."), nullable=False)
+    Entry_No_ = db.Column("[Entry No_]", db.Integer, db.ForeignKey("DMSInterfaceInfo.[Entry No_]"), nullable=False)
     # 错误消息, 初始插入数据时插入空字符('')
     Error_Message = db.Column("[Error Message]", db.String(250), nullable=False, default="")
     # 导入时间
@@ -177,11 +177,11 @@ class InvoiceLineBuffer(db.Model):
     # 处理人, 初始插入数据时插入空字符('')
     Handled_by = db.Column("[Handled by]", db.String(20), nullable=False, default='', comment="处理人")
     # Link to Table: InvoiceHeaderBuffer
-    InvoiceNo = db.Column(db.String(20), db.ForeignKey("InvoiceHeaderBuffer.[Record ID]"), nullable=False)
+    InvoiceNo = db.Column(db.String(20), nullable=False)
     Line_Discount_Amount = db.Column("[Line Discount Amount]", db.DECIMAL(38, 20), nullable=False)
     WIP_No_ = db.Column("[WIP No_]", db.String(20), nullable=False)
     Line_VAT_Amount = db.Column("[Line VAT Amount]", db.DECIMAL(38, 20), nullable=False)
-    Line_VAT_Rate = db.Column("[Line VAT Rate]", db.String(38, 20), nullable=False)
+    Line_VAT_Rate = db.Column("[Line VAT Rate]", db.DECIMAL(38, 20), nullable=False)
     FromCompanyName = db.Column(db.String(50), nullable=False)
     ToCompanyName = db.Column(db.String(50), nullable=False)
     Location = db.Column(db.String(20), nullable=False)
