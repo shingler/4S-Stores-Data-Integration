@@ -1,7 +1,11 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
 import datetime
+
+from sqlalchemy.orm import foreign, remote
+
 from src import db
+from sqlalchemy import and_
 
 
 class Company(db.Model):
@@ -45,7 +49,7 @@ class Company(db.Model):
 class ApiSetup(db.Model):
     __tablename__ = "DMS_API_Setup"
     # 公司代码(Link to table: DMS_Company_List)
-    Company_Code = db.Column(db.String(20), db.ForeignKey("DMS_Company_List.Code"), nullable=False, primary_key=True, comment="公司代码")
+    Company_Code = db.Column(db.String(20), nullable=False, primary_key=True, comment="公司代码")
     # 接口代码
     API_Code = db.Column(db.String(100), nullable=False, primary_key=True, comment="接口代码")
     # 接口名称
@@ -85,7 +89,8 @@ class ApiSetup(db.Model):
     # XML文件成功导入后的归档地址
     Archived_Path = db.Column(db.String(500), nullable=True, comment="XML文件成功导入后的归档地址")
 
-    company = db.relationship("Company", backref="ApiSetup")
+    company = db.relationship("Company", backref="ApiSetup",
+                              primaryjoin=foreign(Company_Code) == remote(Company.Code))
 
 
 class ApiPInSetup(db.Model):
@@ -111,11 +116,9 @@ class ApiPInSetup(db.Model):
     # 最后修改人
     Last_Modified_By = db.Column(db.String(20), nullable=False, comment="最后修改人")
 
-    # __table_args__ = (
-    #     ForeignKeyConstraint(["Company_Code", "API_Code"], ["DMS_API_Setup.Company_Code", "DMS_API_Setup.API_Code"])
-    # )
-    apiSetup = db.relationship("ApiSetup", primaryjoin="(DMS_API_P_In_Setup.Company_Code == DMS_API_Setup.Company_Code) \
-                && (DMS_API_P_In_Setup.API_Code == DMS_API_Setup.API_Code)")
+    apiSetup = db.relationship("ApiSetup",
+                               primaryjoin=and_((foreign(Company_Code) == remote(ApiSetup.Company_Code)),
+                                                (foreign(API_Code) == remote(ApiSetup.API_Code))))
 
 
 class ApiPOutSetup(db.Model):
@@ -145,8 +148,9 @@ class ApiPOutSetup(db.Model):
     # 最后修改人
     Last_Modified_By = db.Column(db.String(20), nullable=False, comment="最后修改人")
 
-    apiSetup = db.relationship("ApiSetup", primaryjoin="(DMS_API_P_Out_Setup.Company_Code == DMS_API_Setup.Company_Code) \
-                    && (DMS_API_P_Out_Setup.API_Code == DMS_API_Setup.API_Code)")
+    apiSetup = db.relationship("ApiSetup",
+                               primaryjoin=and_((foreign(Company_Code) == remote(ApiSetup.Company_Code)),
+                                                (foreign(API_Code) == remote(ApiSetup.API_Code))))
 
 
 class NotificationUser(db.Model):
@@ -164,7 +168,7 @@ class NotificationUser(db.Model):
     # 最后修改人
     Last_Modified_By = db.Column(db.String(20), nullable=False, comment="最后修改人")
 
-    company = db.relationship("Company", backref="notificationUser")
+    company = db.relationship("Company", primaryjoin=foreign(Company_Code) == remote(Company.DMS_Company_Code), backref="notificationUser")
 
 
 class ApiTaskSetup(db.Model):
@@ -190,4 +194,4 @@ class ApiTaskSetup(db.Model):
     # 上次成功执行时间
     Last_Executed_Time = db.Column(db.DateTime, nullable=False, comment="上次成功执行时间")
 
-    setup = db.relationship("ApiSetup", backref="task")
+    setup = db.relationship("ApiSetup", primaryjoin=foreign(Company_Code) == remote(ApiSetup.Company_Code), backref="task")

@@ -1,5 +1,7 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
+from sqlalchemy.orm import foreign, remote
+
 from src import db
 
 
@@ -59,7 +61,7 @@ class CustVendBuffer(db.Model):
     PaymentTermsCode = db.Column(db.String(10), nullable=False)
     Template = db.Column(db.String(20), nullable=False)
     # Link to Table: DMSInterfaceInfo
-    Entry_No_ = db.Column("[Entry No_]", db.Integer, db.ForeignKey("DMSInterfaceInfo.[Entry No_]"), nullable=False)
+    Entry_No_ = db.Column("[Entry No_]", db.Integer, nullable=False)
     # 错误消息, 初始插入数据时插入空字符('')
     Error_Message = db.Column("[Error Message]", db.String(250), nullable=False, default="")
     # 导入时间
@@ -81,7 +83,9 @@ class CustVendBuffer(db.Model):
     Cost_Center_Code = db.Column("[Cost Center Code]", db.String(20), nullable=False)
     ICPartnerCode = db.Column(db.String(50), nullable=False)
 
-    entry = db.relationship("InterfaceInfo")
+    entry = db.relationship("InterfaceInfo",
+                            primaryjoin=foreign(Entry_No_) == remote(InterfaceInfo.Entry_No_))
+
 
 class FABuffer(db.Model):
     __tablename__ = "FABuffer"
@@ -99,7 +103,7 @@ class FABuffer(db.Model):
     VendorNo = db.Column(db.String(20), nullable=False)
     MaintenanceVendorNo = db.Column(db.String(20), nullable=False)
     # Link to Table: DMSInterfaceInfo
-    Entry_No_ = db.Column("[Entry No_]", db.Integer, db.ForeignKey("DMSInterfaceInfo.[Entry No_]"), nullable=False)
+    Entry_No_ = db.Column("[Entry No_]", db.Integer, nullable=False)
     # 错误消息, 初始插入数据时插入空字符('')
     Error_Message = db.Column("[Error Message]", db.String(250), nullable=False, default='', comment="错误消息")
     # 导入时间
@@ -117,7 +121,8 @@ class FABuffer(db.Model):
     DepreciationStartingDate = db.Column(db.DateTime, nullable=False)
     CostCenterCode = db.Column(db.String(20), nullable=False)
 
-    entry = db.relationship("InterfaceInfo")
+    entry = db.relationship("InterfaceInfo",
+                            primaryjoin=foreign(Entry_No_) == remote(InterfaceInfo.Entry_No_))
 
 
 class InvoiceHeaderBuffer(db.Model):
@@ -133,7 +138,7 @@ class InvoiceHeaderBuffer(db.Model):
     VehicleSeries = db.Column(db.String(20), nullable=False)
     ExtDocumentNo = db.Column(db.String(30), nullable=False)
     # Link to Table: DMSInterfaceInfo
-    Entry_No_ = db.Column("[Entry No_]", db.Integer, db.ForeignKey("DMSInterfaceInfo.[Entry No_]"), nullable=False)
+    Entry_No_ = db.Column("[Entry No_]", db.Integer, nullable=False)
     InvoiceType = db.Column(db.String(10), nullable=False)
     # 导入时间
     DateTime_Imported = db.Column("[DateTime Imported]", db.DateTime, nullable=False)
@@ -149,7 +154,8 @@ class InvoiceHeaderBuffer(db.Model):
     Description = db.Column(db.String(100), nullable=False)
     Location = db.Column(db.String(20), nullable=False)
 
-    entry = db.relationship("InterfaceInfo")
+    entry = db.relationship("InterfaceInfo",
+                            primaryjoin=foreign(Entry_No_) == remote(InterfaceInfo.Entry_No_))
 
 
 class InvoiceLineBuffer(db.Model):
@@ -167,7 +173,7 @@ class InvoiceLineBuffer(db.Model):
     LineCost = db.Column(db.DECIMAL(38, 20), nullable=False)
     TransactionType = db.Column(db.String(20), nullable=False)
     # Link to Table: DMSInterfaceInfo
-    Entry_No_ = db.Column("[Entry No_]", db.Integer, db.ForeignKey("DMSInterfaceInfo.[Entry No_]"), nullable=False)
+    Entry_No_ = db.Column("[Entry No_]", db.Integer, nullable=False)
     # 错误消息, 初始插入数据时插入空字符('')
     Error_Message = db.Column("[Error Message]", db.String(250), nullable=False, default='', comment="错误消息")
     # 导入时间
@@ -188,8 +194,10 @@ class InvoiceLineBuffer(db.Model):
     MovementType = db.Column(db.String(20), nullable=False)
     OEMCode = db.Column(db.String(20), nullable=False)
 
-    entry = db.relationship("InterfaceInfo")
-    invoiceHeader = db.relationship("InvoiceHeaderBuffer")
+    entry = db.relationship("InterfaceInfo",
+                            primaryjoin=foreign(Entry_No_) == remote(InterfaceInfo.Entry_No_))
+    invoiceHeader = db.relationship("InvoiceHeaderBuffer",
+                                    primaryjoin=foreign(InvoiceNo) == remote(InvoiceHeaderBuffer.InvoiceNo))
 
 
 class OtherBuffer(db.Model):
@@ -208,7 +216,7 @@ class OtherBuffer(db.Model):
     CostCenterCode = db.Column(db.String(20), nullable=False)
     VehicleSeries = db.Column(db.String(20), nullable=False)
     # Link to Table: DMSInterfaceInfo
-    Entry_No_ = db.Column("[Entry No_]", db.Integer, db.ForeignKey("DMSInterfaceInfo.[Entry No_]"), nullable=False)
+    Entry_No_ = db.Column("[Entry No_]", db.Integer, nullable=False)
     # 导入时间
     DateTime_Imported = db.Column("[DateTime Imported]", db.DateTime, nullable=False)
     # 处理时间, 初始插入数据时插入('1753-01-01 00:00:00.000')
@@ -234,6 +242,7 @@ class OtherBuffer(db.Model):
     DMSItemTransType = db.Column(db.String(20), nullable=False)
     Location = db.Column(db.String(20), nullable=False)
 
-    entry = db.relationship("InterfaceInfo")
+    entry = db.relationship("InterfaceInfo",
+                            primaryjoin=foreign(Entry_No_) == remote(InterfaceInfo.Entry_No_))
 
 

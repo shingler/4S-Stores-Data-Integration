@@ -1,5 +1,8 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
+from sqlalchemy import and_
+from sqlalchemy.orm import foreign, remote
+
 from src import db
 from . import dms, system
 
@@ -8,7 +11,7 @@ class NotificationLog(db.Model):
     __tablename__ = "Notification_Log"
     ID = db.Column(db.Integer, nullable=False, primary_key=True)
     # 公司代码(Link to table: DMS_API_Setup)
-    Company_Code = db.Column(db.String(20), db.ForeignKey("DMS_API_Setup.Company_Code"), nullable=False, comment="公司代码(Link to table: DMS_API_Setup)")
+    Company_Code = db.Column(db.String(20), nullable=False, comment="公司代码(Link to table: DMS_API_Setup)")
     # 接口代码(Link to table: DMS_API_Setup)
     API_Code = db.Column(db.String(100), nullable=False, comment="接口代码(Link to table: DMS_API_Setup)")
     # 收件人
@@ -27,7 +30,7 @@ class APILog(db.Model):
     __tablename__ = "API_Log"
     ID = db.Column(db.Integer, nullable=False, primary_key=True, comment="ID")
     # 公司代码(Link to table: DMS_API_Setup)
-    Company_Code = db.Column(db.String(20), db.ForeignKey("DMS_API_Setup.Company_Code"), nullable=False, comment="公司代码(Link to table: DMS_API_Setup)")
+    Company_Code = db.Column(db.String(20), nullable=False, comment="公司代码(Link to table: DMS_API_Setup)")
     # 接口代码(Link to table: DMS_API_Setup)
     API_Code = db.Column(db.String(100), nullable=False, comment="接口代码(Link to table: DMS_API_Setup)")
     # API输入参数(http包)
@@ -45,6 +48,8 @@ class APILog(db.Model):
     # 用户ID(Link to table: User_List), 如果为系统自动执行，值为System
     UserID = db.Column(db.String(50), nullable=False, comment="用户ID")
 
-    company = db.relationship("dms.ApiSetup", primaryjoin="(API_Log.Company_Code == DMS_API_Setup.Company_Code) \
-                && (API_Log.API_Code == DMS_API_Setup.API_Code)")
-    user = db.relationship("system.UserList")
+    company = db.relationship("dms.ApiSetup", primaryjoin=and_(
+        (foreign(Company_Code) == remote(dms.ApiSetup.Company_Code)),
+        (foreign(API_Code) == remote(dms.ApiSetup.API_Code))))
+
+    user = db.relationship("system.UserList", primaryjoin=foreign(UserID) == remote(system.UserList.UserID))
