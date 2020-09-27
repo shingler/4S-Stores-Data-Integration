@@ -23,7 +23,8 @@ class NotificationLog(db.Model):
     # 发送时间
     Sent_DT = db.Column(db.DateTime, nullable=False, comment="发送时间")
 
-    company = db.relationship("dms.ApiSetup")
+    company = db.relationship("dms.ApiSetup",
+                              primaryjoin=foreign(Company_Code) == remote(dms.ApiSetup.Company_Code))
 
 
 class APILog(db.Model):

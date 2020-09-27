@@ -92,6 +92,10 @@ class ApiSetup(db.Model):
     company = db.relationship("Company", backref="ApiSetup",
                               primaryjoin=foreign(Company_Code) == remote(Company.Code))
 
+    def __repr__(self):
+        return "Company_Code: %s, API_Code: %s, API_Type: %d, API_Address1: %s" % \
+               (self.Company_Code, self.API_Code, self.API_Type, self.API_Address1)
+
 
 class ApiPInSetup(db.Model):
     __tablename__ = "DMS_API_P_In_Setup"
