@@ -17,7 +17,7 @@ class CustVend(DMSBase):
 
     # 根据公司列表和接口设置确定数据源
     def load_config_from_api_setup(self, company_code, api_code) -> dms.ApiSetup:
-        api_setup = db.session.query(dms.ApiSetup).filter(dms.ApiSetup.Company_Code == company_code)\
+        api_setup = db.session.query(dms.ApiSetup).filter(dms.ApiSetup.Company_Code == company_code) \
             .filter(dms.ApiSetup.API_Code == api_code).first()
         return api_setup
 
@@ -35,7 +35,6 @@ class CustVend(DMSBase):
             xml_src = "%s/%s" % (apiSetUp.API_Address2, apiSetUp.Archived_Path)
         return xml_src
 
-
     # 读取接口
     def load_data_from_dms_interface(self):
         return []
@@ -49,17 +48,40 @@ class CustVend(DMSBase):
             data = xmltodict.parse(xml_handler.read())
         return data
 
+    # 读取general配置
+    def load_api_p_out_nodes(self, company_code, api_code, node_type="general"):
+        node_dict = {}
+        api_p_out_lv2_config = db.session.query(dms.ApiPOutSetup) \
+            .filter(dms.ApiPOutSetup.Company_Code == company_code) \
+            .filter(dms.ApiPOutSetup.API_Code == api_code) \
+            .filter(dms.ApiPOutSetup.Level == 2) \
+            .filter(dms.ApiPOutSetup.Parent_Node_Name == node_type) \
+            .order_by(dms.ApiPOutSetup.Sequence.asc()).all()
+        for one in api_p_out_lv2_config:
+            if one.P_Name not in node_dict:
+                node_dict[one.P_Name] = one
+        print(node_dict)
+        return node_dict
+
+    # 从api_p_out获取数据
+    def splice_general_info(self, data, node_dict):
+        data_dict = {}
+        for key, value in data["Transaction"]["General"].items():
+            if key in node_dict:
+                data_dict[key] = value
+        # print(data_dict)
+        return data_dict
+
     # 写入interfaceinfo获得entry_no
-    def save_data_to_interfaceinfo(self, DMSCode, DMSTitle, CompanyCode, CompanyTitle, CreateDateTime, Creator,
-                                   Type, Count, XMLFile=""):
+    def save_data_to_interfaceinfo(self, general_data, Type, Count, XMLFile=""):
         # 用数据初始化对象
         interfaceInfo = nav.InterfaceInfo(
-            DMSCode=DMSCode,
-            DMSTitle=DMSTitle,
-            CompanyCode=CompanyCode,
-            CompanyTitle=CompanyTitle,
-            CreateDateTime=CreateDateTime,
-            Creator=Creator,
+            DMSCode=general_data["DMSCode"],
+            DMSTitle=general_data["DMSTitle"],
+            CompanyCode=general_data["CompanyCode"],
+            CompanyTitle=general_data["CompanyTitle"],
+            CreateDateTime=general_data["CreateDateTime"],
+            Creator=general_data["Creator"],
             XMLFileName=XMLFile,
             Type=Type,
             Customer_Vendor_Total_Count=0,
@@ -79,23 +101,49 @@ class CustVend(DMSBase):
         else:
             interfaceInfo.Other_Transaction_Total_Count = Count
 
-        interfaceInfo.Entry_No_ = self.getNewEntryNo()
+        interfaceInfo.Entry_No_ = interfaceInfo.getLatestEntryNo()
 
         db.session.add(interfaceInfo)
         db.session.commit()
         db.session.flush()
         return interfaceInfo.Entry_No_
 
-    # 单线程版获取最大id然后+1
-    def getNewEntryNo(self):
-        max_entry_id = db.session.query(func.max(nav.InterfaceInfo).label("max")).first()
-        return max_entry_id+1
+    # 从api_p_out获取数据
+    def splice_data_info(self, data, node_dict):
+        data_dict_list = []
+        if len(data["Transaction"]["CustVendInfo"]) == 1:
+            data["Transaction"]["CustVendInfo"] = [data["Transaction"]["CustVendInfo"]]
+        for row in data["Transaction"]["CustVendInfo"]:
+            data_dict = {}
+            for key, value in row.items():
+                if key in node_dict:
+                    data_dict[key] = value
+            # print(data_dict)
+            data_dict_list.append(data_dict)
+        return data_dict_list
 
     # 根据API_P_Out写入CustVendInfo库
-    def save_data_to_custVendInfo(self):
-        pass
+    def save_data_to_custVendInfo(self, custVend_data, entry_no):
+        if type(custVend_data) == "dict":
+            custVend_data = [custVend_data]
+
+        for row in custVend_data:
+            custVend_obj = nav.CustVendBuffer(Entry_No_=entry_no)
+            custVend_obj.Record_ID = custVend_obj.getLatestRecordId()
+            for key, value in row.items():
+                if key == "Type" and value == "Customer":
+                    value = 0
+                elif key == "Type" and value == "Vendor":
+                    value = 1
+                elif key == "Type":
+                    value = 2
+
+                # 自动赋值
+                custVend_obj.__setattr__(key, value)
+            # print(custVend_obj)
+            db.session.add(custVend_obj)
+        db.session.commit()
 
     # 将entry_no作为参数写入指定的ws
     def call_web_service(self):
         pass
-

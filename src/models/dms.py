@@ -156,6 +156,10 @@ class ApiPOutSetup(db.Model):
                                primaryjoin=and_((foreign(Company_Code) == remote(ApiSetup.Company_Code)),
                                                 (foreign(API_Code) == remote(ApiSetup.API_Code))))
 
+    def __repr__(self):
+        return "<Sequence=%d, P_Name=%s, Level=%d, Parent_Node_Name=%s, Value_Type=%d>" \
+               % (self.Sequence, self.P_Name, self.Level, self.Parent_Node_Name, self.Value_Type)
+
 
 class NotificationUser(db.Model):
     __tablename__ = "DMS_Notification_User"

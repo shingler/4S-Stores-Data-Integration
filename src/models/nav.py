@@ -1,5 +1,8 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
+import datetime
+
+from sqlalchemy import func
 from sqlalchemy.orm import foreign, remote
 
 from src import db
@@ -38,54 +41,88 @@ class InterfaceInfo(db.Model):
     # FA记录数, 对应FA文件或接口
     FA_Total_Count = db.Column("[FA Total Count]", db.Integer, nullable=False, comment="FA记录数, 对应FA文件或接口")
 
+    def __repr__(self):
+        return "EntryNo = %s: <DMSCode: %s, CompanyCode: %s>" %\
+               (self.Entry_No_, self.DMSCode, self.CompanyCode)
+
+    # 获取最大id然后+1
+    def getLatestEntryNo(self):
+        max_entry_id = db.session.query(func.max(self.__class__.Entry_No_)).scalar()
+        # max_entry_id = 0
+        return max_entry_id + 1 if max_entry_id is not None else 1
+
 
 class CustVendBuffer(db.Model):
     __tablename__ = "CustVendBuffer"
     # 非自增字段
     Record_ID = db.Column("[Record ID]", db.Integer, nullable=False, primary_key=True, comment="非自增字段")
-    No_ = db.Column(db.String(20), nullable=False)
-    Name = db.Column(db.String(50), nullable=False)
-    Address = db.Column(db.String(50), nullable=False)
-    City = db.Column(db.String(30), nullable=False)
-    Post_Code = db.Column("[Post Code]", db.String(20), nullable=False)
+    No_ = db.Column(db.String(20), default='', nullable=False)
+    Name = db.Column(db.String(50), default='', nullable=False)
+    Address = db.Column(db.String(50), default='', nullable=False)
+    City = db.Column(db.String(30), default='', nullable=False)
+    Post_Code = db.Column("[Post Code]", db.String(20), default='', nullable=False)
     # 默认值为'CN-0086'
     Country = db.Column(db.String(10), nullable=False, default="CN-0086")
     # 如果值为'RMB', 则插入空字符('')
-    Currency = db.Column(db.String(10), nullable=False, comment="FA记录数, 对应FA文件或接口")
+    Currency = db.Column(db.String(10), nullable=False, default='', comment="FA记录数, 对应FA文件或接口")
     # 插入空字符('')
     Gen_Bus_Posting_Group = db.Column("[Gen_ Bus_ Posting Group]", db.String(10), nullable=False, default='')
     # 插入空字符('')
     VAT_Bus_Posting_Group = db.Column("[VAT Bus_ Posting Group]", db.String(10), nullable=False, default='')
     # 插入空字符('')
     Cust_VendPostingGroup = db.Column(db.String(10), nullable=False, default="")
-    Application_Method = db.Column("[Application Method]", db.String(20), nullable=False)
-    PaymentTermsCode = db.Column(db.String(10), nullable=False)
-    Template = db.Column(db.String(20), nullable=False)
+    Application_Method = db.Column("[Application Method]", db.String(20), nullable=False, default='')
+    PaymentTermsCode = db.Column(db.String(10), nullable=False, default='')
+    Template = db.Column(db.String(20), nullable=False, default='')
     # Link to Table: DMSInterfaceInfo
     Entry_No_ = db.Column("[Entry No_]", db.Integer, nullable=False)
     # 错误消息, 初始插入数据时插入空字符('')
     Error_Message = db.Column("[Error Message]", db.String(250), nullable=False, default="")
     # 导入时间
-    DateTime_Imported = db.Column("[DateTime Imported]", db.DateTime, nullable=False, comment="导入时间")
+    DateTime_Imported = db.Column("[DateTime Imported]", db.DateTime, nullable=False, default=str(datetime.datetime.now()), comment="导入时间")
     # 处理时间, 初始插入数据时插入('1753-01-01 00:00:00.000')
     DateTime_Handled = db.Column("[DateTime Handled]", db.DateTime, nullable=False, default="1753-01-01 00:00:00.000", comment="处理时间, 初始插入数据时插入('1753-01-01 00:00:00.000')")
     # 类型(0 - Customer, 1 - Vendor, 3 - Unknow)
-    Type = db.Column(db.Integer, nullable=False, comment="类型(0 - Customer, 1 - Vendor, 3 - Unknow)")
+    Type = db.Column(db.Integer, nullable=False, default=1, comment="类型(0 - Customer, 1 - Vendor, 3 - Unknow)")
     # 处理人, 初始插入数据时插入空字符('')
-    Handled_by = db.Column("[Handled by]", db.String(20), nullable=False, comment="F处理人, [Entry No_]初始插入数据时插入空字符('')", default='')
-    Address_2 = db.Column("[Address 2]", db.String(50), nullable=False)
-    PhoneNo = db.Column(db.String(30), nullable=False)
-    FaxNo = db.Column(db.String(30), nullable=False)
-    Blocked = db.Column(db.String(10), nullable=False)
-    Email = db.Column(db.String(50), nullable=False)
-    ARAPAccountNo = db.Column(db.String(50), nullable=False)
-    PricesIncludingVAT = db.Column(db.Integer, nullable=False)
-    PaymentMethodCode = db.Column(db.String(20), nullable=False)
-    Cost_Center_Code = db.Column("[Cost Center Code]", db.String(20), nullable=False)
-    ICPartnerCode = db.Column(db.String(50), nullable=False)
+    Handled_by = db.Column("[Handled by]", db.String(20), nullable=False, comment="处理人", default='')
+    Address_2 = db.Column("[Address 2]", db.String(50), nullable=False, default='')
+    PhoneNo = db.Column(db.String(30), nullable=False, default='')
+    FaxNo = db.Column(db.String(30), nullable=False, default='')
+    Blocked = db.Column(db.String(10), nullable=False, default='')
+    Email = db.Column(db.String(50), nullable=False, default='')
+    ARAPAccountNo = db.Column(db.String(50), nullable=False, default='')
+    PricesIncludingVAT = db.Column(db.Integer, nullable=False, default='')
+    PaymentMethodCode = db.Column(db.String(20), nullable=False, default='')
+    Cost_Center_Code = db.Column("[Cost Center Code]", db.String(20), nullable=False, default='')
+    ICPartnerCode = db.Column(db.String(50), nullable=False, default='')
 
     entry = db.relationship("InterfaceInfo",
                             primaryjoin=foreign(Entry_No_) == remote(InterfaceInfo.Entry_No_))
+
+    def __repr__(self):
+        return "[Record ID]=%d: <'Type': '%s', 'No': '%s', 'Name': '%s', [Entry No_]: '%s'>" \
+               % (self.Record_ID, self.Type, self.No_, self.Name, self.Entry_No_)
+
+    # 来源字段和对象字段不一致的特殊情况
+    def __setattr__(self, key, value):
+        if key == "No":
+            self.__dict__["No_"] = value
+        elif key == "Postcode":
+            self.__dict__["Post_Code"] = value
+        elif key == "ApplicationMethod":
+            self.__dict__["Application_Method"] = value
+        elif key == "Address2":
+            self.__dict__["Address_2"] = value
+        elif key == "CostCenterCode":
+            self.__dict__["Cost_Center_Code"] = value
+        else:
+            self.__dict__[key] = value
+
+    # 获得当前最大的主键并+1返回
+    def getLatestRecordId(self):
+        max_record_id = db.session.query(func.max(self.__class__.Record_ID)).scalar()
+        return max_record_id + 1 if max_record_id is not None else 1
 
 
 class FABuffer(db.Model):
