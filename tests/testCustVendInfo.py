@@ -14,19 +14,6 @@ global_vars = {}
 cv_obj = CustVend()
 
 
-@pytest.fixture(scope="module")
-def create_app():
-    app = Flask(__name__)
-    app.config.from_object("settings.Development")
-    db = SQLAlchemy()
-    db.init_app(app)
-
-    app_context = app.app_context()
-    app_context.push()
-
-    return app, db
-
-
 # 根据公司列表和接口设置确定数据源
 def test_1_dms_source(init_app):
     print("test_1_dms_source")
@@ -109,5 +96,22 @@ def test_5_valid_data(init_app):
 
 # 将entry_no作为参数写入指定的ws
 @pytest.mark.skip("先跑通app上下文")
-def test_6_invoke_ws():
+def test_6_invoke_ws(init_app):
     cv_obj.call_web_service()
+
+
+# 清理测试数据
+def test_7_cleanup(init_app):
+    (app, db) = init_app
+    entry_no = global_vars["entry_no"]
+
+    print("清理entry_no=%d的数据..." % entry_no)
+
+    cust_list = db.session.query(nav.CustVendBuffer).filter(nav.CustVendBuffer.Entry_No_ == entry_no).all()
+    for cust in cust_list:
+        db.session.delete(cust)
+    interfaceInfo = db.session.query(nav.InterfaceInfo).filter(nav.InterfaceInfo.Entry_No_ == entry_no).first()
+    db.session.delete(interfaceInfo)
+
+    db.session.commit()
+
