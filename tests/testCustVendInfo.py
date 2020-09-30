@@ -44,7 +44,6 @@ def test_2_load_from_dms(init_app):
 # 写入interfaceinfo获得entry_no
 # @pytest.mark.skip("先跑通app上下文")
 def test_3_save_interface(init_app):
-    app, db = init_app
     general_node_dict = cv_obj.load_api_p_out_nodes(company_code, api_code, node_type="general")
     assert len(general_node_dict) > 0
     assert "DMSCode" in general_node_dict
@@ -67,7 +66,6 @@ def test_3_save_interface(init_app):
 # 根据API_P_Out写入CustVendInfo库
 # @pytest.mark.skip("先跑通app上下文")
 def test_4_save_custVendInfo(init_app):
-    app, db = init_app
     data = global_vars["data"]
     entry_no = global_vars["entry_no"]
 
