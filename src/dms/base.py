@@ -81,6 +81,8 @@ class DMSBase:
             return data_dict
         else:
             data_dict_list = []
+            list_node = data[node_lv0][node_lv1]
+            data[node_lv0][node_lv1] = list_node if type(list_node) == "List" else [list_node]
             for row in data[node_lv0][node_lv1]:
                 data_dict = {}
                 for key, value in row.items():
@@ -130,3 +132,15 @@ class DMSBase:
         db.session.commit()
         db.session.flush()
         return interfaceInfo.Entry_No_
+
+    # 从api_p_out获取数据
+    def splice_data_info(self, data, node_dict):
+        pass
+
+    # 根据API_P_Out写入nav表
+    def save_data_to_nav(self, nav_data, entry_no):
+        pass
+
+    # 将entry_no作为参数写入指定的ws
+    def call_web_service(self):
+        pass

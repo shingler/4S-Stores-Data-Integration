@@ -129,23 +129,23 @@ class FABuffer(db.Model):
     __tablename__ = "FABuffer"
     # 非自增主键
     Record_ID = db.Column("[Record ID]", db.Integer, nullable=False, primary_key=True, autoincrement=False)
-    FANo_ = db.Column(db.String(20), nullable=False)
-    Description = db.Column(db.String(30), nullable=False)
-    SerialNo = db.Column(db.String(30), nullable=False)
-    Inactive = db.Column(db.Integer, nullable=False)
-    Blocked = db.Column(db.Integer, nullable=False)
-    FAClassCode = db.Column(db.String(10), nullable=False)
-    FASubclassCode = db.Column(db.String(10), nullable=False)
-    FALocationCode = db.Column(db.String(10), nullable=False)
-    BudgetedAsset = db.Column(db.Integer, nullable=False)
-    VendorNo = db.Column(db.String(20), nullable=False)
-    MaintenanceVendorNo = db.Column(db.String(20), nullable=False)
+    FANo_ = db.Column(db.String(20), default='', nullable=False)
+    Description = db.Column(db.String(30), default='', nullable=False)
+    SerialNo = db.Column(db.String(30), default='', nullable=False)
+    Inactive = db.Column(db.Integer, default=0, nullable=False)
+    Blocked = db.Column(db.Integer, default=0, nullable=False)
+    FAClassCode = db.Column(db.String(10), default='', nullable=False)
+    FASubclassCode = db.Column(db.String(10), default='', nullable=False)
+    FALocationCode = db.Column(db.String(10), default='', nullable=False)
+    BudgetedAsset = db.Column(db.Integer, default=0, nullable=False)
+    VendorNo = db.Column(db.String(20), default='', nullable=False)
+    MaintenanceVendorNo = db.Column(db.String(20), default='', nullable=False)
     # Link to Table: DMSInterfaceInfo
     Entry_No_ = db.Column("[Entry No_]", db.Integer, nullable=False)
     # 错误消息, 初始插入数据时插入空字符('')
     Error_Message = db.Column("[Error Message]", db.String(250), nullable=False, default='', comment="错误消息")
     # 导入时间
-    DateTime_Imported = db.Column("[DateTime Imported]", db.DateTime, nullable=False, comment="导入时间")
+    DateTime_Imported = db.Column("[DateTime Imported]", db.DateTime, default=str(datetime.datetime.now()), nullable=False, comment="导入时间")
     # 处理时间, 初始插入数据时插入('1753-01-01 00:00:00.000')
     DateTime_Handled = db.Column("[DateTime Handled]", db.DateTime, nullable=False, default="1753-01-01 00:00:00.000", comment="处理时间, 初始插入数据时插入('1753-01-01 00:00:00.000')")
     UnderMaintenance = db.Column(db.Integer, nullable=False)
@@ -155,12 +155,24 @@ class FABuffer(db.Model):
     NextServiceDate = db.Column(db.DateTime, nullable=False, default="1753-01-01 00:00:00.000")
     # 如文件或接口里没有值, 初始插入数据时插入('1753-01-01 00:00:00.000')
     WarrantyDate = db.Column(db.DateTime, nullable=False, default="1753-01-01 00:00:00.000")
-    DepreciationPeriod = db.Column(db.Integer, nullable=False)
-    DepreciationStartingDate = db.Column(db.DateTime, nullable=False)
-    CostCenterCode = db.Column(db.String(20), nullable=False)
+    DepreciationPeriod = db.Column(db.Integer, default=0, nullable=False)
+    DepreciationStartingDate = db.Column(db.DateTime, default=str(datetime.datetime.now()), nullable=False)
+    CostCenterCode = db.Column(db.String(20), default='', nullable=False)
 
     entry = db.relationship("InterfaceInfo",
                             primaryjoin=foreign(Entry_No_) == remote(InterfaceInfo.Entry_No_))
+
+    # 来源字段和对象字段不一致的特殊情况
+    def __setattr__(self, key, value):
+        if key == "FANo":
+            self.__dict__["FANo_"] = value
+        else:
+            self.__dict__[key] = value
+
+    # 获得当前最大的主键并+1返回
+    def getLatestRecordId(self):
+        max_record_id = db.session.query(func.max(self.__class__.Record_ID)).scalar()
+        return max_record_id + 1 if max_record_id is not None else 1
 
 
 class InvoiceHeaderBuffer(db.Model):
