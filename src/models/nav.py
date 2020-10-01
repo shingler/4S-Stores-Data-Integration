@@ -116,6 +116,12 @@ class CustVendBuffer(db.Model):
             self.__dict__["Address_2"] = value
         elif key == "CostCenterCode":
             self.__dict__["Cost_Center_Code"] = value
+        elif key == "Type" and value == "Customer":
+            self.__dict__["Type"] = 0
+        elif key == "Type" and value == "Vendor":
+            self.__dict__["Type"] = 1
+        elif key == "Type":
+            self.__dict__["Type"] = 2
         else:
             self.__dict__[key] = value
 
@@ -253,46 +259,78 @@ class InvoiceLineBuffer(db.Model):
 class OtherBuffer(db.Model):
     __tablename__ = "OtherBuffer"
     Record_ID = db.Column("[Record ID]", db.Integer, nullable=False, primary_key=True, autoincrement=False)
-    DocumentNo_ = db.Column(db.String(20), nullable=False)
-    TransactionType = db.Column(db.String(20), nullable=False)
-    Line_No_ = db.Column("[Line No_]", db.Integer, nullable=False)
-    Posting_Date = db.Column("[Posting Date]", db.DateTime, nullable=False)
-    Document_Date = db.Column("[Document Date]", db.DateTime, nullable=False)
-    ExtDocumentNo_ = db.Column(db.String(20), nullable=False)
-    Account_No_ = db.Column("[Account No_]", db.String(50), nullable=False)
-    Description = db.Column(db.String(100), nullable=False)
-    Debit_Value = db.Column("[Debit Value]", db.DECIMAL(38, 20), nullable=False)
-    Credit_Value = db.Column("[Credit Value]", db.DECIMAL(38, 20), nullable=False)
-    CostCenterCode = db.Column(db.String(20), nullable=False)
-    VehicleSeries = db.Column(db.String(20), nullable=False)
+    DocumentNo_ = db.Column(db.String(20), default="", nullable=False)
+    TransactionType = db.Column(db.String(20), default="", nullable=False)
+    Line_No_ = db.Column("[Line No_]", db.Integer, default=0, nullable=False)
+    Posting_Date = db.Column("[Posting Date]", db.DateTime, default=str(datetime.datetime.now()), nullable=False)
+    Document_Date = db.Column("[Document Date]", db.DateTime, default=str(datetime.datetime.now()), nullable=False)
+    ExtDocumentNo_ = db.Column(db.String(20), default="", nullable=False)
+    Account_No_ = db.Column("[Account No_]", db.String(50), default="", nullable=False)
+    Description = db.Column(db.String(100), default="", nullable=False)
+    Debit_Value = db.Column("[Debit Value]", db.DECIMAL(38, 20), default=0, nullable=False)
+    Credit_Value = db.Column("[Credit Value]", db.DECIMAL(38, 20), default=0, nullable=False)
+    CostCenterCode = db.Column(db.String(20), default="", nullable=False)
+    VehicleSeries = db.Column(db.String(20), default="", nullable=False)
     # Link to Table: DMSInterfaceInfo
-    Entry_No_ = db.Column("[Entry No_]", db.Integer, nullable=False)
+    Entry_No_ = db.Column("[Entry No_]", db.Integer, default=0, nullable=False)
     # 导入时间
-    DateTime_Imported = db.Column("[DateTime Imported]", db.DateTime, nullable=False)
+    DateTime_Imported = db.Column("[DateTime Imported]", db.DateTime, default=str(datetime.datetime.now()), nullable=False)
     # 处理时间, 初始插入数据时插入('1753-01-01 00:00:00.000')
     DateTime_handled = db.Column("[DateTime handled]", db.DateTime, nullable=False, default="1753-01-01 00:00:00.000'", comment="处理时间")
     # 错误消息, 初始插入数据时插入空字符('')
     Error_Message = db.Column("[Error Message]", db.String(250), nullable=False, default="", comment="错误消息")
     # 处理人, 初始插入数据时插入空字符('')
     Handled_by = db.Column("[Handled by]", db.String(20), nullable=False, default='', comment="处理人")
-    AccountType = db.Column(db.String(20), nullable=False)
-    WIP_No_ = db.Column("[WIP No_]", db.String(20), nullable=False)
-    FA_Posting_Type = db.Column("[FA Posting Type]", db.String(20), nullable=False)
-    EntryType = db.Column(db.String(20), nullable=False)
-    FromCompanyName = db.Column(db.String(50), nullable=False)
-    ToCompanyName = db.Column(db.String(50), nullable=False)
-    VIN = db.Column(db.String(20), nullable=False)
-    SourceType = db.Column(db.String(20), nullable=False)
-    SourceNo = db.Column(db.String(30), nullable=False)
+    AccountType = db.Column(db.String(20), default="", nullable=False)
+    WIP_No_ = db.Column("[WIP No_]", db.String(20), default="", nullable=False)
+    FA_Posting_Type = db.Column("[FA Posting Type]", db.String(20), default="", nullable=False)
+    EntryType = db.Column(db.String(20), default="", nullable=False)
+    FromCompanyName = db.Column(db.String(50), default="", nullable=False)
+    ToCompanyName = db.Column(db.String(50), default="", nullable=False)
+    VIN = db.Column(db.String(20), default="", nullable=False)
+    SourceType = db.Column(db.String(20), default="", nullable=False)
+    SourceNo = db.Column(db.String(30), default="", nullable=False)
     # 初始插入数据时插入0
     NotDuplicated = db.Column(db.Integer, nullable=False, default=0)
     # 初始插入数据时插入空字符('')
     NAVDocumentNo_ = db.Column(db.String(20), nullable=False, default='')
-    DMSItemType = db.Column(db.String(20), nullable=False)
-    DMSItemTransType = db.Column(db.String(20), nullable=False)
-    Location = db.Column(db.String(20), nullable=False)
+    DMSItemType = db.Column(db.String(20), default="", nullable=False)
+    DMSItemTransType = db.Column(db.String(20), default="", nullable=False)
+    Location = db.Column(db.String(20), default="", nullable=False)
 
     entry = db.relationship("InterfaceInfo",
                             primaryjoin=foreign(Entry_No_) == remote(InterfaceInfo.Entry_No_))
+
+    # 来源字段和对象字段不一致的特殊情况
+    def __setattr__(self, key, value):
+        if key == "DaydookNo":
+            self.__dict__["DocumentNo_"] = value
+        elif key == "LineNo":
+            self.__dict__["Line_No_"] = value
+        elif key == "PostingDate":
+            self.__dict__["Posting_Date"] = value
+        elif key == "DocumentDate":
+            self.__dict__["Document_Date"] = value
+        elif key == "ExtDocumentNo":
+            self.__dict__["ExtDocumentNo_"] = value
+        elif key == "AccountNo":
+            self.__dict__["Account_No_"] = value
+        elif key == "DebitValue":
+            self.__dict__["Debit_Value"] = value
+        elif key == "CreditValue":
+            self.__dict__["Credit_Value"] = value
+        elif key == "WIPNo":
+            self.__dict__["WIP_No_"] = value
+        elif key == "FAPostingType":
+            self.__dict__["FA_Posting_Type"] = value
+        elif key == "VINNo":
+            self.__dict__["VIN"] = value
+        else:
+            self.__dict__[key] = value
+
+    # 获得当前最大的主键并+1返回
+    def getLatestRecordId(self):
+        max_record_id = db.session.query(func.max(self.__class__.Record_ID)).scalar()
+        return max_record_id + 1 if max_record_id is not None else 1
 
 

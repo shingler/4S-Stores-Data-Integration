@@ -50,15 +50,15 @@ class DMSBase:
         return data
 
     # 读取出参配置配置
-    def load_api_p_out_nodes(self, company_code, api_code, node_type="general"):
+    def load_api_p_out_nodes(self, company_code, api_code, node_type="general", depth=2):
         node_dict = {}
-        api_p_out_lv2_config = db.session.query(dms.ApiPOutSetup) \
+        api_p_out_config = db.session.query(dms.ApiPOutSetup) \
             .filter(dms.ApiPOutSetup.Company_Code == company_code) \
             .filter(dms.ApiPOutSetup.API_Code == api_code) \
-            .filter(dms.ApiPOutSetup.Level == 2) \
+            .filter(dms.ApiPOutSetup.Level == depth) \
             .filter(dms.ApiPOutSetup.Parent_Node_Name == node_type) \
             .order_by(dms.ApiPOutSetup.Sequence.asc()).all()
-        for one in api_p_out_lv2_config:
+        for one in api_p_out_config:
             if one.P_Name not in node_dict:
                 node_dict[one.P_Name] = one
         # print(node_dict)
@@ -82,8 +82,10 @@ class DMSBase:
         else:
             data_dict_list = []
             list_node = data[node_lv0][node_lv1]
-            data[node_lv0][node_lv1] = list_node if type(list_node) == "List" else [list_node]
+            data[node_lv0][node_lv1] = list_node if type(list_node) == "List" else list(list_node,)
+
             for row in data[node_lv0][node_lv1]:
+                # print(row, type(row))
                 data_dict = {}
                 for key, value in row.items():
                     if key in node_dict:
@@ -138,8 +140,19 @@ class DMSBase:
         pass
 
     # 根据API_P_Out写入nav表
-    def save_data_to_nav(self, nav_data, entry_no):
-        pass
+    def save_data_to_nav(self, nav_data, entry_no, TABLE_CLASS):
+        if type(nav_data) == "dict":
+            nav_data = [nav_data]
+
+        for row in nav_data:
+            other_obj = TABLE_CLASS(Entry_No_=entry_no)
+            other_obj.Record_ID = other_obj.getLatestRecordId()
+            for key, value in row.items():
+                # 自动赋值
+                other_obj.__setattr__(key, value)
+            # print(custVend_obj)
+            db.session.add(other_obj)
+        db.session.commit()
 
     # 将entry_no作为参数写入指定的ws
     def call_web_service(self):

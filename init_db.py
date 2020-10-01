@@ -505,8 +505,8 @@ with app.app_context():
             Company_Code="K302ZH", API_Code="FA",
             Sequence=15, P_Code="PhoneNo",
             P_Name="PhoneNo", Level=2,
-            Parent_Node_Name="CustVendInfo", Value_Type=1,
-            Table_Name="CustVendBuffer", Column_Name="PhoneNo",
+            Parent_Node_Name="FA", Value_Type=1,
+            Table_Name="FABuffer", Column_Name="PhoneNo",
             Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
         ),
         ApiPOutSetup(
@@ -1039,7 +1039,7 @@ with app.app_context():
             Company_Code="K302ZH", API_Code="Other",
             Sequence=11, P_Code="Line",
             P_Name="Line", Level=2,
-            Parent_Node_Name="Daydook", Value_Type=1,
+            Parent_Node_Name="Daydook", Value_Type=6,
             Table_Name="", Column_Name="",
             Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
         ),
