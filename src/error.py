@@ -4,3 +4,7 @@
 
 class DataFieldEmptyError(Exception):
     pass
+
+
+class InvoiceEmptyError(Exception):
+    pass

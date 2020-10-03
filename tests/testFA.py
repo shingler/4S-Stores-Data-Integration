@@ -56,7 +56,7 @@ def test_3_save_interface(init_app):
     entry_no = fa_obj.save_data_to_interfaceinfo(
         general_data=general_dict,
         Type=1,
-        Count=len(data["Transaction"]["FA"]),
+        Count=fa_obj.get_count_from_data(data["Transaction"], "FA"),
         XMLFile=global_vars["xml_src_path"] if global_vars["xml_src_path"] else "")
     assert entry_no != 0
 
@@ -89,6 +89,7 @@ def test_5_valid_data(init_app):
 
     # 检查数据正确性
     assert interfaceInfo.DMSCode == "28976"
+    assert interfaceInfo.FA_Total_Count == 1
     assert len(faList) > 0
     assert faList[0].FANo_ == "FA0001"
 

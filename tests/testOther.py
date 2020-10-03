@@ -56,7 +56,7 @@ def test_3_save_interface(init_app):
     entry_no = other_obj.save_data_to_interfaceinfo(
         general_data=general_dict,
         Type=1,
-        Count=len(data["Transaction"]["Daydook"]),
+        Count=other_obj.get_count_from_data(data["Transaction"], "Daydook"),
         XMLFile=global_vars["xml_src_path"] if global_vars["xml_src_path"] else "")
     assert entry_no != 0
 
@@ -90,6 +90,7 @@ def test_5_valid_data(init_app):
 
     # 检查数据正确性
     assert interfaceInfo.DMSCode == "7000320"
+    assert interfaceInfo.Invoice_Total_Count == 1
     assert len(lineList) > 0
     assert lineList[0].DocumentNo_ == "XXXXX"
     assert lineList[0].SourceNo == "C0000001"

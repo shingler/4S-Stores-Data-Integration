@@ -56,7 +56,7 @@ def test_3_save_interface(init_app):
     entry_no = cv_obj.save_data_to_interfaceinfo(
         general_data=general_dict,
         Type=0,
-        Count=len(data["Transaction"]["CustVendInfo"]),
+        Count=cv_obj.get_count_from_data(data["Transaction"], "CustVendInfo"),
         XMLFile=global_vars["xml_src_path"] if global_vars["xml_src_path"] else "")
     assert entry_no != 0
 
@@ -88,6 +88,7 @@ def test_5_valid_data(init_app):
 
     # 检查数据正确性
     assert interfaceInfo.DMSCode == "7000320"
+    assert interfaceInfo.Customer_Vendor_Total_Count == 2
     assert len(custVendList) > 0
     assert custVendList[0].No_ == "835194"
     assert custVendList[0].Type == 0

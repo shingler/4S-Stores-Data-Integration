@@ -7,6 +7,7 @@
 # 4. 根据配置字段将数据里的数据写入InterfaceInfo并返回entry no
 import datetime
 import os
+from collections import OrderedDict
 
 import xmltodict
 
@@ -49,6 +50,15 @@ class DMSBase:
             data = xmltodict.parse(xml_handler.read())
         return data
 
+    # 获取指定节点的数量（xml可以节点同名。在json这里，则判断节点是否是数组。是，则返回长度；非，则返回1。
+    def get_count_from_data(self, data, node_name) -> int:
+        # print(type(data[node_name]), type(data[node_name]) == OrderedDict)
+        if node_name not in data:
+            return 0
+        if type(data[node_name]) == OrderedDict:
+            return 1
+        return len(data[node_name])
+
     # 读取出参配置配置
     def load_api_p_out_nodes(self, company_code, api_code, node_type="general", depth=2):
         node_dict = {}
@@ -82,7 +92,7 @@ class DMSBase:
         else:
             data_dict_list = []
             list_node = data[node_lv0][node_lv1]
-            data[node_lv0][node_lv1] = list_node if type(list_node) == "List" else list(list_node,)
+            data[node_lv0][node_lv1] = list_node if type(list_node) == list else list(list_node,)
 
             for row in data[node_lv0][node_lv1]:
                 # print(row, type(row))
@@ -141,7 +151,7 @@ class DMSBase:
 
     # 根据API_P_Out写入nav表
     def save_data_to_nav(self, nav_data, entry_no, TABLE_CLASS):
-        if type(nav_data) == "dict":
+        if type(nav_data) == OrderedDict:
             nav_data = [nav_data]
 
         for row in nav_data:

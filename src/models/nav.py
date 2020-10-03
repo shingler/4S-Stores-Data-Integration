@@ -184,20 +184,20 @@ class FABuffer(db.Model):
 class InvoiceHeaderBuffer(db.Model):
     __tablename__ = "InvoiceHeaderBuffer"
     Record_ID = db.Column("[Record ID]", db.Integer, nullable=False, primary_key=True, autoincrement=False)
-    InvoiceNo = db.Column(db.String(20), nullable=False)
-    Posting_Date = db.Column("[Posting Date]", db.DateTime, nullable=False)
-    Document_Date = db.Column("[Document Date]", db.DateTime, nullable=False)
-    Due_Date = db.Column("[Due Date]", db.DateTime, nullable=False)
-    PayToBillToNo = db.Column(db.String(20), nullable=False)
-    SellToBuyFromNo = db.Column(db.String(20), nullable=False)
-    CostCenterCode = db.Column(db.String(20), nullable=False)
-    VehicleSeries = db.Column(db.String(20), nullable=False)
-    ExtDocumentNo = db.Column(db.String(30), nullable=False)
+    InvoiceNo = db.Column(db.String(20), default='', nullable=False)
+    Posting_Date = db.Column("[Posting Date]", db.DateTime, default=str(datetime.datetime.now()), nullable=False)
+    Document_Date = db.Column("[Document Date]", db.DateTime, default=str(datetime.datetime.now()), nullable=False)
+    Due_Date = db.Column("[Due Date]", db.DateTime, default=str(datetime.datetime.now()), nullable=False)
+    PayToBillToNo = db.Column(db.String(20), default='', nullable=False)
+    SellToBuyFromNo = db.Column(db.String(20), default='', nullable=False)
+    CostCenterCode = db.Column(db.String(20), default='', nullable=False)
+    VehicleSeries = db.Column(db.String(20), default='', nullable=False)
+    ExtDocumentNo = db.Column(db.String(30), default='', nullable=False)
     # Link to Table: DMSInterfaceInfo
-    Entry_No_ = db.Column("[Entry No_]", db.Integer, nullable=False)
-    InvoiceType = db.Column(db.String(10), nullable=False)
+    Entry_No_ = db.Column("[Entry No_]", db.Integer, default=0, nullable=False)
+    InvoiceType = db.Column(db.String(10), default='', nullable=False)
     # 导入时间
-    DateTime_Imported = db.Column("[DateTime Imported]", db.DateTime, nullable=False)
+    DateTime_Imported = db.Column("[DateTime Imported]", db.DateTime, default=str(datetime.datetime.now()), nullable=False)
     # 处理时间, 初始插入数据时插入('1753-01-01 00:00:00.000')
     DateTime_handled = db.Column("[DateTime handled]", db.DateTime, nullable=False, default='1753-01-01 00:00:00.000', comment="处理时间")
     # 错误消息, 初始插入数据时插入空字符('')
@@ -205,55 +205,99 @@ class InvoiceHeaderBuffer(db.Model):
     # 处理人, 初始插入数据时插入空字符('')
     Handled_by = db.Column("[Handled by]", db.String(20), nullable=False, default='', comment="处理人")
     # 发票行里的记录数
-    Line_Total_Count = db.Column("[Line Total Count]", db.Integer, nullable=False, comment="发票行里的记录数")
-    PriceIncludeVAT = db.Column(db.Integer, nullable=False)
-    Description = db.Column(db.String(100), nullable=False)
-    Location = db.Column(db.String(20), nullable=False)
+    Line_Total_Count = db.Column("[Line Total Count]", db.Integer, default=0, nullable=False, comment="发票行里的记录数")
+    PriceIncludeVAT = db.Column(db.Integer, default=0, nullable=False)
+    Description = db.Column(db.String(100), default='', nullable=False)
+    Location = db.Column(db.String(20), default='', nullable=False)
 
     entry = db.relationship("InterfaceInfo",
                             primaryjoin=foreign(Entry_No_) == remote(InterfaceInfo.Entry_No_))
+
+    # 来源字段和对象字段不一致的特殊情况
+    def __setattr__(self, key, value):
+        if key == "No":
+            self.__dict__["No_"] = value
+        elif key == "PostingDate":
+            self.__dict__["Posting_Date"] = value
+        elif key == "DocumentDate":
+            self.__dict__["Document_Date"] = value
+        elif key == "DueDate":
+            self.__dict__["Due_Date"] = value
+        else:
+            self.__dict__[key] = value
+
+    # 获得当前最大的主键并+1返回
+    def getLatestRecordId(self):
+        max_record_id = db.session.query(func.max(self.__class__.Record_ID)).scalar()
+        return max_record_id + 1 if max_record_id is not None else 1
 
 
 class InvoiceLineBuffer(db.Model):
     __tablename__ = "InvoiceLineBuffer"
     Record_ID = db.Column("[Record ID]", db.Integer, nullable=False, primary_key=True, autoincrement=False)
-    Line_No_ = db.Column("[Line No_]", db.Integer, nullable=False)
-    DMSItemType = db.Column(db.String(20), nullable=False)
-    GLAccount = db.Column(db.String(50), nullable=False)
-    Description = db.Column(db.String(100), nullable=False)
-    CostCenterCode = db.Column(db.String(20), nullable=False)
-    VehicleSeries = db.Column(db.String(20), nullable=False)
-    VIN = db.Column(db.String(20), nullable=False)
-    Quantity = db.Column(db.DECIMAL(38, 20), nullable=False)
-    Line_Amount = db.Column("[Line Amount]", db.DECIMAL(38, 20), nullable=False)
-    LineCost = db.Column(db.DECIMAL(38, 20), nullable=False)
-    TransactionType = db.Column(db.String(20), nullable=False)
+    Line_No_ = db.Column("[Line No_]", db.Integer, default=0, nullable=False)
+    DMSItemType = db.Column(db.String(20), default="", nullable=False)
+    GLAccount = db.Column(db.String(50), default="", nullable=False)
+    Description = db.Column(db.String(100), default="", nullable=False)
+    CostCenterCode = db.Column(db.String(20), default="", nullable=False)
+    VehicleSeries = db.Column(db.String(20), default="", nullable=False)
+    VIN = db.Column(db.String(20), default="", nullable=False)
+    Quantity = db.Column(db.DECIMAL(38, 20), default=0, nullable=False)
+    Line_Amount = db.Column("[Line Amount]", db.DECIMAL(38, 20), default=0, nullable=False)
+    LineCost = db.Column(db.DECIMAL(38, 20), default=0, nullable=False)
+    TransactionType = db.Column(db.String(20), default="", nullable=False)
     # Link to Table: DMSInterfaceInfo
-    Entry_No_ = db.Column("[Entry No_]", db.Integer, nullable=False)
+    Entry_No_ = db.Column("[Entry No_]", db.Integer, default=0, nullable=False)
     # 错误消息, 初始插入数据时插入空字符('')
-    Error_Message = db.Column("[Error Message]", db.String(250), nullable=False, default='', comment="错误消息")
+    Error_Message = db.Column("[Error Message]", db.String(250), default="", nullable=False, comment="错误消息")
     # 导入时间
-    DateTime_Imported = db.Column("[DateTime Imported]", db.DateTime, nullable=False, comment="导入时间")
+    DateTime_Imported = db.Column("[DateTime Imported]", db.DateTime, default=str(datetime.datetime.now()), nullable=False, comment="导入时间")
     # 处理时间, 初始插入数据时插入('1753-01-01 00:00:00.000')
     DateTime_Handled = db.Column("[DateTime Handled]", db.DateTime, nullable=False, default='1753-01-01 00:00:00.000', comment="处理时间")
     # 处理人, 初始插入数据时插入空字符('')
     Handled_by = db.Column("[Handled by]", db.String(20), nullable=False, default='', comment="处理人")
     # Link to Table: InvoiceHeaderBuffer
-    InvoiceNo = db.Column(db.String(20), nullable=False)
-    Line_Discount_Amount = db.Column("[Line Discount Amount]", db.DECIMAL(38, 20), nullable=False)
-    WIP_No_ = db.Column("[WIP No_]", db.String(20), nullable=False)
-    Line_VAT_Amount = db.Column("[Line VAT Amount]", db.DECIMAL(38, 20), nullable=False)
-    Line_VAT_Rate = db.Column("[Line VAT Rate]", db.DECIMAL(38, 20), nullable=False)
-    FromCompanyName = db.Column(db.String(50), nullable=False)
-    ToCompanyName = db.Column(db.String(50), nullable=False)
-    Location = db.Column(db.String(20), nullable=False)
-    MovementType = db.Column(db.String(20), nullable=False)
-    OEMCode = db.Column(db.String(20), nullable=False)
+    InvoiceNo = db.Column(db.String(20), default="", nullable=False)
+    Line_Discount_Amount = db.Column("[Line Discount Amount]", db.DECIMAL(38, 20), default=0, nullable=False)
+    WIP_No_ = db.Column("[WIP No_]", db.String(20), default="", nullable=False)
+    Line_VAT_Amount = db.Column("[Line VAT Amount]", db.DECIMAL(38, 20), default=0, nullable=False)
+    Line_VAT_Rate = db.Column("[Line VAT Rate]", db.DECIMAL(38, 20), default=0, nullable=False)
+    FromCompanyName = db.Column(db.String(50), default="", nullable=False)
+    ToCompanyName = db.Column(db.String(50), default="", nullable=False)
+    Location = db.Column(db.String(20), default="", nullable=False)
+    MovementType = db.Column(db.String(20), default="", nullable=False)
+    OEMCode = db.Column(db.String(20), default="", nullable=False)
 
     entry = db.relationship("InterfaceInfo",
                             primaryjoin=foreign(Entry_No_) == remote(InterfaceInfo.Entry_No_))
     invoiceHeader = db.relationship("InvoiceHeaderBuffer",
                                     primaryjoin=foreign(InvoiceNo) == remote(InvoiceHeaderBuffer.InvoiceNo))
+
+    # 来源字段和对象字段不一致的特殊情况
+    def __setattr__(self, key, value):
+        if key == "LineNo":
+            self.__dict__["Line_No_"] = value
+        elif key == "VINNo":
+            self.__dict__["VIN"] = value
+        elif key == "QTY":
+            self.__dict__["Quantity"] = value
+        elif key == "LineAmount":
+            self.__dict__["Line_Amount"] = value
+        elif key == "LineDiscountAmount":
+            self.__dict__["Line_Discount_Amount"] = value
+        elif key == "WIPNo":
+            self.__dict__["WIP_No_"] = value
+        elif key == "LineVATAmount":
+            self.__dict__["Line_VAT_Amount"] = value
+        elif key == "LineVATRate":
+            self.__dict__["Line_VAT_Rate"] = value
+        else:
+            self.__dict__[key] = value
+
+    # 获得当前最大的主键并+1返回
+    def getLatestRecordId(self):
+        max_record_id = db.session.query(func.max(self.__class__.Record_ID)).scalar()
+        return max_record_id + 1 if max_record_id is not None else 1
 
 
 class OtherBuffer(db.Model):
