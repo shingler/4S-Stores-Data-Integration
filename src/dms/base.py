@@ -92,7 +92,7 @@ class DMSBase:
         else:
             data_dict_list = []
             list_node = data[node_lv0][node_lv1]
-            data[node_lv0][node_lv1] = list_node if type(list_node) == list else list(list_node,)
+            data[node_lv0][node_lv1] = list_node if type(list_node) == list else [list_node, ]
 
             for row in data[node_lv0][node_lv1]:
                 # print(row, type(row))
