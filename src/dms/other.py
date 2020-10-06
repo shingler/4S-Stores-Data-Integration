@@ -6,36 +6,31 @@ from src.models import dms, nav
 
 
 class Other(DMSBase):
+    TABLE_CLASS = nav.OtherBuffer
+    BIZ_NODE_LV1 = "Daydook"
+    BIZ_NODE_LV2 = "Line"
+    _COMMON_FILED = "DaydookNo"
+
     # 读取出参配置配置
     def load_api_p_out_nodes(self, company_code, api_code, node_type="general", depth=3):
         node_dict = super().load_api_p_out_nodes(company_code, api_code, node_type, depth-1)
         if node_type == "general":
             return node_dict
 
-        # print(node_dict)
-        # node_dict["Line"] = {}
-        # api_p_out_lv3_config = db.session.query(dms.ApiPOutSetup) \
-        #     .filter(dms.ApiPOutSetup.Company_Code == company_code) \
-        #     .filter(dms.ApiPOutSetup.API_Code == api_code) \
-        #     .filter(dms.ApiPOutSetup.Level == 3) \
-        #     .filter(dms.ApiPOutSetup.Parent_Node_Name == "Line") \
-        #     .order_by(dms.ApiPOutSetup.Sequence.asc()).all()
-        # for one in api_p_out_lv3_config:
-        #     if one.P_Name not in node_dict["Line"]:
-        #         node_dict["Line"][one.P_Name] = one
-        node_dict["Line"] = super().load_api_p_out_nodes(company_code, api_code, node_type="Line", depth=depth)
+        node_dict["Line"] = super().load_api_p_out_nodes(company_code, api_code,
+                                                         node_type=self.BIZ_NODE_LV2, depth=depth)
         # print(node_dict)
         return node_dict
 
     # 根据节点名处理二级/三级层级数据
     def _splice_field_by_name(self, data, node_dict, node_lv2):
-        data_dict_list = self._splice_field(data, node_dict, node_lv0="Transaction", node_lv1="Daydook",
-                                            node_type="node")
+        data_dict_list = self._splice_field(data, node_dict, node_lv0="Transaction",
+                                            node_lv1=self.BIZ_NODE_LV1, node_type="node")
         # print(data_dict_list)
         # 用node的方式装载出来是字典，还需要再处理成有冗余字段的列表
         data_list = []
         for one in data_dict_list["Line"]:
-            one_dict = {"DaydookNo": data_dict_list["DaydookNo"]}
+            one_dict = {self._COMMON_FILED: data_dict_list[self._COMMON_FILED]}
             for key, value in one.items():
                 one_dict[key] = value
             data_list.append(one_dict)
@@ -44,7 +39,7 @@ class Other(DMSBase):
 
     # 从api_p_out获取数据
     def splice_data_info(self, data, node_dict):
-        data_dict_list = self._splice_field_by_name(data, node_dict, node_lv2="Line")
+        data_dict_list = self._splice_field_by_name(data, node_dict, node_lv2=self.BIZ_NODE_LV2)
         if type(data_dict_list) == "dict":
             data_dict_list = [data_dict_list]
         return data_dict_list

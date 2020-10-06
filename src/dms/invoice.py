@@ -74,7 +74,6 @@ class InvoiceLine(Invoice):
             data_list = [one_dict, ]
         else:
             # 数组对象
-            print(data_dict_list[self.BIZ_NODE_LV2], type(data_dict_list[self.BIZ_NODE_LV2]))
             for one in data_dict_list[self.BIZ_NODE_LV2]:
                 one_dict = {self._COMMON_FILED: data_dict_list[self._COMMON_FILED]}
                 # print(type(one))
