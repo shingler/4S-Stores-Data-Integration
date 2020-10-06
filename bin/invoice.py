@@ -1,10 +1,13 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
+import sys, os
+curPath = os.path.abspath(os.path.dirname(__file__))
+rootPath = os.path.split(curPath)[0]
+sys.path.append(rootPath)
 
 import requests
 from bin import app
 from src.dms.invoice import InvoiceHeader, InvoiceLine
-from src.models import nav
 from src.error import DataFieldEmptyError
 
 
