@@ -5,7 +5,7 @@ import datetime
 from sqlalchemy.orm import foreign, remote
 
 from src import db
-from sqlalchemy import and_
+from sqlalchemy import and_, func
 
 
 class Company(db.Model):
@@ -37,7 +37,8 @@ class Company(db.Model):
     # NAV里的公司名称
     NAV_Company_Name = db.Column(db.String(100), nullable=True, default="", comment="NAV里的公司名称")
     # 最后修改时间
-    Last_Modified_DT = db.Column(db.DateTime, comment="最后修改时间")
+    Last_Modified_DT = db.Column(db.DateTime, server_default=datetime.datetime.now().isoformat(timespec="seconds"),
+                                 comment="最后修改时间")
     # 最后修改人
     Last_Modified_By = db.Column(db.String(20), nullable=False, comment="最后修改人")
     # NAV WEB Service用户ID
@@ -83,7 +84,8 @@ class ApiSetup(db.Model):
     # XML文件最大容量(单位: M兆)
     File_Max_Size = db.Column(db.Integer, nullable=False, default=0, comment="XML文件最大容量(单位: M兆)")
     # 最后修改时间
-    Last_Modified_DT = db.Column(db.DateTime, nullable=True, default=datetime.datetime.now, comment="最后修改时间")
+    Last_Modified_DT = db.Column(db.DateTime, nullable=True,
+                                 server_default=datetime.datetime.now().isoformat(timespec="seconds"), comment="最后修改时间")
     # 最后修改人
     Last_Modified_By = db.Column(db.String(20), nullable=True, comment="最后修改人")
     # XML文件成功导入后的归档地址

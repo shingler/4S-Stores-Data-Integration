@@ -24,11 +24,12 @@ with app.app_context():
         NAV_DB_Password="XXXXX",
         NAV_Company_Code="K302 Zhuhai JJ",
         NAV_Company_Name="K302 Zhuhai JJ",
-        Last_Modified_DT=str(datetime.datetime.now()),
+        Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'),
         Last_Modified_By="",
         NAV_WEB_UserID="",
         NAV_WEB_Password=""
     ))
+
     # test data for api_setup
     db.session.add_all([
         ApiSetup(
@@ -49,7 +50,7 @@ with app.app_context():
             CallBack_Address="http://192.168.1.5/XXXXX",
             Time_out=10,
             File_Max_Size=10,
-            Last_Modified_DT=str(datetime.datetime.now()),
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec="seconds"),
             Last_Modified_By="",
             Archived_Path="CustVendInfo.xml"
         ),
@@ -71,7 +72,7 @@ with app.app_context():
             CallBack_Address="http://192.168.1.5/XXXXX",
             Time_out=10,
             File_Max_Size=10,
-            Last_Modified_DT=str(datetime.datetime.now()),
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'),
             Last_Modified_By="",
             Archived_Path="FA.xml"
         ),
@@ -93,7 +94,7 @@ with app.app_context():
             CallBack_Address="http://192.168.1.5/XXXXX",
             Time_out=10,
             File_Max_Size=10,
-            Last_Modified_DT=str(datetime.datetime.now()),
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'),
             Last_Modified_By="",
             Archived_Path="Invoice.xml"
         ),
@@ -115,7 +116,7 @@ with app.app_context():
             CallBack_Address="http://192.168.1.5/XXXXX",
             Time_out=10,
             File_Max_Size=10,
-            Last_Modified_DT=str(datetime.datetime.now()),
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'),
             Last_Modified_By="",
             Archived_Path="Other.xml"
         ),
@@ -128,7 +129,7 @@ with app.app_context():
             P_Name="Transaction", Level=0,
             Parent_Node_Name="", Value_Type=6,
             Table_Name="", Column_Name="",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="CustVendInfo",
@@ -136,7 +137,7 @@ with app.app_context():
             P_Name="General", Level=1,
             Parent_Node_Name="Transaction", Value_Type=6,
             Table_Name="", Column_Name="",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="CustVendInfo",
@@ -144,7 +145,7 @@ with app.app_context():
             P_Name="DMSCode", Level=2,
             Parent_Node_Name="General", Value_Type=1,
             Table_Name="DMSInterfaceInfo", Column_Name="DMSCode",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="CustVendInfo",
@@ -152,7 +153,7 @@ with app.app_context():
             P_Name="DMSTitle", Level=2,
             Parent_Node_Name="General", Value_Type=1,
             Table_Name="DMSInterfaceInfo", Column_Name="DMSTitle",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="CustVendInfo",
@@ -160,7 +161,7 @@ with app.app_context():
             P_Name="CompanyCode", Level=2,
             Parent_Node_Name="General", Value_Type=1,
             Table_Name="DMSInterfaceInfo", Column_Name="CompanyCode",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="CustVendInfo",
@@ -168,7 +169,7 @@ with app.app_context():
             P_Name="CompanyTitle", Level=2,
             Parent_Node_Name="General", Value_Type=1,
             Table_Name="DMSInterfaceInfo", Column_Name="CompanyTitle",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="CustVendInfo",
@@ -176,7 +177,7 @@ with app.app_context():
             P_Name="CreateDateTime", Level=2,
             Parent_Node_Name="General", Value_Type=1,
             Table_Name="DMSInterfaceInfo", Column_Name="CreateDateTime",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="CustVendInfo",
@@ -184,7 +185,7 @@ with app.app_context():
             P_Name="Creator", Level=2,
             Parent_Node_Name="General", Value_Type=1,
             Table_Name="DMSInterfaceInfo", Column_Name="Creator",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="CustVendInfo",
@@ -192,7 +193,7 @@ with app.app_context():
             P_Name="CustVendInfo", Level=1,
             Parent_Node_Name="Transaction", Value_Type=6,
             Table_Name="", Column_Name="",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="CustVendInfo",
@@ -200,7 +201,7 @@ with app.app_context():
             P_Name="Type", Level=2,
             Parent_Node_Name="CustVendInfo", Value_Type=1,
             Table_Name="CustVendBuffer", Column_Name="Type",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="CustVendInfo",
@@ -208,7 +209,7 @@ with app.app_context():
             P_Name="No", Level=2,
             Parent_Node_Name="CustVendInfo", Value_Type=1,
             Table_Name="CustVendBuffer", Column_Name="No_",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="CustVendInfo",
@@ -216,7 +217,7 @@ with app.app_context():
             P_Name="Name", Level=2,
             Parent_Node_Name="CustVendInfo", Value_Type=1,
             Table_Name="CustVendBuffer", Column_Name="Name",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="CustVendInfo",
@@ -224,7 +225,7 @@ with app.app_context():
             P_Name="Address", Level=2,
             Parent_Node_Name="CustVendInfo", Value_Type=1,
             Table_Name="CustVendBuffer", Column_Name="Address",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="CustVendInfo",
@@ -232,7 +233,7 @@ with app.app_context():
             P_Name="Address2", Level=2,
             Parent_Node_Name="CustVendInfo", Value_Type=1,
             Table_Name="CustVendBuffer", Column_Name="[Address 2]",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="CustVendInfo",
@@ -240,7 +241,7 @@ with app.app_context():
             P_Name="PhoneNo", Level=2,
             Parent_Node_Name="CustVendInfo", Value_Type=1,
             Table_Name="CustVendBuffer", Column_Name="PhoneNo",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="CustVendInfo",
@@ -248,7 +249,7 @@ with app.app_context():
             P_Name="FaxNo", Level=2,
             Parent_Node_Name="CustVendInfo", Value_Type=1,
             Table_Name="CustVendBuffer", Column_Name="FaxNo",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="CustVendInfo",
@@ -256,7 +257,7 @@ with app.app_context():
             P_Name="Blocked", Level=2,
             Parent_Node_Name="CustVendInfo", Value_Type=1,
             Table_Name="CustVendBuffer", Column_Name="Blocked",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="CustVendInfo",
@@ -264,7 +265,7 @@ with app.app_context():
             P_Name="Email", Level=2,
             Parent_Node_Name="CustVendInfo", Value_Type=1,
             Table_Name="CustVendBuffer", Column_Name="Email",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="CustVendInfo",
@@ -272,7 +273,7 @@ with app.app_context():
             P_Name="Postcode", Level=2,
             Parent_Node_Name="CustVendInfo", Value_Type=1,
             Table_Name="CustVendBuffer", Column_Name="[Post Code]",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="CustVendInfo",
@@ -280,7 +281,7 @@ with app.app_context():
             P_Name="City", Level=2,
             Parent_Node_Name="CustVendInfo", Value_Type=1,
             Table_Name="CustVendBuffer", Column_Name="City",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="CustVendInfo",
@@ -288,7 +289,7 @@ with app.app_context():
             P_Name="Country", Level=2,
             Parent_Node_Name="CustVendInfo", Value_Type=1,
             Table_Name="CustVendBuffer", Column_Name="Country",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="CustVendInfo",
@@ -296,7 +297,7 @@ with app.app_context():
             P_Name="Currency", Level=2,
             Parent_Node_Name="CustVendInfo", Value_Type=1,
             Table_Name="CustVendBuffer", Column_Name="Currency",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="CustVendInfo",
@@ -304,7 +305,7 @@ with app.app_context():
             P_Name="ARAPAccountNo", Level=2,
             Parent_Node_Name="CustVendInfo", Value_Type=1,
             Table_Name="CustVendBuffer", Column_Name="ARAPAccountNo",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="CustVendInfo",
@@ -312,7 +313,7 @@ with app.app_context():
             P_Name="PricesIncludingVAT", Level=2,
             Parent_Node_Name="CustVendInfo", Value_Type=1,
             Table_Name="CustVendBuffer", Column_Name="PricesIncludingVAT",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="CustVendInfo",
@@ -320,7 +321,7 @@ with app.app_context():
             P_Name="ApplicationMethod", Level=2,
             Parent_Node_Name="CustVendInfo", Value_Type=1,
             Table_Name="CustVendBuffer", Column_Name="[Application Method]",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="CustVendInfo",
@@ -328,7 +329,7 @@ with app.app_context():
             P_Name="PaymentTermsCode", Level=2,
             Parent_Node_Name="CustVendInfo", Value_Type=1,
             Table_Name="CustVendBuffer", Column_Name="PaymentTermsCode",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="CustVendInfo",
@@ -336,7 +337,7 @@ with app.app_context():
             P_Name="PaymentMethodCode", Level=2,
             Parent_Node_Name="CustVendInfo", Value_Type=1,
             Table_Name="CustVendBuffer", Column_Name="PaymentMethodCode",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="CustVendInfo",
@@ -344,7 +345,7 @@ with app.app_context():
             P_Name="CostCenterCode", Level=2,
             Parent_Node_Name="CustVendInfo", Value_Type=1,
             Table_Name="CustVendBuffer", Column_Name="[Cost Center Code]",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="CustVendInfo",
@@ -352,7 +353,7 @@ with app.app_context():
             P_Name="Template", Level=2,
             Parent_Node_Name="CustVendInfo", Value_Type=1,
             Table_Name="CustVendBuffer", Column_Name="Template",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="CustVendInfo",
@@ -360,7 +361,7 @@ with app.app_context():
             P_Name="ICPartnerCode", Level=2,
             Parent_Node_Name="CustVendInfo", Value_Type=1,
             Table_Name="CustVendBuffer", Column_Name="ICPartnerCode",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="CustVendInfo",
@@ -368,7 +369,7 @@ with app.app_context():
             P_Name="", Level=0,
             Parent_Node_Name="", Value_Type=1,
             Table_Name="CustVendBuffer", Column_Name="[Gen_ Bus_ Posting Group]",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="CustVendInfo",
@@ -376,7 +377,7 @@ with app.app_context():
             P_Name="", Level=0,
             Parent_Node_Name="", Value_Type=1,
             Table_Name="CustVendBuffer", Column_Name="[VAT Bus_ Posting Group]",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="CustVendInfo",
@@ -384,7 +385,7 @@ with app.app_context():
             P_Name="", Level=0,
             Parent_Node_Name="", Value_Type=1,
             Table_Name="CustVendBuffer", Column_Name="Cust_VendPostingGroup",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         )
     ])
     # test data for fa
@@ -395,7 +396,7 @@ with app.app_context():
             P_Name="Transaction", Level=0,
             Parent_Node_Name="", Value_Type=6,
             Table_Name="", Column_Name="",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="FA",
@@ -403,7 +404,7 @@ with app.app_context():
             P_Name="General", Level=1,
             Parent_Node_Name="Transaction", Value_Type=6,
             Table_Name="", Column_Name="",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="FA",
@@ -411,7 +412,7 @@ with app.app_context():
             P_Name="DMSCode", Level=2,
             Parent_Node_Name="General", Value_Type=1,
             Table_Name="DMSInterfaceInfo", Column_Name="DMSCode",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="FA",
@@ -419,7 +420,7 @@ with app.app_context():
             P_Name="DMSTitle", Level=2,
             Parent_Node_Name="General", Value_Type=1,
             Table_Name="DMSInterfaceInfo", Column_Name="DMSTitle",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="FA",
@@ -427,7 +428,7 @@ with app.app_context():
             P_Name="CompanyCode", Level=2,
             Parent_Node_Name="General", Value_Type=1,
             Table_Name="DMSInterfaceInfo", Column_Name="CompanyCode",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="FA",
@@ -435,7 +436,7 @@ with app.app_context():
             P_Name="CompanyTitle", Level=2,
             Parent_Node_Name="General", Value_Type=1,
             Table_Name="DMSInterfaceInfo", Column_Name="CompanyTitle",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="FA",
@@ -443,7 +444,7 @@ with app.app_context():
             P_Name="CreateDateTime", Level=2,
             Parent_Node_Name="General", Value_Type=1,
             Table_Name="DMSInterfaceInfo", Column_Name="CreateDateTime",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="FA",
@@ -451,7 +452,7 @@ with app.app_context():
             P_Name="Creator", Level=2,
             Parent_Node_Name="General", Value_Type=1,
             Table_Name="DMSInterfaceInfo", Column_Name="Creator",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="FA",
@@ -459,7 +460,7 @@ with app.app_context():
             P_Name="FA", Level=1,
             Parent_Node_Name="Transaction", Value_Type=6,
             Table_Name="", Column_Name="",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="FA",
@@ -467,7 +468,7 @@ with app.app_context():
             P_Name="FANo", Level=2,
             Parent_Node_Name="FA", Value_Type=1,
             Table_Name="FABuffer", Column_Name="FANo_",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="FA",
@@ -475,7 +476,7 @@ with app.app_context():
             P_Name="Description", Level=2,
             Parent_Node_Name="FA", Value_Type=1,
             Table_Name="FABuffer", Column_Name="Description",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="FA",
@@ -483,7 +484,7 @@ with app.app_context():
             P_Name="SerialNo", Level=2,
             Parent_Node_Name="FA", Value_Type=1,
             Table_Name="FABuffer", Column_Name="SerialNo",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="FA",
@@ -491,7 +492,7 @@ with app.app_context():
             P_Name="Inactive", Level=2,
             Parent_Node_Name="FA", Value_Type=2,
             Table_Name="FABuffer", Column_Name="Inactive",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="FA",
@@ -499,7 +500,7 @@ with app.app_context():
             P_Name="Blocked", Level=2,
             Parent_Node_Name="FA", Value_Type=2,
             Table_Name="FABuffer", Column_Name="Blocked",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="FA",
@@ -507,7 +508,7 @@ with app.app_context():
             P_Name="PhoneNo", Level=2,
             Parent_Node_Name="FA", Value_Type=1,
             Table_Name="FABuffer", Column_Name="PhoneNo",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="FA",
@@ -515,7 +516,7 @@ with app.app_context():
             P_Name="FAClassCode", Level=2,
             Parent_Node_Name="FA", Value_Type=1,
             Table_Name="FABuffer", Column_Name="FAClassCode",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="FA",
@@ -523,7 +524,7 @@ with app.app_context():
             P_Name="FASubclassCode", Level=2,
             Parent_Node_Name="FA", Value_Type=1,
             Table_Name="FABuffer", Column_Name="FASubclassCode",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="FA",
@@ -531,7 +532,7 @@ with app.app_context():
             P_Name="FALocationCode", Level=2,
             Parent_Node_Name="FA", Value_Type=1,
             Table_Name="FABuffer", Column_Name="FALocationCode",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="FA",
@@ -539,7 +540,7 @@ with app.app_context():
             P_Name="BudgetedAsset", Level=2,
             Parent_Node_Name="FA", Value_Type=2,
             Table_Name="FABuffer", Column_Name="BudgetedAsset",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="FA",
@@ -547,7 +548,7 @@ with app.app_context():
             P_Name="VendorNo", Level=2,
             Parent_Node_Name="FA", Value_Type=1,
             Table_Name="FABuffer", Column_Name="VendorNo",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="FA",
@@ -555,7 +556,7 @@ with app.app_context():
             P_Name="MaintenanceVendorNo", Level=2,
             Parent_Node_Name="FA", Value_Type=1,
             Table_Name="FABuffer", Column_Name="MaintenanceVendorNo",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="FA",
@@ -563,7 +564,7 @@ with app.app_context():
             P_Name="UnderMaintenance", Level=2,
             Parent_Node_Name="FA", Value_Type=2,
             Table_Name="FABuffer", Column_Name="UnderMaintenance",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="FA",
@@ -571,7 +572,7 @@ with app.app_context():
             P_Name="NextServiceDate", Level=2,
             Parent_Node_Name="FA", Value_Type=5,
             Table_Name="FABuffer", Column_Name="NextServiceDate",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="FA",
@@ -579,7 +580,7 @@ with app.app_context():
             P_Name="WarrantyDate", Level=2,
             Parent_Node_Name="FA", Value_Type=5,
             Table_Name="FABuffer", Column_Name="WarrantyDate",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="FA",
@@ -587,7 +588,7 @@ with app.app_context():
             P_Name="DepreciationPeriod", Level=2,
             Parent_Node_Name="FA", Value_Type=2,
             Table_Name="FABuffer", Column_Name="DepreciationPeriod",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="FA",
@@ -595,7 +596,7 @@ with app.app_context():
             P_Name="DepreciationStartingDate", Level=2,
             Parent_Node_Name="FA", Value_Type=5,
             Table_Name="FABuffer", Column_Name="DepreciationStartingDate",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="FA",
@@ -603,7 +604,7 @@ with app.app_context():
             P_Name="CostCenterCode", Level=2,
             Parent_Node_Name="FA", Value_Type=1,
             Table_Name="FABuffer", Column_Name="CostCenterCode",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         )
     ])
     # test data for invoice
@@ -614,7 +615,7 @@ with app.app_context():
             P_Name="Transaction", Level=0,
             Parent_Node_Name="", Value_Type=6,
             Table_Name="", Column_Name="",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Invoice",
@@ -622,7 +623,7 @@ with app.app_context():
             P_Name="General", Level=1,
             Parent_Node_Name="Transaction", Value_Type=6,
             Table_Name="", Column_Name="",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Invoice",
@@ -630,7 +631,7 @@ with app.app_context():
             P_Name="DMSCode", Level=2,
             Parent_Node_Name="General", Value_Type=1,
             Table_Name="DMSInterfaceInfo", Column_Name="DMSCode",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Invoice",
@@ -638,7 +639,7 @@ with app.app_context():
             P_Name="DMSTitle", Level=2,
             Parent_Node_Name="General", Value_Type=1,
             Table_Name="DMSInterfaceInfo", Column_Name="DMSTitle",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Invoice",
@@ -646,7 +647,7 @@ with app.app_context():
             P_Name="CompanyCode", Level=2,
             Parent_Node_Name="General", Value_Type=1,
             Table_Name="DMSInterfaceInfo", Column_Name="CompanyCode",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Invoice",
@@ -654,7 +655,7 @@ with app.app_context():
             P_Name="CompanyTitle", Level=2,
             Parent_Node_Name="General", Value_Type=1,
             Table_Name="DMSInterfaceInfo", Column_Name="CompanyTitle",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Invoice",
@@ -662,7 +663,7 @@ with app.app_context():
             P_Name="CreateDateTime", Level=2,
             Parent_Node_Name="General", Value_Type=1,
             Table_Name="DMSInterfaceInfo", Column_Name="CreateDateTime",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Invoice",
@@ -670,7 +671,7 @@ with app.app_context():
             P_Name="Creator", Level=2,
             Parent_Node_Name="General", Value_Type=1,
             Table_Name="DMSInterfaceInfo", Column_Name="Creator",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Invoice",
@@ -678,7 +679,7 @@ with app.app_context():
             P_Name="Invoice", Level=1,
             Parent_Node_Name="Transaction", Value_Type=6,
             Table_Name="", Column_Name="",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Invoice",
@@ -686,7 +687,7 @@ with app.app_context():
             P_Name="InvoiceType", Level=2,
             Parent_Node_Name="Invoice", Value_Type=1,
             Table_Name="InvoiceHeaderBuffer", Column_Name="InvoiceType",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Invoice",
@@ -694,7 +695,7 @@ with app.app_context():
             P_Name="INVHeader", Level=2,
             Parent_Node_Name="Invoice", Value_Type=6,
             Table_Name="", Column_Name="",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Invoice",
@@ -702,7 +703,7 @@ with app.app_context():
             P_Name="InvoiceNo", Level=3,
             Parent_Node_Name="INVHeader", Value_Type=1,
             Table_Name="InvoiceHeaderBuffer", Column_Name="InvoiceNo",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Invoice",
@@ -710,7 +711,7 @@ with app.app_context():
             P_Name="PostingDate", Level=3,
             Parent_Node_Name="INVHeader", Value_Type=5,
             Table_Name="InvoiceHeaderBuffer", Column_Name="[Posting Date]",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Invoice",
@@ -718,7 +719,7 @@ with app.app_context():
             P_Name="DocumentDate", Level=3,
             Parent_Node_Name="INVHeader", Value_Type=5,
             Table_Name="InvoiceHeaderBuffer", Column_Name="[Document Date]",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Invoice",
@@ -726,7 +727,7 @@ with app.app_context():
             P_Name="DueDate", Level=3,
             Parent_Node_Name="INVHeader", Value_Type=5,
             Table_Name="InvoiceHeaderBuffer", Column_Name="[Due Date]",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Invoice",
@@ -734,7 +735,7 @@ with app.app_context():
             P_Name="PayToBillToNo", Level=3,
             Parent_Node_Name="INVHeader", Value_Type=5,
             Table_Name="InvoiceHeaderBuffer", Column_Name="PayToBillToNo",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Invoice",
@@ -742,7 +743,7 @@ with app.app_context():
             P_Name="SellToBuyFromNo", Level=3,
             Parent_Node_Name="INVHeader", Value_Type=1,
             Table_Name="InvoiceHeaderBuffer", Column_Name="SellToBuyFromNo",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Invoice",
@@ -750,7 +751,7 @@ with app.app_context():
             P_Name="CostCenterCode", Level=3,
             Parent_Node_Name="INVHeader", Value_Type=1,
             Table_Name="InvoiceHeaderBuffer", Column_Name="CostCenterCode",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Invoice",
@@ -758,7 +759,7 @@ with app.app_context():
             P_Name="VehicleSeries", Level=3,
             Parent_Node_Name="INVHeader", Value_Type=1,
             Table_Name="InvoiceHeaderBuffer", Column_Name="VehicleSeries",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Invoice",
@@ -766,7 +767,7 @@ with app.app_context():
             P_Name="ExtDocumentNo", Level=3,
             Parent_Node_Name="INVHeader", Value_Type=1,
             Table_Name="InvoiceHeaderBuffer", Column_Name="ExtDocumentNo",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Invoice",
@@ -774,7 +775,7 @@ with app.app_context():
             P_Name="PriceIncludeVAT", Level=3,
             Parent_Node_Name="INVHeader", Value_Type=2,
             Table_Name="InvoiceHeaderBuffer", Column_Name="PriceIncludeVAT",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Invoice",
@@ -782,7 +783,7 @@ with app.app_context():
             P_Name="Description", Level=3,
             Parent_Node_Name="INVHeader", Value_Type=1,
             Table_Name="InvoiceHeaderBuffer", Column_Name="Description",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Invoice",
@@ -790,7 +791,7 @@ with app.app_context():
             P_Name="Location", Level=3,
             Parent_Node_Name="INVHeader", Value_Type=1,
             Table_Name="InvoiceHeaderBuffer", Column_Name="Location",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Invoice",
@@ -798,7 +799,7 @@ with app.app_context():
             P_Name="INVLine", Level=2,
             Parent_Node_Name="Invoice", Value_Type=1,
             Table_Name="", Column_Name="",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Invoice",
@@ -806,7 +807,7 @@ with app.app_context():
             P_Name="LineNo", Level=3,
             Parent_Node_Name="INVLine", Value_Type=1,
             Table_Name="InvoiceLineBuffer", Column_Name="[Line No_]",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Invoice",
@@ -814,7 +815,7 @@ with app.app_context():
             P_Name="DMSItemType", Level=3,
             Parent_Node_Name="INVLine", Value_Type=1,
             Table_Name="InvoiceLineBuffer", Column_Name="DMSItemType",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Invoice",
@@ -822,7 +823,7 @@ with app.app_context():
             P_Name="GLAccount", Level=3,
             Parent_Node_Name="INVLine", Value_Type=1,
             Table_Name="InvoiceLineBuffer", Column_Name="GLAccount",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Invoice",
@@ -830,7 +831,7 @@ with app.app_context():
             P_Name="Description", Level=3,
             Parent_Node_Name="INVLine", Value_Type=1,
             Table_Name="InvoiceLineBuffer", Column_Name="Description",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Invoice",
@@ -838,7 +839,7 @@ with app.app_context():
             P_Name="CostCenterCode", Level=3,
             Parent_Node_Name="INVLine", Value_Type=1,
             Table_Name="InvoiceLineBuffer", Column_Name="CostCenterCode",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Invoice",
@@ -846,7 +847,7 @@ with app.app_context():
             P_Name="VehicleSeries", Level=3,
             Parent_Node_Name="INVLine", Value_Type=1,
             Table_Name="InvoiceLineBuffer", Column_Name="VehicleSeries",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Invoice",
@@ -854,7 +855,7 @@ with app.app_context():
             P_Name="VINNo", Level=3,
             Parent_Node_Name="INVLine", Value_Type=1,
             Table_Name="InvoiceLineBuffer", Column_Name="VIN",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Invoice",
@@ -862,7 +863,7 @@ with app.app_context():
             P_Name="QTY", Level=3,
             Parent_Node_Name="INVLine", Value_Type=3,
             Table_Name="InvoiceLineBuffer", Column_Name="Quantity",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Invoice",
@@ -870,7 +871,7 @@ with app.app_context():
             P_Name="LineAmount", Level=3,
             Parent_Node_Name="INVLine", Value_Type=3,
             Table_Name="InvoiceLineBuffer", Column_Name="[Line Amount]",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Invoice",
@@ -878,7 +879,7 @@ with app.app_context():
             P_Name="LineCost", Level=3,
             Parent_Node_Name="INVLine", Value_Type=3,
             Table_Name="InvoiceLineBuffer", Column_Name="LineCost",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Invoice",
@@ -886,7 +887,7 @@ with app.app_context():
             P_Name="LineDiscountAmount", Level=3,
             Parent_Node_Name="INVLine", Value_Type=3,
             Table_Name="InvoiceLineBuffer", Column_Name="[Line Discount Amount]",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Invoice",
@@ -894,7 +895,7 @@ with app.app_context():
             P_Name="LineVATAmount", Level=3,
             Parent_Node_Name="INVLine", Value_Type=3,
             Table_Name="InvoiceLineBuffer", Column_Name="[Line VAT Amount]",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Invoice",
@@ -902,7 +903,7 @@ with app.app_context():
             P_Name="LineVATRate", Level=3,
             Parent_Node_Name="INVLine", Value_Type=3,
             Table_Name="InvoiceLineBuffer", Column_Name="[Line VAT Rate]",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Invoice",
@@ -910,7 +911,7 @@ with app.app_context():
             P_Name="TransactionType", Level=3,
             Parent_Node_Name="INVLine", Value_Type=1,
             Table_Name="InvoiceLineBuffer", Column_Name="TransactionType",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Invoice",
@@ -918,7 +919,7 @@ with app.app_context():
             P_Name="WIPNo", Level=3,
             Parent_Node_Name="INVLine", Value_Type=1,
             Table_Name="InvoiceLineBuffer", Column_Name="[WIP No_]",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Invoice",
@@ -926,7 +927,7 @@ with app.app_context():
             P_Name="FromCompanyName", Level=3,
             Parent_Node_Name="INVLine", Value_Type=1,
             Table_Name="InvoiceLineBuffer", Column_Name="FromCompanyName",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Invoice",
@@ -934,7 +935,7 @@ with app.app_context():
             P_Name="ToCompanyName", Level=3,
             Parent_Node_Name="INVLine", Value_Type=1,
             Table_Name="InvoiceLineBuffer", Column_Name="ToCompanyName",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Invoice",
@@ -942,7 +943,7 @@ with app.app_context():
             P_Name="Location", Level=3,
             Parent_Node_Name="INVLine", Value_Type=1,
             Table_Name="InvoiceLineBuffer", Column_Name="Location",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Invoice",
@@ -950,7 +951,7 @@ with app.app_context():
             P_Name="MovementType", Level=3,
             Parent_Node_Name="INVLine", Value_Type=1,
             Table_Name="InvoiceLineBuffer", Column_Name="MovementType",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
     ])
     # test data for other
@@ -961,7 +962,7 @@ with app.app_context():
             P_Name="Transaction", Level=0,
             Parent_Node_Name="", Value_Type=6,
             Table_Name="", Column_Name="",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Other",
@@ -969,7 +970,7 @@ with app.app_context():
             P_Name="General", Level=1,
             Parent_Node_Name="Transaction", Value_Type=6,
             Table_Name="", Column_Name="",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Other",
@@ -977,7 +978,7 @@ with app.app_context():
             P_Name="DMSCode", Level=2,
             Parent_Node_Name="General", Value_Type=1,
             Table_Name="DMSInterfaceInfo", Column_Name="DMSCode",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Other",
@@ -985,7 +986,7 @@ with app.app_context():
             P_Name="DMSTitle", Level=2,
             Parent_Node_Name="General", Value_Type=1,
             Table_Name="DMSInterfaceInfo", Column_Name="DMSTitle",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Other",
@@ -993,7 +994,7 @@ with app.app_context():
             P_Name="CompanyCode", Level=2,
             Parent_Node_Name="General", Value_Type=1,
             Table_Name="DMSInterfaceInfo", Column_Name="CompanyCode",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Other",
@@ -1001,7 +1002,7 @@ with app.app_context():
             P_Name="CompanyTitle", Level=2,
             Parent_Node_Name="General", Value_Type=1,
             Table_Name="DMSInterfaceInfo", Column_Name="CompanyTitle",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Other",
@@ -1009,7 +1010,7 @@ with app.app_context():
             P_Name="CreateDateTime", Level=2,
             Parent_Node_Name="General", Value_Type=1,
             Table_Name="DMSInterfaceInfo", Column_Name="CreateDateTime",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Other",
@@ -1017,7 +1018,7 @@ with app.app_context():
             P_Name="Creator", Level=2,
             Parent_Node_Name="General", Value_Type=1,
             Table_Name="DMSInterfaceInfo", Column_Name="Creator",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Other",
@@ -1025,7 +1026,7 @@ with app.app_context():
             P_Name="Daydook", Level=1,
             Parent_Node_Name="Transaction", Value_Type=6,
             Table_Name="", Column_Name="",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Other",
@@ -1033,7 +1034,7 @@ with app.app_context():
             P_Name="DaydookNo", Level=2,
             Parent_Node_Name="Daydook", Value_Type=1,
             Table_Name="OtherBuffer", Column_Name="DocumentNo_",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Other",
@@ -1041,7 +1042,7 @@ with app.app_context():
             P_Name="Line", Level=2,
             Parent_Node_Name="Daydook", Value_Type=6,
             Table_Name="", Column_Name="",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Other",
@@ -1049,7 +1050,7 @@ with app.app_context():
             P_Name="TransactionType", Level=3,
             Parent_Node_Name="Line", Value_Type=1,
             Table_Name="OtherBuffer", Column_Name="TransactionType",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Other",
@@ -1057,7 +1058,7 @@ with app.app_context():
             P_Name="LineNo", Level=3,
             Parent_Node_Name="Line", Value_Type=1,
             Table_Name="OtherBuffer", Column_Name="[Line No_]",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Other",
@@ -1065,7 +1066,7 @@ with app.app_context():
             P_Name="PostingDate", Level=3,
             Parent_Node_Name="Line", Value_Type=1,
             Table_Name="OtherBuffer", Column_Name="[Posting Date]",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Other",
@@ -1073,7 +1074,7 @@ with app.app_context():
             P_Name="DocumentDate",  Level=3,
             Parent_Node_Name="Line", Value_Type=1,
             Table_Name="OtherBuffer", Column_Name="[Document Date]",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Other",
@@ -1081,7 +1082,7 @@ with app.app_context():
             P_Name="ExtDocumentNo", Level=3,
             Parent_Node_Name="Line", Value_Type=1,
             Table_Name="OtherBuffer", Column_Name="ExtDocumentNo_",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Other",
@@ -1089,7 +1090,7 @@ with app.app_context():
             P_Name="AccountType", Level=3,
             Parent_Node_Name="Line", Value_Type=1,
             Table_Name="OtherBuffer", Column_Name="AccountType",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Other",
@@ -1097,7 +1098,7 @@ with app.app_context():
             P_Name="AccountNo", Level=3,
             Parent_Node_Name="Line", Value_Type=1,
             Table_Name="OtherBuffer", Column_Name="[Account No_]",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Other",
@@ -1105,7 +1106,7 @@ with app.app_context():
             P_Name="Description", Level=3,
             Parent_Node_Name="Line", Value_Type=1,
             Table_Name="OtherBuffer", Column_Name="Description",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Other",
@@ -1113,7 +1114,7 @@ with app.app_context():
             P_Name="DebitValue", Level=3,
             Parent_Node_Name="Line", Value_Type=1,
             Table_Name="OtherBuffer", Column_Name="[Debit Value]",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Other",
@@ -1121,7 +1122,7 @@ with app.app_context():
             P_Name="CreditValue", Level=3,
             Parent_Node_Name="Line", Value_Type=1,
             Table_Name="OtherBuffer", Column_Name="[Credit Value]",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Other",
@@ -1129,7 +1130,7 @@ with app.app_context():
             P_Name="CostCenterCode", Level=3,
             Parent_Node_Name="Line", Value_Type=1,
             Table_Name="OtherBuffer", Column_Name="CostCenterCode",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Other",
@@ -1137,7 +1138,7 @@ with app.app_context():
             P_Name="VehicleSeries", Level=3,
             Parent_Node_Name="Line", Value_Type=1,
             Table_Name="OtherBuffer", Column_Name="VehicleSeries",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Other",
@@ -1145,7 +1146,7 @@ with app.app_context():
             P_Name="VINNo", Level=3,
             Parent_Node_Name="Line", Value_Type=1,
             Table_Name="OtherBuffer", Column_Name="VIN",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Other",
@@ -1153,7 +1154,7 @@ with app.app_context():
             P_Name="WIPNo", Level=3,
             Parent_Node_Name="Line", Value_Type=1,
             Table_Name="OtherBuffer", Column_Name="[WIP No_]",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Other",
@@ -1161,7 +1162,7 @@ with app.app_context():
             P_Name="FAPostingType", Level=3,
             Parent_Node_Name="Line", Value_Type=1,
             Table_Name="OtherBuffer", Column_Name="[FA Posting Type]",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Other",
@@ -1169,7 +1170,7 @@ with app.app_context():
             P_Name="EntryType", Level=3,
             Parent_Node_Name="Line", Value_Type=1,
             Table_Name="OtherBuffer", Column_Name="EntryType",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Other",
@@ -1177,7 +1178,7 @@ with app.app_context():
             P_Name="FromCompanyName", Level=3,
             Parent_Node_Name="Line", Value_Type=1,
             Table_Name="OtherBuffer", Column_Name="FromCompanyName",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Other",
@@ -1185,7 +1186,7 @@ with app.app_context():
             P_Name="ToCompanyName", Level=3,
             Parent_Node_Name="Line", Value_Type=1,
             Table_Name="OtherBuffer", Column_Name="ToCompanyName",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Other",
@@ -1193,7 +1194,7 @@ with app.app_context():
             P_Name="SourceType", Level=3,
             Parent_Node_Name="Line", Value_Type=1,
             Table_Name="OtherBuffer", Column_Name="SourceType",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Other",
@@ -1201,7 +1202,7 @@ with app.app_context():
             P_Name="SourceNo", Level=3,
             Parent_Node_Name="Line", Value_Type=1,
             Table_Name="OtherBuffer", Column_Name="SourceNo",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Other",
@@ -1209,7 +1210,7 @@ with app.app_context():
             P_Name="DMSItemType", Level=3,
             Parent_Node_Name="Line", Value_Type=1,
             Table_Name="OtherBuffer", Column_Name="DMSItemType",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Other",
@@ -1217,7 +1218,7 @@ with app.app_context():
             P_Name="DMSItemTransType", Level=3,
             Parent_Node_Name="Line", Value_Type=1,
             Table_Name="OtherBuffer", Column_Name="DMSItemTransType",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         ),
         ApiPOutSetup(
             Company_Code="K302ZH", API_Code="Other",
@@ -1225,7 +1226,7 @@ with app.app_context():
             P_Name="Location", Level=3,
             Parent_Node_Name="Line", Value_Type=1,
             Table_Name="OtherBuffer", Column_Name="Location",
-            Last_Modified_DT=str(datetime.datetime.now()), Last_Modified_By=""
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
         )
     ])
 
