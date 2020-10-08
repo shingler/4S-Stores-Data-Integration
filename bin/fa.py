@@ -1,6 +1,8 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
-import sys, os
+import os
+import sys
+
 curPath = os.path.abspath(os.path.dirname(__file__))
 rootPath = os.path.split(curPath)[0]
 sys.path.append(rootPath)
@@ -9,7 +11,6 @@ sys.path.append(rootPath)
 import requests
 from bin import app
 from src.dms.fa import FA
-from src.error import DataFieldEmptyError
 
 
 def main(company_code, api_code):

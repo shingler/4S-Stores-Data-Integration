@@ -16,7 +16,7 @@ class InterfaceInfo(db.Model):
     DMSTitle = db.Column(db.String(50), nullable=False)
     CompanyCode = db.Column(db.String(20), nullable=False)
     CompanyTitle = db.Column(db.String(50), nullable=False)
-    CreateDateTime = db.Column(db.DateTime, nullable=False)
+    CreateDateTime = db.Column(db.DateTime(timezone=True), nullable=False)
     Creator = db.Column(db.String(30), nullable=False)
     # 导入时间
     DateTime_Imported = db.Column("[DateTime Imported]", db.DateTime, nullable=False, comment="导入时间")
@@ -157,14 +157,14 @@ class FABuffer(db.Model):
                                   default=datetime.datetime.now().isoformat(timespec="seconds"))
     # 处理时间, 初始插入数据时插入('1753-01-01 00:00:00.000')
     DateTime_Handled = db.Column("[DateTime Handled]", db.DateTime, nullable=False,
-                                 default="1753-01-01 00:00:00.000", comment="处理时间, 初始插入数据时插入('1753-01-01 00:00:00.000')")
+                                 default="1753-01-01T00:00:00.000", comment="处理时间, 初始插入数据时插入('1753-01-01 00:00:00.000')")
     UnderMaintenance = db.Column(db.Integer, nullable=False)
     # 处理人, 初始插入数据时插入空字符('')
     Handled_by = db.Column("[Handled by]", db.String(20), nullable=False, default='', comment="处理人, 初始插入数据时插入空字符('')")
     # 如文件或接口里没有值, 初始插入数据时插入('1753-01-01 00:00:00.000')
-    NextServiceDate = db.Column(db.DateTime, nullable=False, default="1753-01-01 00:00:00.000")
+    NextServiceDate = db.Column(db.DateTime, nullable=False, default="1753-01-01T00:00:00.000")
     # 如文件或接口里没有值, 初始插入数据时插入('1753-01-01 00:00:00.000')
-    WarrantyDate = db.Column(db.DateTime, nullable=False, default="1753-01-01 00:00:00.000")
+    WarrantyDate = db.Column(db.DateTime, nullable=False, default="1753-01-01T00:00:00.000")
     DepreciationPeriod = db.Column(db.Integer, default=0, nullable=False)
     DepreciationStartingDate = db.Column(db.DateTime, default=datetime.datetime.now().isoformat(timespec="seconds"),
                                          nullable=False)
@@ -177,6 +177,14 @@ class FABuffer(db.Model):
     def __setattr__(self, key, value):
         if key == "FANo":
             self.__dict__["FANo_"] = value
+        elif key == "Inactive":
+            self.__dict__["Inactive"] = true_or_false_to_tinyint(value)
+        elif key == "Blocked":
+            self.__dict__["Blocked"] = true_or_false_to_tinyint(value)
+        elif key == "BudgetedAsset":
+            self.__dict__["BudgetedAsset"] = true_or_false_to_tinyint(value)
+        elif key == "UnderMaintenance":
+            self.__dict__["UnderMaintenance"] = true_or_false_to_tinyint(value)
         else:
             self.__dict__[key] = value
 
@@ -393,3 +401,19 @@ class OtherBuffer(db.Model):
         return max_record_id + 1 if max_record_id is not None else 1
 
 
+# 将iso标准格式时间字符串（含时区）转换成当前iso标准时间字符串
+def to_local_time(dt_str):
+    dt = datetime.datetime.fromisoformat(dt_str)
+    if dt.tzinfo:
+        dt = dt.astimezone()
+    return dt.strftime('%Y-%m-%dT%H:%M:%S')
+
+
+# 将字符串true或false转成1或0
+def true_or_false_to_tinyint(bool_str):
+    if bool_str.lower() == 'true':
+        return 1
+    elif bool_str.lower() == 'false':
+        return 0
+    else:
+        return -1

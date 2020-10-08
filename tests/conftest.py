@@ -6,7 +6,8 @@ from flask_sqlalchemy import SQLAlchemy
 @pytest.fixture(scope="session")
 def init_app():
     app = Flask(__name__)
-    app.config.from_object("settings.Development")
+    # app.config.from_object("settings.Development")
+    app.config.from_object("settings.Test")
     db = SQLAlchemy()
     db.init_app(app)
 

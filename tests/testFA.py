@@ -44,7 +44,7 @@ def test_2_load_from_dms(init_app):
 # 写入interfaceinfo获得entry_no
 # @pytest.mark.skip("先跑通app上下文")
 def test_3_save_interface(init_app):
-    general_node_dict = fa_obj.load_api_p_out_nodes(company_code, api_code, node_type="general")
+    general_node_dict = fa_obj.load_api_p_out_nodes(company_code, api_code, node_type="General")
     assert len(general_node_dict) > 0
     assert "DMSCode" in general_node_dict
 
@@ -101,7 +101,7 @@ def test_6_invoke_ws(init_app):
 
 
 # 清理测试数据
-# @pytest.mark.skip(reason="都调通再说")
+@pytest.mark.skip(reason="都调通再说")
 def test_7_cleanup(init_app):
     (app, db) = init_app
     entry_no = global_vars["entry_no"]

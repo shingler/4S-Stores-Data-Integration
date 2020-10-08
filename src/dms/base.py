@@ -60,7 +60,7 @@ class DMSBase:
         return len(data[node_name])
 
     # 读取出参配置配置
-    def load_api_p_out_nodes(self, company_code, api_code, node_type="general", depth=2):
+    def load_api_p_out_nodes(self, company_code, api_code, node_type="General", depth=2):
         node_dict = {}
         api_p_out_config = db.session.query(dms.ApiPOutSetup) \
             .filter(dms.ApiPOutSetup.Company_Code == company_code) \
@@ -117,7 +117,7 @@ class DMSBase:
             DMSTitle=general_data["DMSTitle"],
             CompanyCode=general_data["CompanyCode"],
             CompanyTitle=general_data["CompanyTitle"],
-            CreateDateTime=general_data["CreateDateTime"],
+            CreateDateTime=nav.to_local_time(general_data["CreateDateTime"]),
             Creator=general_data["Creator"],
             XMLFileName=XMLFile,
             Type=Type,
@@ -127,7 +127,7 @@ class DMSBase:
             Invoice_Total_Count=0
         )
         # 再补充一些默认值
-        interfaceInfo.DateTime_Imported = str(datetime.datetime.now())
+        interfaceInfo.DateTime_Imported = datetime.datetime.now().isoformat(timespec="seconds")
 
         if Type == 0:
             interfaceInfo.Customer_Vendor_Total_Count = Count
