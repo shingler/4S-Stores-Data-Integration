@@ -124,6 +124,8 @@ class CustVendBuffer(db.Model):
             self.__dict__["Type"] = 1
         elif key == "Type":
             self.__dict__["Type"] = 2
+        elif key == "PricesIncludingVAT":
+            self.__dict__["PricesIncludingVAT"] = true_or_false_to_tinyint(value)
         else:
             self.__dict__[key] = value
 
@@ -241,6 +243,8 @@ class InvoiceHeaderBuffer(db.Model):
             self.__dict__["Document_Date"] = value
         elif key == "DueDate":
             self.__dict__["Due_Date"] = value
+        elif key == "PriceIncludeVAT":
+            self.__dict__["PriceIncludeVAT"] = true_or_false_to_tinyint(value)
         else:
             self.__dict__[key] = value
 
@@ -403,7 +407,12 @@ class OtherBuffer(db.Model):
 
 # 将iso标准格式时间字符串（含时区）转换成当前iso标准时间字符串
 def to_local_time(dt_str):
-    dt = datetime.datetime.fromisoformat(dt_str)
+    # 时间字符串是否以Z结尾
+    if dt_str.endswith("Z"):
+        dt_str = dt_str[:dt_str.index("Z")]
+        dt = datetime.datetime.fromisoformat(dt_str) + datetime.timedelta(hours=8)
+    else:
+        dt = datetime.datetime.fromisoformat(dt_str)
     if dt.tzinfo:
         dt = dt.astimezone()
     return dt.strftime('%Y-%m-%dT%H:%M:%S')
