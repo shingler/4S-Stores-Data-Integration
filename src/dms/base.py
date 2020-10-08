@@ -13,7 +13,7 @@ import xmltodict
 
 from src import db
 from src.error import DataFieldEmptyError
-from src.models import dms, nav
+from src.models import dms, nav, to_local_time
 
 
 class DMSBase:
@@ -117,7 +117,7 @@ class DMSBase:
             DMSTitle=general_data["DMSTitle"],
             CompanyCode=general_data["CompanyCode"],
             CompanyTitle=general_data["CompanyTitle"],
-            CreateDateTime=nav.to_local_time(general_data["CreateDateTime"]),
+            CreateDateTime=to_local_time(general_data["CreateDateTime"]),
             Creator=general_data["Creator"],
             XMLFileName=XMLFile,
             Type=Type,

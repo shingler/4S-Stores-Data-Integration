@@ -6,6 +6,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import foreign, remote
 
 from src import db
+from src.models import true_or_false_to_tinyint, to_local_time
 
 
 class InterfaceInfo(db.Model):
@@ -347,7 +348,7 @@ class OtherBuffer(db.Model):
                                   server_default=datetime.datetime.now().isoformat(timespec="seconds"), nullable=False)
     # 处理时间, 初始插入数据时插入('1753-01-01 00:00:00.000')
     DateTime_handled = db.Column("[DateTime handled]", db.DateTime, nullable=False,
-                                 default="1753-01-01 00:00:00.000'", comment="处理时间")
+                                 default="1753-01-01 00:00:00.000", comment="处理时间")
     # 错误消息, 初始插入数据时插入空字符('')
     Error_Message = db.Column("[Error Message]", db.String(250), nullable=False, default="", comment="错误消息")
     # 处理人, 初始插入数据时插入空字符('')
@@ -379,9 +380,9 @@ class OtherBuffer(db.Model):
         elif key == "LineNo":
             self.__dict__["Line_No_"] = value
         elif key == "PostingDate":
-            self.__dict__["Posting_Date"] = value
+            self.__dict__["Posting_Date"] = to_local_time(value)
         elif key == "DocumentDate":
-            self.__dict__["Document_Date"] = value
+            self.__dict__["Document_Date"] = to_local_time(value)
         elif key == "ExtDocumentNo":
             self.__dict__["ExtDocumentNo_"] = value
         elif key == "AccountNo":
@@ -403,26 +404,3 @@ class OtherBuffer(db.Model):
     def getLatestRecordId(self):
         max_record_id = db.session.query(func.max(self.__class__.Record_ID)).scalar()
         return max_record_id + 1 if max_record_id is not None else 1
-
-
-# 将iso标准格式时间字符串（含时区）转换成当前iso标准时间字符串
-def to_local_time(dt_str):
-    # 时间字符串是否以Z结尾
-    if dt_str.endswith("Z"):
-        dt_str = dt_str[:dt_str.index("Z")]
-        dt = datetime.datetime.fromisoformat(dt_str) + datetime.timedelta(hours=8)
-    else:
-        dt = datetime.datetime.fromisoformat(dt_str)
-    if dt.tzinfo:
-        dt = dt.astimezone()
-    return dt.strftime('%Y-%m-%dT%H:%M:%S')
-
-
-# 将字符串true或false转成1或0
-def true_or_false_to_tinyint(bool_str):
-    if bool_str.lower() == 'true':
-        return 1
-    elif bool_str.lower() == 'false':
-        return 0
-    else:
-        return -1
