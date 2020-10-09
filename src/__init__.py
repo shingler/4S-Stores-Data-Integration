@@ -14,7 +14,7 @@ def create_app():
     # app.config.from_object("settings.Development")
     app.config.from_object("settings.Test")
     db.init_app(app)
-
+    set_Env(app.config["ENV"])
     # app.register_blueprint()
 
     return app

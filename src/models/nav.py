@@ -6,7 +6,14 @@ from sqlalchemy import func
 from sqlalchemy.orm import foreign, remote
 
 from src import db
-from src.models import true_or_false_to_tinyint, to_local_time
+from src.models import true_or_false_to_tinyint, to_local_time, cast_chinese_decode, cast_chinese_encode
+
+# 公有变量标识环境
+ENV = "production"
+
+
+def set_Env(env):
+    globals()["ENV"] = env
 
 
 class InterfaceInfo(db.Model):
@@ -138,6 +145,7 @@ class CustVendBuffer(db.Model):
 
 class FABuffer(db.Model):
     __tablename__ = "FABuffer"
+    __env__ = ""
     # 非自增主键
     Record_ID = db.Column("[Record ID]", db.Integer, nullable=False, primary_key=True, autoincrement=False)
     FANo_ = db.Column(db.String(20), default='', nullable=False)
@@ -178,6 +186,7 @@ class FABuffer(db.Model):
 
     # 来源字段和对象字段不一致的特殊情况
     def __setattr__(self, key, value):
+        # print(globals()["ENV"])
         if key == "FANo":
             self.__dict__["FANo_"] = value
         elif key == "Inactive":
@@ -188,8 +197,18 @@ class FABuffer(db.Model):
             self.__dict__["BudgetedAsset"] = true_or_false_to_tinyint(value)
         elif key == "UnderMaintenance":
             self.__dict__["UnderMaintenance"] = true_or_false_to_tinyint(value)
+        elif key == "Description" and globals()["ENV"] != "Development":
+            self.__dict__["Description"] = cast_chinese_encode(value)
         else:
             self.__dict__[key] = value
+
+    # 获取中文字段并做cast处理
+    def get_chinese_data(self, field):
+        if globals()["ENV"] != "Development":
+            data_list = db.session.query(cast_chinese_decode(self.__class__.__dict__[field])).all()
+        else:
+            data_list = db.session.query(self.__class__.Description).all()
+        return data_list
 
     # 获得当前最大的主键并+1返回
     def getLatestRecordId(self):

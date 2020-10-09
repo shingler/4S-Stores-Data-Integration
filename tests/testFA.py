@@ -3,7 +3,7 @@ import requests
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 
-
+import src.dms
 from src.dms.fa import FA
 from src.models import nav
 from src.error import DataFieldEmptyError
@@ -76,7 +76,7 @@ def test_4_save_FA(init_app):
     assert len(fa_dict) > 0
     assert "FANo" in fa_dict[0]
     # with pytest.raises():
-    fa_obj.save_data_to_nav(nav_data=fa_dict, entry_no=entry_no, TABLE_CLASS=nav.FABuffer)
+    fa_obj.save_data_to_nav(nav_data=fa_dict, entry_no=entry_no, TABLE_CLASS=fa_obj.TABLE_CLASS)
 
 
 # 检查数据正确性
@@ -92,6 +92,8 @@ def test_5_valid_data(init_app):
     assert interfaceInfo.FA_Total_Count == 1
     assert len(faList) > 0
     assert faList[0].FANo_ == "FA0001"
+    chinese_test_list = nav.FABuffer().get_chinese_data("Description")
+    print(chinese_test_list)
 
 
 # 将entry_no作为参数写入指定的ws

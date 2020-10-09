@@ -14,12 +14,14 @@ class Base:
 
 
 class Development(Base):
+    ENV = "Development"
     SQLALCHEMY_DATABASE_URI = "mysql+pymysql://root:123456@127.0.0.1:3306/dms_interface?charset=utf8"
 
 
 class Test(Base):
+    ENV = "Test"
     # SQLALCHEMY_DATABASE_URI = "mssql+pymssql://sa:msSqlServer2020@127.0.0.1:1401/dms_interface"
     SQLALCHEMY_DATABASE_URI = "mssql+pyodbc://sa:msSqlServer2020@127.0.0.1:1401/dms_interface?driver=ODBC+Driver+17+for+SQL+Server"
 
 class Production(Base):
-    pass
+    ENV = "production"
