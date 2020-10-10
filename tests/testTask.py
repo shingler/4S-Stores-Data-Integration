@@ -5,9 +5,11 @@ import pytest
 import bin
 from bin import cust_vend, fa, invoice, other
 from src.dms.custVend import CustVend
+from src.dms.notification import Notification
 from src.error import DataFieldEmptyError
 from src.models import nav
 from src.models.dms import ApiTaskSetup
+from src.models.log import NotificationLog, APILog
 
 
 global_vars = {
@@ -107,7 +109,7 @@ def test_4_retry_or_not(init_app):
         elif one_task.API_Code == "Invoice":
             entry_no = invoice.main(company_code=company_code, api_code=api_code, retry=retry)
         elif one_task.API_Code == "Other":
-            entry_no = other.main(company_code=one_task.company_code, api_code=api_code, retry=retry)
+            entry_no = other.main(company_code=company_code, api_code=api_code, retry=retry)
         assert entry_no != 0
         print(entry_no)
         global_vars["entry_no"] = entry_no
@@ -122,10 +124,38 @@ def test_5_send_notification(init_app):
         print("不发送提醒邮件")
     else:
         print("发送提醒邮件")
+        one_task = global_vars["current_task"]
         # 读取邮件列表
+        notify_obj = Notification(one_task.Company_Code, one_task.API_Code)
+        receivers = notify_obj.get_receiver_email()
+        assert type(receivers) == list
+        assert len(receivers) != 0
+        assert receivers[0].Activated == True
         # 发送邮件
-        # 写入提醒日志
+        smtp_config = notify_obj.smtp_config
+        assert smtp_config is not None
+        assert smtp_config.Email_SMTP is not None
+        assert smtp_config.Email_SMTP != ""
+
+        nids = []
+        for r in receivers:
+            if r.Activated:
+                email_title, email_content = notify_obj.get_notification_content()
+                assert email_content != ""
+                result = notify_obj.send_mail(r.Email_Address, email_title, email_content)
+                assert result
+                # 写入提醒日志
+                if result:
+                    nid = notify_obj.save_notification_log(r.Email_Address, email_title, email_content)
+                    assert nid is not None
+                    nids.append(nid)
         # 验证日志有记录
+        app, db = init_app
+        logs = db.session.query(NotificationLog).filter(NotificationLog.ID.in_(nids)).all()
+        assert len(logs) > 0
+        one_log = random.choice(logs)
+        assert one_log.Company_Code != ""
+        assert one_log.Recipients == "shingler@gf-app.cn"
 
 
 # 验证写入的数据是否符合预期
@@ -186,3 +216,4 @@ def test_6_valid_data(init_app):
         assert data_list[0].DocumentNo_ == "XXXXX"
         assert data_list[0].SourceNo == "C0000001"
         assert data_list[1].SourceNo == "BNK_320_11_00003"
+    # 验证api日志是否写入

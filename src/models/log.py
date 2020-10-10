@@ -1,5 +1,7 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
+import datetime
+
 from sqlalchemy import and_
 from sqlalchemy.orm import foreign, remote
 
@@ -21,7 +23,8 @@ class NotificationLog(db.Model):
     # 邮件内容(HTML的内容)
     Email_Content = db.Column(db.Text, nullable=True, comment="邮件内容(HTML的内容)")
     # 发送时间
-    Sent_DT = db.Column(db.DateTime, nullable=False, comment="发送时间")
+    Sent_DT = db.Column(db.DateTime, nullable=False, comment="发送时间",
+                        default=datetime.datetime.now().isoformat(timespec="milliseconds"))
 
     company = db.relationship("dms.ApiSetup",
                               primaryjoin=foreign(Company_Code) == remote(dms.ApiSetup.Company_Code))

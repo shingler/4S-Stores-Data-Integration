@@ -2,7 +2,7 @@
 # -*- coding:utf-8 -*-
 import datetime
 
-from src import db, Company, ApiSetup, ApiPOutSetup, ApiTaskSetup, NotificationUser
+from src import db, Company, ApiSetup, ApiPOutSetup, ApiTaskSetup, NotificationUser, SystemSetup
 from src import create_app
 
 app = create_app()
@@ -1291,6 +1291,17 @@ with app.app_context():
             Company_Code="K302ZH", User_Name="moore",
             Email_Address="moore0101@gf-app.cn", Activated=False,
             Last_Modified_DT=datetime.datetime.now().isoformat(timespec="milliseconds"), Last_Modified_By=""
+        )
+    ])
+    # test data for System_Setup
+    db.session.add_all([
+        SystemSetup(
+            Email_SMTP="smtp.163.com",
+            SMTP_Port="465",
+            Email_UserID="singlerwong@163.com",
+            Email_Password="XJZDDLHZYACGJVWM",
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec="seconds"),
+            Last_Modified_By=""
         )
     ])
 
