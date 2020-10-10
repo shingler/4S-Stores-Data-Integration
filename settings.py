@@ -11,6 +11,8 @@ class Base:
     SQLALCHEMY_MAX_OVERFLOW = 2
     SQLALCHEMY_TRACK_MODIFICATIONS = True
     SQLALCHEMY_ECHO = True
+    # SQLALCHEMY_COMMIT_ON_TEARDOWN = True
+    SQLALCHEMY_ENGINE_OPTIONS = {"isolation_level": "AUTOCOMMIT"}
 
 
 class Development(Base):
@@ -25,3 +27,4 @@ class Test(Base):
 
 class Production(Base):
     ENV = "production"
+    SQLALCHEMY_ECHO = False

@@ -2,7 +2,7 @@
 # -*- coding:utf-8 -*-
 import datetime
 
-from src import db, Company, ApiSetup, ApiPOutSetup
+from src import db, Company, ApiSetup, ApiPOutSetup, ApiTaskSetup, NotificationUser
 from src import create_app
 
 app = create_app()
@@ -30,6 +30,57 @@ with app.app_context():
         NAV_WEB_Password=""
     ))
 
+    # test data for task
+    db.session.add_all([
+        ApiTaskSetup(
+            Company_Code="K302ZH",
+            Sequence=1,
+            Task_Name="CustVendInfo-xml",
+            API_Code="CustVendInfo",
+            Execute_Time=datetime.time.fromisoformat("00:00:00.000"),
+            Fail_Handle=1,
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec="milliseconds"),
+            Last_Modified_By="",
+            Recurrence_Day=1,
+            Last_Executed_Time=""
+        ),
+        ApiTaskSetup(
+            Company_Code="K302ZH",
+            Sequence=2,
+            Task_Name="FA-xml",
+            API_Code="FA",
+            Execute_Time=datetime.time.fromisoformat("00:00:00.000"),
+            Fail_Handle=2,
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec="milliseconds"),
+            Last_Modified_By="",
+            Recurrence_Day=1,
+            Last_Executed_Time=""
+        ),
+        ApiTaskSetup(
+            Company_Code="K302ZH",
+            Sequence=3,
+            Task_Name="Invoice-xml",
+            API_Code="Invoice",
+            Execute_Time=datetime.time.fromisoformat("00:00:00.000"),
+            Fail_Handle=3,
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec="milliseconds"),
+            Last_Modified_By="",
+            Recurrence_Day=1,
+            Last_Executed_Time=""
+        ),
+        ApiTaskSetup(
+            Company_Code="K302ZH",
+            Sequence=4,
+            Task_Name="Other-xml",
+            API_Code="Other",
+            Execute_Time=datetime.time.fromisoformat("00:00:00.000"),
+            Fail_Handle=3,
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec="milliseconds"),
+            Last_Modified_By="",
+            Recurrence_Day=1,
+            Last_Executed_Time=""
+        )]
+    )
     # test data for api_setup
     db.session.add_all([
         ApiSetup(
@@ -37,8 +88,8 @@ with app.app_context():
             API_Code="CustVendInfo",
             API_Name="Customer/Vendor Interface",
             API_Type=2,
-            API_Address1="X:\DMS_Interface\K302ZH",
-            API_Address2="Y:\DMS_Interface2\K302ZH",
+            API_Address1="D:\DMS_Interface\K302ZH",
+            API_Address2="/Users/shingler/PycharmProjects/platform20200916/DMS_Interface/K302ZH",
             Command_Code="",
             Data_Format=2,
             Signature_Verision="",
@@ -59,8 +110,8 @@ with app.app_context():
             API_Code="FA",
             API_Name="Customer/FA Interface",
             API_Type=2,
-            API_Address1="X:\DMS_Interface\K302ZH",
-            API_Address2="Y:\DMS_Interface2\K302ZH",
+            API_Address1="D:\DMS_Interface\K302ZH",
+            API_Address2="/Users/shingler/PycharmProjects/platform20200916/DMS_Interface/K302ZH",
             Command_Code="",
             Data_Format=2,
             Signature_Verision="",
@@ -81,8 +132,8 @@ with app.app_context():
             API_Code="Invoice",
             API_Name="Customer/Invoice Interface",
             API_Type=2,
-            API_Address1="X:\DMS_Interface\K302ZH",
-            API_Address2="Y:\DMS_Interface2\K302ZH",
+            API_Address1="D:\DMS_Interface\K302ZH",
+            API_Address2="/Users/shingler/PycharmProjects/platform20200916/DMS_Interface/K302ZH",
             Command_Code="",
             Data_Format=2,
             Signature_Verision="",
@@ -103,8 +154,8 @@ with app.app_context():
             API_Code="Other",
             API_Name="Customer/Other Interface",
             API_Type=2,
-            API_Address1="X:\DMS_Interface\K302ZH",
-            API_Address2="Y:\DMS_Interface2\K302ZH",
+            API_Address1="D:\DMS_Interface\K302ZH",
+            API_Address2="/Users/shingler/PycharmProjects/platform20200916/DMS_Interface/K302ZH",
             Command_Code="",
             Data_Format=2,
             Signature_Verision="",
@@ -1227,6 +1278,19 @@ with app.app_context():
             Parent_Node_Name="Line", Value_Type=1,
             Table_Name="OtherBuffer", Column_Name="Location",
             Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
+        )
+    ])
+    # test data for Notification_User
+    db.session.add_all([
+        NotificationUser(
+            Company_Code="K302ZH", User_Name="shingler",
+            Email_Address="shingler@gf-app.cn", Activated=True,
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec="milliseconds"), Last_Modified_By=""
+        ),
+        NotificationUser(
+            Company_Code="K302ZH", User_Name="moore",
+            Email_Address="moore0101@gf-app.cn", Activated=False,
+            Last_Modified_DT=datetime.datetime.now().isoformat(timespec="milliseconds"), Last_Modified_By=""
         )
     ])
 

@@ -143,6 +143,8 @@ class DMSBase:
         db.session.add(interfaceInfo)
         db.session.commit()
         db.session.flush()
+        # db.session.query(interfaceInfo.Entry_No_ == interfaceInfo.Entry_No_).first()
+        db.session.expire_all()
         return interfaceInfo.Entry_No_
 
     # 从api_p_out获取数据

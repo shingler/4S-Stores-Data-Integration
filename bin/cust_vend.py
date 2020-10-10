@@ -12,7 +12,10 @@ from src.models import nav
 from src.error import DataFieldEmptyError
 
 
-def main(company_code, api_code):
+# @param string company_code 公司代码
+# @param string api_code 执行代码
+# @param bool retry 是否重试。retry=false将按照地址1执行；为true则按照地址2执行。
+def main(company_code, api_code, retry=False):
     cv_obj = CustVend()
 
     api_setup = cv_obj.load_config_from_api_setup(company_code, api_code)
@@ -20,7 +23,7 @@ def main(company_code, api_code):
     if api_setup.API_Type == 1:
         data = cv_obj.load_data_from_dms_interface()
     else:
-        xml_src_path = cv_obj.splice_xml_file_path(api_setup)
+        xml_src_path = cv_obj.splice_xml_file_path(api_setup, secondary=retry)
         data = cv_obj.load_data_from_xml(xml_src_path)
 
     general_node_dict = cv_obj.load_api_p_out_nodes(company_code, api_code, node_type="general")
@@ -39,6 +42,7 @@ def main(company_code, api_code):
     cv_obj.save_data_to_nav(custVend_dict, entry_no=entry_no, TABLE_CLASS=cv_obj.TABLE_CLASS)
 
     # cv_obj.call_web_service()
+    return entry_no
 
 
 if __name__ == '__main__':

@@ -6,12 +6,15 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 import os
 
+from src import set_Env
+
 curPath = os.path.abspath(os.path.dirname(__file__))
 rootPath = os.path.split(curPath)[0]
 sys.path.append(rootPath)
 
 app = Flask(__name__)
-app.config.from_object("settings.Test")
+app.config.from_object("settings.Development")
+set_Env(app.config["ENV"])
 db = SQLAlchemy()
 db.init_app(app)
 context = app.app_context()

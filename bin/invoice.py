@@ -11,7 +11,7 @@ from src.dms.invoice import InvoiceHeader, InvoiceLine
 from src.error import DataFieldEmptyError
 
 
-def main(company_code, api_code):
+def main(company_code, api_code, retry=False):
     invoiceHeader_obj = InvoiceHeader()
     invoiceLine_obj = InvoiceLine()
 
@@ -20,7 +20,7 @@ def main(company_code, api_code):
     if api_setup.API_Type == 1:
         data = invoiceHeader_obj.load_data_from_dms_interface()
     else:
-        xml_src_path = invoiceHeader_obj.splice_xml_file_path(api_setup)
+        xml_src_path = invoiceHeader_obj.splice_xml_file_path(api_setup, secondary=retry)
         data = invoiceHeader_obj.load_data_from_xml(xml_src_path)
 
     general_node_dict = invoiceHeader_obj.load_api_p_out_nodes(company_code, api_code, node_type="general")
@@ -50,6 +50,7 @@ def main(company_code, api_code):
     invoiceLine_obj.save_data_to_nav(nav_data=il_dict, entry_no=entry_no, TABLE_CLASS=invoiceLine_obj.TABLE_CLASS)
 
     # cv_obj.call_web_service()
+    return entry_no
 
 
 if __name__ == '__main__':

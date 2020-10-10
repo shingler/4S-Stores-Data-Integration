@@ -32,7 +32,7 @@ def test_2_load_from_dms(init_app):
         data = fa_obj.load_data_from_dms_interface()
     else:
         # with not pytest.raises(DataFieldEmptyError):
-        xml_src_path = fa_obj.splice_xml_file_path(api_setup)
+        xml_src_path = fa_obj.splice_xml_file_path(api_setup, secondary=True)
         assert xml_src_path != ""
         global_vars["xml_src_path"] = xml_src_path
         data = fa_obj.load_data_from_xml(xml_src_path)

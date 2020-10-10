@@ -205,3 +205,7 @@ class ApiTaskSetup(db.Model):
     Last_Executed_Time = db.Column(db.DateTime, nullable=False, comment="上次成功执行时间")
 
     setup = db.relationship("ApiSetup", primaryjoin=foreign(Company_Code) == remote(ApiSetup.Company_Code), backref="task")
+
+    def __repr__(self):
+        return "%s<Company_Code=%s, Sequence=%d, Task_Name=%s, API_Code=%s, Fail_Handle=%d>" \
+               % (self.__class__, self.Company_Code, self.Sequence, self.Task_Name, self.API_Code, self.Fail_Handle)

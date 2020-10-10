@@ -13,7 +13,7 @@ from bin import app
 from src.dms.fa import FA
 
 
-def main(company_code, api_code):
+def main(company_code, api_code, retry=False):
     fa_obj = FA()
 
     api_setup = fa_obj.load_config_from_api_setup(company_code, api_code)
@@ -21,7 +21,7 @@ def main(company_code, api_code):
     if api_setup.API_Type == 1:
         data = fa_obj.load_data_from_dms_interface()
     else:
-        xml_src_path = fa_obj.splice_xml_file_path(api_setup)
+        xml_src_path = fa_obj.splice_xml_file_path(api_setup, secondary=retry)
         data = fa_obj.load_data_from_xml(xml_src_path)
 
     general_node_dict = fa_obj.load_api_p_out_nodes(company_code, api_code, node_type="general")
@@ -41,6 +41,7 @@ def main(company_code, api_code):
     fa_obj.save_data_to_nav(nav_data=fa_dict, entry_no=entry_no, TABLE_CLASS=fa_obj.TABLE_CLASS)
 
     # cv_obj.call_web_service()
+    return entry_no
 
 
 if __name__ == '__main__':

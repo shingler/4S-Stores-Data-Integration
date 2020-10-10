@@ -11,7 +11,7 @@ from src.dms.other import Other
 from src.error import DataFieldEmptyError
 
 
-def main(company_code, api_code):
+def main(company_code, api_code, retry=False):
     other_obj = Other()
 
     api_setup = other_obj.load_config_from_api_setup(company_code, api_code)
@@ -19,7 +19,7 @@ def main(company_code, api_code):
     if api_setup.API_Type == 1:
         data = other_obj.load_data_from_dms_interface()
     else:
-        xml_src_path = other_obj.splice_xml_file_path(api_setup)
+        xml_src_path = other_obj.splice_xml_file_path(api_setup, secondary=retry)
         data = other_obj.load_data_from_xml(xml_src_path)
 
     general_node_dict = other_obj.load_api_p_out_nodes(company_code, api_code, node_type="general")
@@ -39,6 +39,7 @@ def main(company_code, api_code):
     other_obj.save_data_to_nav(nav_data=fa_dict, entry_no=entry_no, TABLE_CLASS=other_obj.TABLE_CLASS)
 
     # cv_obj.call_web_service()
+    return entry_no
 
 
 if __name__ == '__main__':
