@@ -18,7 +18,7 @@ def main(company_code, api_code, retry=False):
     api_setup = Setup.load_api_setup(company_code, api_code)
     xml_src_path, data = invoiceHeader_obj.load_data(api_setup)
 
-    general_node_dict = invoiceHeader_obj.load_api_p_out_nodes(company_code, api_code, node_type="general")
+    general_node_dict = invoiceHeader_obj.load_api_p_out_nodes(company_code, api_code, node_type="General")
     general_dict = invoiceHeader_obj.splice_general_info(data, node_dict=general_node_dict)
 
     entry_no = invoiceHeader_obj.save_data_to_interfaceinfo(

@@ -11,8 +11,8 @@ from .models.nav import *
 
 def create_app():
     app = Flask(__name__)
-    app.config.from_object("settings.Development")
-    # app.config.from_object("settings.Test")
+    # app.config.from_object("settings.Development")
+    app.config.from_object("settings.Test")
     db.init_app(app)
     set_Env(app.config["ENV"])
     # app.register_blueprint()

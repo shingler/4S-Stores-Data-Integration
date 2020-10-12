@@ -13,7 +13,8 @@ rootPath = os.path.split(curPath)[0]
 sys.path.append(rootPath)
 
 app = Flask(__name__)
-app.config.from_object("settings.Development")
+# app.config.from_object("settings.Development")
+app.config.from_object("settings.Test")
 set_Env(app.config["ENV"])
 db = SQLAlchemy()
 db.init_app(app)
