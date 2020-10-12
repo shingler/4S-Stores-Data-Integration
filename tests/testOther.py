@@ -1,23 +1,20 @@
 import pytest
 import requests
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-
 
 from src.dms.other import Other
 from src.models import nav
-from src.error import DataFieldEmptyError
+from src.dms.setup import Setup
 
 company_code = "K302ZH"
 api_code = "Other"
 global_vars = {}
-other_obj = Other()
+other_obj = Other(force_secondary=True)
 
 
 # 根据公司列表和接口设置确定数据源
 def test_1_dms_source(init_app):
     print("test_1_dms_source")
-    api_setup = other_obj.load_config_from_api_setup(company_code, api_code)
+    api_setup = Setup.load_api_setup(company_code, api_code)
     assert api_setup is not None
     assert api_setup.API_Address1 != ""
     print(api_setup)
@@ -28,17 +25,12 @@ def test_1_dms_source(init_app):
 # @pytest.mark.skip("先跑通app上下文")
 def test_2_load_from_dms(init_app):
     api_setup = global_vars["api_setup"]
-    if api_setup.API_Type == 1:
-        data = other_obj.load_data_from_dms_interface()
-    else:
-        # with not pytest.raises(DataFieldEmptyError):
-        xml_src_path = other_obj.splice_xml_file_path(api_setup)
-        assert xml_src_path != ""
-        global_vars["xml_src_path"] = xml_src_path
-        data = other_obj.load_data_from_xml(xml_src_path)
+    path, data = other_obj.load_data(api_setup)
+    assert path != ""
     assert data is not None
     assert len(data) > 0
     global_vars["data"] = data
+    global_vars["path"] = path
 
 
 # 写入interfaceinfo获得entry_no
@@ -57,7 +49,7 @@ def test_3_save_interface(init_app):
         general_data=general_dict,
         Type=3,
         Count=other_obj.get_count_from_data(data["Transaction"], "Daydook"),
-        XMLFile=global_vars["xml_src_path"] if global_vars["xml_src_path"] else "")
+        XMLFile=global_vars["path"] if global_vars["path"] else "")
     assert entry_no != 0
 
     global_vars["entry_no"] = entry_no

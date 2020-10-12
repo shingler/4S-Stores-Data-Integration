@@ -14,20 +14,21 @@ import xmltodict
 from src import db
 from src.error import DataFieldEmptyError
 from src.models import dms, nav, to_local_time
+from src.models.log import APILog
 
 
 class DMSBase:
-    # 根据公司列表和接口设置确定数据源
-    def load_config_from_api_setup(self, company_code, api_code) -> dms.ApiSetup:
-        api_setup = db.session.query(dms.ApiSetup).filter(dms.ApiSetup.Company_Code == company_code) \
-            .filter(dms.ApiSetup.API_Code == api_code).first()
-        return api_setup
+    # 强制启用备用地址
+    force_secondary = False
+
+    def __init__(self, force_secondary=False):
+        self.force_secondary = force_secondary
 
     # 拼接xml文件路径
-    def splice_xml_file_path(self, apiSetUp, secondary=False) -> str:
+    def _splice_xml_file_path(self, apiSetUp) -> str:
         if apiSetUp.API_Type == 1:
             return ""
-        if not secondary:
+        if not self.force_secondary:
             if apiSetUp.API_Address1 == "" or apiSetUp.Archived_Path == "":
                 raise DataFieldEmptyError("API_Address或Archived_Path为空")
             xml_src = "%s/%s" % (apiSetUp.API_Address1, apiSetUp.Archived_Path)
@@ -38,41 +39,43 @@ class DMSBase:
         return xml_src
 
     # 读取接口
-    def load_data_from_dms_interface(self) -> dict:
+    def _load_data_from_dms_interface(self, apiSetup) -> dict:
         return []
 
     # 读取xml
-    def load_data_from_xml(self, xml_src_path) -> dict:
+    def _load_data_from_xml(self, xml_src_path):
         if not os.path.exists(xml_src_path):
             raise FileNotFoundError("找不到xml文件：%s" % xml_src_path)
 
         with open(xml_src_path, "rb") as xml_handler:
-            data = xmltodict.parse(xml_handler.read())
+            data = xml_handler.read()
         return data
+
+    # 读取数据
+    def load_data(self, apiSetup, userID=None) -> (str, dict):
+        execute_dt = datetime.datetime.now().isoformat(timespec="milliseconds")
+        if apiSetup.Data_Format == 1:
+            path = ""
+            data = self._load_data_from_dms_interface(apiSetup)
+            # 写入api日志
+            self.save_to_api_log(apiSetup, data=data)
+        else:
+            path = self._splice_xml_file_path(apiSetup)
+            xml_data = self._load_data_from_xml(path)
+            # 写入api日志
+            self.save_to_api_log(apiSetup, data=xml_data, execute_dt=execute_dt, userID=userID)
+            # 将xml转为字典
+            data = xmltodict.parse(xml_data)
+
+        return path, data
 
     # 获取指定节点的数量（xml可以节点同名。在json这里，则判断节点是否是数组。是，则返回长度；非，则返回1。
     def get_count_from_data(self, data, node_name) -> int:
-        # print(type(data[node_name]), type(data[node_name]) == OrderedDict)
         if node_name not in data:
             return 0
         if type(data[node_name]) == OrderedDict:
             return 1
         return len(data[node_name])
-
-    # 读取出参配置配置
-    def load_api_p_out_nodes(self, company_code, api_code, node_type="General", depth=2):
-        node_dict = {}
-        api_p_out_config = db.session.query(dms.ApiPOutSetup) \
-            .filter(dms.ApiPOutSetup.Company_Code == company_code) \
-            .filter(dms.ApiPOutSetup.API_Code == api_code) \
-            .filter(dms.ApiPOutSetup.Level == depth) \
-            .filter(dms.ApiPOutSetup.Parent_Node_Name == node_type) \
-            .order_by(dms.ApiPOutSetup.Sequence.asc()).all()
-        for one in api_p_out_config:
-            if one.P_Name not in node_dict:
-                node_dict[one.P_Name] = one
-        # print(node_dict)
-        return node_dict
 
     '''
     从api_p_out获取数据
@@ -164,6 +167,21 @@ class DMSBase:
                 other_obj.__setattr__(key, value)
             # print(custVend_obj)
             db.session.add(other_obj)
+        db.session.commit()
+
+    # 将读取的数据写入API日志
+    def save_to_api_log(self, apiSetup, data, apiPIn=None, execute_dt=None, userID=None):
+        db.session.add(APILog(
+            Company_Code=apiSetup.Company_Code,
+            API_Code=apiSetup.API_Code,
+            API_P_In=apiPIn if apiPIn is not None else "",
+            API_Content=data,
+            Content_Type=apiSetup.Data_Format,
+            Executed_DT=execute_dt if execute_dt is not None else datetime.datetime.now().isoformat(timespec="milliseconds"),
+            Finished_DT=datetime.datetime.now().isoformat(timespec="milliseconds"),
+            Executed_By=1 if userID is None else 2,
+            UserID="System" if userID is None else userID
+        ))
         db.session.commit()
 
     # 将entry_no作为参数写入指定的ws

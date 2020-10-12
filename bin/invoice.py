@@ -8,20 +8,15 @@ sys.path.append(rootPath)
 import requests
 from bin import app
 from src.dms.invoice import InvoiceHeader, InvoiceLine
-from src.error import DataFieldEmptyError
+from src.dms.setup import Setup
 
 
 def main(company_code, api_code, retry=False):
-    invoiceHeader_obj = InvoiceHeader()
+    invoiceHeader_obj = InvoiceHeader(force_secondary=retry)
     invoiceLine_obj = InvoiceLine()
 
-    api_setup = invoiceHeader_obj.load_config_from_api_setup(company_code, api_code)
-    xml_src_path = None
-    if api_setup.API_Type == 1:
-        data = invoiceHeader_obj.load_data_from_dms_interface()
-    else:
-        xml_src_path = invoiceHeader_obj.splice_xml_file_path(api_setup, secondary=retry)
-        data = invoiceHeader_obj.load_data_from_xml(xml_src_path)
+    api_setup = Setup.load_api_setup(company_code, api_code)
+    xml_src_path, data = invoiceHeader_obj.load_data(api_setup)
 
     general_node_dict = invoiceHeader_obj.load_api_p_out_nodes(company_code, api_code, node_type="general")
     general_dict = invoiceHeader_obj.splice_general_info(data, node_dict=general_node_dict)
@@ -57,4 +52,4 @@ if __name__ == '__main__':
     # 应由task提供
     company_code = "K302ZH"
     api_code = "Invoice"
-    main(company_code, api_code)
+    main(company_code, api_code, retry=True)

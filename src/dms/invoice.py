@@ -3,6 +3,7 @@
 from collections import OrderedDict
 
 from src.dms.base import DMSBase
+from src.dms.setup import Setup
 from src.models import nav
 from src.error import InvoiceEmptyError
 
@@ -16,11 +17,11 @@ class Invoice(DMSBase):
 
     # 读取出参配置配置
     def load_api_p_out_nodes(self, company_code, api_code, node_type="general", depth=3):
-        node_dict = super().load_api_p_out_nodes(company_code, api_code, node_type, depth - 1)
+        node_dict = Setup.load_api_p_out_nodes(company_code, api_code, node_type, depth - 1)
         if node_type == "general":
             return node_dict
 
-        node_dict["INVHeader"] = super().load_api_p_out_nodes(company_code, api_code, node_type=self.BIZ_NODE_LV2, depth=depth)
+        node_dict["INVHeader"] = Setup.load_api_p_out_nodes(company_code, api_code, node_type=self.BIZ_NODE_LV2, depth=depth)
         # print(node_dict)
         return node_dict
 
