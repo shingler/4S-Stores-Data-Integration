@@ -34,8 +34,14 @@ class Notification:
 
     # 发送邮件
     def send_mail(self, to_address, email_title, email_content):
-        ret = mail(smtp_config=self.smtp_config, to_addr=to_address, email_title=email_title, email_body=email_content)
-        ret = True
+        smtp_conf = {
+            "smtp_host": self.smtp_config.Email_SMTP,
+            "smtp_port": self.smtp_config.SMTP_Port,
+            "sender": self.smtp_config.Email_UserID,
+            "user_pwd": self.smtp_config.Email_Password
+        }
+        ret = mail(smtp_config=smtp_conf, to_addr=to_address, email_title=email_title, email_body=email_content)
+        # ret = True
         return ret
 
     # 写入发送日志
