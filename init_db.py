@@ -7,6 +7,14 @@ from src import create_app
 
 app = create_app()
 with app.app_context():
+    if app.config["ENV"] == "production":
+        print("Error! This init DB script cannot run on production environment")
+        exit(0)
+    print("Warning! You are running init DB script on %s environment. \n"
+          "This will erase all the data. \nPlease make sure you want to do this!" % app.config["ENV"])
+    answer = input("Please input Y to run or any key to cancel.")
+    if answer.upper() != "Y":
+        exit(0)
     db.drop_all()
     db.create_all()
     # 测试数据

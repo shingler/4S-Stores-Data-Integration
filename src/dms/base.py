@@ -7,6 +7,7 @@
 # 4. 根据配置字段将数据里的数据写入InterfaceInfo并返回entry no
 import datetime
 import os
+import time
 from collections import OrderedDict
 
 import xmltodict
@@ -20,6 +21,16 @@ from src.models.log import APILog
 class DMSBase:
     # 强制启用备用地址
     force_secondary = False
+    # dms方向
+    DIRECT_DMS = 1
+    # NAV方向
+    DIRECT_NAV = 2
+    # 状态：执行中
+    STATUS_PENDING = 1
+    # 状态：完成
+    STATUS_FINISH = 2
+    # 状态：错误
+    STATUS_ERROR = 9
 
     def __init__(self, force_secondary=False):
         self.force_secondary = force_secondary
@@ -53,17 +64,20 @@ class DMSBase:
 
     # 读取数据
     def load_data(self, apiSetup, userID=None) -> (str, dict):
-        execute_dt = datetime.datetime.now().isoformat(timespec="milliseconds")
-        if apiSetup.Data_Format == 1:
+        # 先写一条日志，记录执行时间
+        log_pk = self.add_new_api_log_when_start(apiSetup, direction=self.DIRECT_DMS, userID=userID)
+        # 模拟执行
+        # time.sleep(2)
+        if apiSetup.API_Type == 1:
             path = ""
             data = self._load_data_from_dms_interface(apiSetup)
-            # 写入api日志
-            self.save_to_api_log(apiSetup, data=data)
+            # 处理成功，更新日志
+            self.update_api_log_when_finish(log_pk, data=data, status=self.STATUS_FINISH)
         else:
             path = self._splice_xml_file_path(apiSetup)
             xml_data = self._load_data_from_xml(path)
-            # 写入api日志
-            self.save_to_api_log(apiSetup, data=xml_data, execute_dt=execute_dt, userID=userID)
+            # 处理成功，更新日志
+            self.update_api_log_when_finish(log_pk, data=xml_data, status=self.STATUS_FINISH)
             # 将xml转为字典
             data = xmltodict.parse(xml_data)
 
@@ -165,24 +179,38 @@ class DMSBase:
             for key, value in row.items():
                 # 自动赋值
                 other_obj.__setattr__(key, value)
-            # print(custVend_obj)
             db.session.add(other_obj)
         db.session.commit()
 
-    # 将读取的数据写入API日志
-    def save_to_api_log(self, apiSetup, data, apiPIn=None, execute_dt=None, userID=None):
-        db.session.add(APILog(
+    # 访问接口/文件时先新增一条API日志，并返回API_Log的主键用于后续更新
+    def add_new_api_log_when_start(self, apiSetup, direction=1, apiPIn=None, userID=None):
+        logger = APILog(
             Company_Code=apiSetup.Company_Code,
             API_Code=apiSetup.API_Code,
+            API_Direction=direction,
             API_P_In=apiPIn if apiPIn is not None else "",
-            API_Content=data,
+            API_Content="",
             Content_Type=apiSetup.Data_Format,
-            Executed_DT=execute_dt if execute_dt is not None else datetime.datetime.now().isoformat(timespec="milliseconds"),
-            Finished_DT=datetime.datetime.now().isoformat(timespec="milliseconds"),
+            Status=1,
+            Executed_DT=datetime.datetime.now().isoformat(timespec="milliseconds"),
+            Finished_DT="",
+            Error_Message="",
             Executed_By=1 if userID is None else 2,
             UserID="System" if userID is None else userID
-        ))
+        )
+        db.session.add(logger)
         db.session.commit()
+        db.session.flush()
+        return logger.ID
+
+    # 读取接口/文件成功后，通过主键更新日志
+    def update_api_log_when_finish(self, pk, status, data=None, error_msg=""):
+        db.session.query(APILog).filter(APILog.ID == pk).update({
+            "Status": status,
+            "API_Content": data,
+            "Finished_DT": datetime.datetime.now().isoformat(timespec="milliseconds"),
+            "Error_Message": error_msg
+        })
 
     # 将entry_no作为参数写入指定的ws
     def call_web_service(self):
