@@ -42,5 +42,6 @@ def main(company_code, api_code, retry=False):
 if __name__ == '__main__':
     # 应由task提供
     company_code = "K302ZH"
-    api_code = "CustVendInfo"
-    main(company_code, api_code, retry=True)
+    api_code = "CustVendInfo-xml-correct"
+    entry_no = main(company_code, api_code, retry=False)
+    print(entry_no)

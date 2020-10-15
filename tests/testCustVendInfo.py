@@ -9,9 +9,9 @@ from src.models import nav
 from src.error import DataFieldEmptyError
 
 company_code = "K302ZH"
-api_code = "CustVendInfo"
+api_code = "CustVendInfo-xml-correct"
 global_vars = {}
-cv_obj = CustVend(force_secondary=True)
+cv_obj = CustVend(force_secondary=False)
 
 
 # 根据公司列表和接口设置确定数据源

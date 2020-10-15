@@ -1,9 +1,11 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
+from sqlalchemy.sql.elements import and_
+
 from src import db
 from src.models.dms import NotificationUser
 from src.models.log import NotificationLog
-from src.models.system import SystemSetup
+from src.models.system import SystemSetup, UserList
 from src.smtp import mail
 
 
@@ -17,11 +19,13 @@ class Notification:
         self.api_code = api_code
         self.smtp_config = self._get_smtp_setup()
 
-    # 获取收件人
+    # 获取收件人（NotificationUser和接收邮件的User）
     def get_receiver_email(self):
-        receivers = db.session.query(NotificationUser).filter(NotificationUser.Company_Code == self.company_code) \
-            .filter(NotificationUser.Activated == True).all()
-        return receivers
+        receivers = db.session.query(NotificationUser).filter(
+            and_(NotificationUser.Company_Code == self.company_code, NotificationUser.Activated == True)).all()
+        users = db.session.query(UserList).filter(
+            and_(UserList.Receive_Notification == True, not UserList.Blocked == False)).all()
+        return receivers + users
 
     # 获取提醒邮件内容
     def get_notification_content(self):

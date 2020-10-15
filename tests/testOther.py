@@ -6,9 +6,9 @@ from src.models import nav
 from src.dms.setup import Setup
 
 company_code = "K302ZH"
-api_code = "Other"
+api_code = "Other-xml-correct"
 global_vars = {}
-other_obj = Other(force_secondary=True)
+other_obj = Other(force_secondary=False)
 
 
 # 根据公司列表和接口设置确定数据源

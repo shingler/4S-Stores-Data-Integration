@@ -6,13 +6,15 @@
 # 3. 读取DMS_API_P_Out读取要保存的General的字段
 # 4. 根据配置字段将数据里的数据写入InterfaceInfo并返回entry no
 import datetime
+import json
 import os
 import time
 from collections import OrderedDict
 
 import xmltodict
+from sqlalchemy.sql.elements import and_
 
-from src import db
+from src import db, ApiTaskSetup
 from src.error import DataFieldEmptyError
 from src.models import dms, nav, to_local_time
 from src.models.log import APILog
@@ -31,13 +33,21 @@ class DMSBase:
     STATUS_FINISH = 2
     # 状态：错误
     STATUS_ERROR = 9
+    # 格式：JSON
+    FORMAT_JSON = 1
+    # 格式：XML
+    FORMAT_XML = 2
+    # 接口类型：WebAPI
+    TYPE_API = 1
+    # 接口类型：文件
+    TYPE_FILE = 2
 
     def __init__(self, force_secondary=False):
         self.force_secondary = force_secondary
 
     # 拼接xml文件路径
     def _splice_xml_file_path(self, apiSetUp) -> str:
-        if apiSetUp.API_Type == 1:
+        if apiSetUp.API_Type == self.TYPE_API:
             return ""
         if not self.force_secondary:
             if apiSetUp.API_Address1 == "" or apiSetUp.Archived_Path == "":
@@ -50,17 +60,23 @@ class DMSBase:
         return xml_src
 
     # 读取接口
-    def _load_data_from_dms_interface(self, apiSetup) -> dict:
-        return []
+    def _load_data_from_dms_interface(self, path, format="json"):
+        return InterfaceResult(status=self.STATUS_FINISH, content="")
 
-    # 读取xml
-    def _load_data_from_xml(self, xml_src_path):
-        if not os.path.exists(xml_src_path):
-            raise FileNotFoundError("找不到xml文件：%s" % xml_src_path)
+    # 读取xml,返回InterfaceResult对象
+    def _load_data_from_file(self, path, format="xml"):
+        if not os.path.exists(path):
+            error_msg = "找不到xml文件：%s" % path
+            return InterfaceResult(status=self.STATUS_ERROR, error_msg=error_msg)
 
-        with open(xml_src_path, "rb") as xml_handler:
+        with open(path, "rb") as xml_handler:
             data = xml_handler.read()
-        return data
+        res = InterfaceResult(status=self.STATUS_FINISH, content=data)
+        if format == self.FORMAT_XML:
+            res.data = xmltodict.parse(data)
+        else:
+            res.data = json.loads(data, encoding="utf-8")
+        return res
 
     # 读取数据
     def load_data(self, apiSetup, userID=None) -> (str, dict):
@@ -68,20 +84,23 @@ class DMSBase:
         log_pk = self.add_new_api_log_when_start(apiSetup, direction=self.DIRECT_DMS, userID=userID)
         # 模拟执行
         # time.sleep(2)
-        if apiSetup.API_Type == 1:
+        if apiSetup.API_Type == self.TYPE_API:
             path = ""
-            data = self._load_data_from_dms_interface(apiSetup)
-            # 处理成功，更新日志
-            self.update_api_log_when_finish(log_pk, data=data, status=self.STATUS_FINISH)
+            res = self._load_data_from_dms_interface(path, format=apiSetup.Data_Format)
         else:
             path = self._splice_xml_file_path(apiSetup)
-            xml_data = self._load_data_from_xml(path)
-            # 处理成功，更新日志
-            self.update_api_log_when_finish(log_pk, data=xml_data, status=self.STATUS_FINISH)
-            # 将xml转为字典
-            data = xmltodict.parse(xml_data)
+            res = self._load_data_from_file(path, format=apiSetup.Data_Format)
+        print(res)
 
-        return path, data
+        # 根据结果进行后续处理
+        if res.status == self.STATUS_ERROR:
+            # 记录错误日志并抛出异常
+            self.update_api_log_when_finish(log_pk, status=self.STATUS_ERROR, error_msg=res.error_msg)
+            raise FileNotFoundError(res.error_msg)
+        else:
+            # 处理成功，更新日志
+            self.update_api_log_when_finish(log_pk, data=res.content, status=self.STATUS_FINISH)
+            return path, res.data
 
     # 获取指定节点的数量（xml可以节点同名。在json这里，则判断节点是否是数组。是，则返回长度；非，则返回1。
     def get_count_from_data(self, data, node_name) -> int:
@@ -184,6 +203,7 @@ class DMSBase:
 
     # 访问接口/文件时先新增一条API日志，并返回API_Log的主键用于后续更新
     def add_new_api_log_when_start(self, apiSetup, direction=1, apiPIn=None, userID=None):
+        print(apiSetup)
         logger = APILog(
             Company_Code=apiSetup.Company_Code,
             API_Code=apiSetup.API_Code,
@@ -212,6 +232,30 @@ class DMSBase:
             "Error_Message": error_msg
         })
 
+    # 更新成功执行时间
+    @staticmethod
+    def update_execute_time_to_task(company_code, sequence):
+        db.session.query(ApiTaskSetup).filter(
+            and_(ApiTaskSetup.Company_Code == company_code, ApiTaskSetup.Sequence == sequence))\
+            .update({"Last_Executed_Time": datetime.datetime.now().isoformat(timespec="milliseconds")})
+
     # 将entry_no作为参数写入指定的ws
     def call_web_service(self):
         pass
+
+
+class InterfaceResult:
+    status = 0
+    error_msg = ""
+    content = ""
+    data = None
+
+    def __init__(self, status, error_msg="", content="", data=None):
+        self.status = status
+        self.error_msg = error_msg
+        self.content = content
+        self.data = data
+
+    def __repr__(self):
+        return "<%s> {status=%d, error_msg=%s, length of content=%d}" \
+               % (self.__class__, self.status, self.error_msg, len(self.content))

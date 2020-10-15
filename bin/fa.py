@@ -42,5 +42,5 @@ def main(company_code, api_code, retry=False):
 if __name__ == '__main__':
     # 应由task提供
     company_code = "K302ZH"
-    api_code = "FA"
-    main(company_code, api_code, retry=True)
+    api_code = "FA-xml-correct"
+    main(company_code, api_code, retry=False)

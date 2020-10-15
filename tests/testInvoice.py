@@ -6,9 +6,9 @@ from src.models import nav
 from src.dms.setup import Setup
 
 company_code = "K302ZH"
-api_code = "Invoice"
+api_code = "Invoice-xml-correct"
 global_vars = {}
-invoiceHeader_obj = InvoiceHeader(force_secondary=True)
+invoiceHeader_obj = InvoiceHeader(force_secondary=False)
 invoiceLine_obj = InvoiceLine()
 
 

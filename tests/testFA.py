@@ -7,9 +7,9 @@ from src.models import nav
 from src.dms.setup import Setup
 
 company_code = "K302ZH"
-api_code = "FA"
+api_code = "FA-xml-correct"
 global_vars = {}
-fa_obj = FA(force_secondary=True)
+fa_obj = FA(force_secondary=False)
 
 
 # 根据公司列表和接口设置确定数据源
