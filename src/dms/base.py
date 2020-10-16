@@ -80,7 +80,7 @@ class DMSBase:
             data = xml_handler.read()
         # 模拟超时
         # time.sleep(90)
-        if time.thread_time() >= time_out:
+        if time.perf_counter() >= time_out:
             return InterfaceResult(status=self.STATUS_TIMEOUT, error_msg="读取超时")
 
         res = InterfaceResult(status=self.STATUS_FINISH, content=data)
@@ -220,14 +220,6 @@ class DMSBase:
     @staticmethod
     def add_new_api_log_when_start(apiSetup, direction=1, apiPIn=None, userID=None) -> Logger:
         return Logger.add_new_api_log(apiSetup, direction, apiPIn, userID)
-
-    # 更新成功执行时间
-    @staticmethod
-    def update_execute_time_to_task(company_code, sequence):
-        now_time = datetime.datetime.now().isoformat(timespec="milliseconds")
-        db.session.query(ApiTaskSetup).filter(
-            and_(ApiTaskSetup.Company_Code == company_code, ApiTaskSetup.Sequence == sequence))\
-            .update({"Last_Executed_Time": now_time})
 
     # 判断是否超时
     @staticmethod

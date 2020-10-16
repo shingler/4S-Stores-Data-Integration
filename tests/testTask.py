@@ -8,6 +8,7 @@ from bin import cust_vend, fa, invoice, other
 from src import UserList
 from src.dms.custVend import CustVend
 from src.dms.notification import Notification
+from src.dms.task import Task
 from src.error import DataFieldEmptyError, DataLoadError, DataLoadTimeOutError
 from src.models import nav
 from src.models.dms import ApiTaskSetup, NotificationUser
@@ -25,15 +26,14 @@ global_vars = {
 
 # 从数据库随机读取一个任务
 def test_1_load_task(init_app):
-    app, db = init_app
-    task_list = db.session.query(ApiTaskSetup).all()
-    one_task = random.choice(task_list)
-    # one_task = task_list[9]
+    task_list = Task.load_tasks()
+    # one_task = random.choice(task_list)
+    one_task = task_list[0]
     assert one_task.Company_Code != ""
     assert one_task.API_Code != ""
     assert type(one_task.Fail_Handle) == int
     print(one_task)
-    globals()["current_task"] = one_task
+    globals()["current_task"] = Task(one_task)
 
 
 # 让这个任务执行失败（根据失败处理，进行重试测试）
@@ -61,9 +61,10 @@ def test_2_run_task(init_app):
         print("读取成功，Entry_No=%d" % entry_no)
         global_vars["entry_no"] = entry_no
         # 更新成功执行时间
-        DMSBase.update_execute_time_to_task(one_task.Company_Code, one_task.Sequence)
+        one_task.update_execute_time()
 
     except Exception as ex:
+        print(ex)
         # 失败处理，主要读取task里的Fail_Handle字段
         if one_task.Fail_Handle == 1:
             print("Fail Handle设置为1，不继续执行")
@@ -90,7 +91,7 @@ def test_3_retry_or_not(init_app):
             print("重试后，读取成功，Entry_No=%d" % entry_no)
             global_vars["entry_no"] = entry_no
             # 更新成功执行时间
-            DMSBase.update_execute_time_to_task(one_task.Company_Code, one_task.Sequence)
+            one_task.update_execute_time()
 
         except Exception as ex:
             print("重试后，依然失败")
