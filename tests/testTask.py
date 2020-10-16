@@ -8,7 +8,7 @@ from bin import cust_vend, fa, invoice, other
 from src import UserList
 from src.dms.custVend import CustVend
 from src.dms.notification import Notification
-from src.error import DataFieldEmptyError
+from src.error import DataFieldEmptyError, DataLoadError, DataLoadTimeOutError
 from src.models import nav
 from src.models.dms import ApiTaskSetup, NotificationUser
 from src.models.log import NotificationLog, APILog
@@ -17,6 +17,7 @@ from src.dms.base import DMSBase
 
 runner = None
 current_task = None
+load_error = None
 global_vars = {
     "retry": False, "notify": False, "entry_no": 0
 }
@@ -26,8 +27,8 @@ global_vars = {
 def test_1_load_task(init_app):
     app, db = init_app
     task_list = db.session.query(ApiTaskSetup).all()
-    # one_task = random.choice(task_list)
-    one_task = task_list[9]
+    one_task = random.choice(task_list)
+    # one_task = task_list[9]
     assert one_task.Company_Code != ""
     assert one_task.API_Code != ""
     assert type(one_task.Fail_Handle) == int
@@ -62,7 +63,7 @@ def test_2_run_task(init_app):
         # 更新成功执行时间
         DMSBase.update_execute_time_to_task(one_task.Company_Code, one_task.Sequence)
 
-    except FileNotFoundError as ex:
+    except Exception as ex:
         # 失败处理，主要读取task里的Fail_Handle字段
         if one_task.Fail_Handle == 1:
             print("Fail Handle设置为1，不继续执行")
@@ -90,13 +91,15 @@ def test_3_retry_or_not(init_app):
             global_vars["entry_no"] = entry_no
             # 更新成功执行时间
             DMSBase.update_execute_time_to_task(one_task.Company_Code, one_task.Sequence)
+
         except Exception as ex:
             print("重试后，依然失败")
             if one_task.Fail_Handle == 3:
                 # 重试后依然失败，如果Fail_Handle=3则发送提醒邮件
                 global_vars["notify"] = True
+                globals()["load_error"] = ex
     else:
-        print("失败后不重试")
+        print("失败后不重试或第一次读取成功")
 
 
 # 发送提醒邮件
@@ -124,7 +127,17 @@ def test_4_send_notification(init_app):
         for r in receivers:
             if (isinstance(r, NotificationUser) and r.Activated) \
                     or (isinstance(r, UserList) and r.Receive_Notification):
-                email_title, email_content = notify_obj.get_notification_content()
+                email_title = ""
+                email_content = ""
+
+                if isinstance(load_error, DataLoadError):
+                    email_title, email_content = notify_obj.get_notification_content(
+                        type=notify_obj.TYPE_ERROR, error_msg=str(load_error)
+                    )
+                elif isinstance(load_error, DataLoadTimeOutError):
+                    email_title, email_content = notify_obj.get_notification_content(
+                        type=notify_obj.TYPE_TIMEOUT, error_msg=str(load_error)
+                    )
                 assert email_content != ""
                 result = notify_obj.send_mail(r.Email_Address, email_title, email_content)
                 assert result

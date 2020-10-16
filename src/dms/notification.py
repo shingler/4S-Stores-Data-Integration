@@ -14,6 +14,9 @@ class Notification:
     api_code = ""
     smtp_config = None
 
+    TYPE_ERROR = 1
+    TYPE_TIMEOUT = 2
+
     def __init__(self, company_code, api_code):
         self.company_code = company_code
         self.api_code = api_code
@@ -28,8 +31,13 @@ class Notification:
         return receivers + users
 
     # 获取提醒邮件内容
-    def get_notification_content(self):
-        return "测试邮件标题", "这是一封测试邮件"
+    def get_notification_content(self, type=TYPE_ERROR, error_msg=None):
+        type_label = ""
+        if type == self.TYPE_ERROR:
+            type_label = "报错"
+        elif type == self.TYPE_TIMEOUT:
+            type_label = "超时"
+        return "一封{0}邮件".format(type_label), "这是一封{0}邮件，错误信息为：{1}".format(type_label, error_msg)
 
     # 获取smtp设置
     def _get_smtp_setup(self):

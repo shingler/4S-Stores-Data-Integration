@@ -15,7 +15,8 @@ import xmltodict
 from sqlalchemy.sql.elements import and_
 
 from src import db, ApiTaskSetup
-from src.error import DataFieldEmptyError
+from src.dms.logger import Logger
+from src.error import DataFieldEmptyError, DataLoadError, DataLoadTimeOutError
 from src.models import dms, nav, to_local_time
 from src.models.log import APILog
 
@@ -31,6 +32,8 @@ class DMSBase:
     STATUS_PENDING = 1
     # 状态：完成
     STATUS_FINISH = 2
+    # 状态：超时
+    STATUS_TIMEOUT = 8
     # 状态：错误
     STATUS_ERROR = 9
     # 格式：JSON
@@ -60,17 +63,26 @@ class DMSBase:
         return xml_src
 
     # 读取接口
-    def _load_data_from_dms_interface(self, path, format="json"):
+    # @param string format 数据解析格式（JSON | XML）
+    # @param int time_out 超时时间，单位为秒。为0表示不判断超时
+    def _load_data_from_dms_interface(self, path, format="json", time_out=0):
         return InterfaceResult(status=self.STATUS_FINISH, content="")
 
     # 读取xml,返回InterfaceResult对象
-    def _load_data_from_file(self, path, format="xml"):
+    # @param string format 数据解析格式（JSON | XML）
+    # @param int time_out 超时时间，单位为秒。为0表示不判断超时
+    def _load_data_from_file(self, path, format="xml", time_out=0):
         if not os.path.exists(path):
             error_msg = "找不到xml文件：%s" % path
             return InterfaceResult(status=self.STATUS_ERROR, error_msg=error_msg)
 
         with open(path, "rb") as xml_handler:
             data = xml_handler.read()
+        # 模拟超时
+        # time.sleep(90)
+        if time.thread_time() >= time_out:
+            return InterfaceResult(status=self.STATUS_TIMEOUT, error_msg="读取超时")
+
         res = InterfaceResult(status=self.STATUS_FINISH, content=data)
         if format == self.FORMAT_XML:
             res.data = xmltodict.parse(data)
@@ -81,25 +93,28 @@ class DMSBase:
     # 读取数据
     def load_data(self, apiSetup, userID=None) -> (str, dict):
         # 先写一条日志，记录执行时间
-        log_pk = self.add_new_api_log_when_start(apiSetup, direction=self.DIRECT_DMS, userID=userID)
-        # 模拟执行
-        # time.sleep(2)
+        logger = self.add_new_api_log_when_start(apiSetup, direction=self.DIRECT_DMS, userID=userID)
+
         if apiSetup.API_Type == self.TYPE_API:
             path = ""
-            res = self._load_data_from_dms_interface(path, format=apiSetup.Data_Format)
+            res = self._load_data_from_dms_interface(path, format=apiSetup.Data_Format, time_out=apiSetup.Time_out*60)
         else:
             path = self._splice_xml_file_path(apiSetup)
-            res = self._load_data_from_file(path, format=apiSetup.Data_Format)
+            res = self._load_data_from_file(path, format=apiSetup.Data_Format, time_out=apiSetup.Time_out*60)
         print(res)
 
         # 根据结果进行后续处理
         if res.status == self.STATUS_ERROR:
             # 记录错误日志并抛出异常
-            self.update_api_log_when_finish(log_pk, status=self.STATUS_ERROR, error_msg=res.error_msg)
-            raise FileNotFoundError(res.error_msg)
+            logger.update_api_log_when_finish(status=self.STATUS_ERROR, error_msg=res.error_msg)
+            raise DataLoadError(res.error_msg)
+        elif res.status == self.STATUS_TIMEOUT:
+            # 记录错误日志并抛出异常
+            logger.update_api_log_when_finish(status=self.STATUS_ERROR, error_msg=res.error_msg)
+            raise DataLoadTimeOutError(res.error_msg)
         else:
             # 处理成功，更新日志
-            self.update_api_log_when_finish(log_pk, data=res.content, status=self.STATUS_FINISH)
+            logger.update_api_log_when_finish(data=res.content, status=self.STATUS_FINISH)
             return path, res.data
 
     # 获取指定节点的数量（xml可以节点同名。在json这里，则判断节点是否是数组。是，则返回长度；非，则返回1。
@@ -202,42 +217,33 @@ class DMSBase:
         db.session.commit()
 
     # 访问接口/文件时先新增一条API日志，并返回API_Log的主键用于后续更新
-    def add_new_api_log_when_start(self, apiSetup, direction=1, apiPIn=None, userID=None):
-        print(apiSetup)
-        logger = APILog(
-            Company_Code=apiSetup.Company_Code,
-            API_Code=apiSetup.API_Code,
-            API_Direction=direction,
-            API_P_In=apiPIn if apiPIn is not None else "",
-            API_Content="",
-            Content_Type=apiSetup.Data_Format,
-            Status=1,
-            Executed_DT=datetime.datetime.now().isoformat(timespec="milliseconds"),
-            Finished_DT="",
-            Error_Message="",
-            Executed_By=1 if userID is None else 2,
-            UserID="System" if userID is None else userID
-        )
-        db.session.add(logger)
-        db.session.commit()
-        db.session.flush()
-        return logger.ID
-
-    # 读取接口/文件成功后，通过主键更新日志
-    def update_api_log_when_finish(self, pk, status, data=None, error_msg=""):
-        db.session.query(APILog).filter(APILog.ID == pk).update({
-            "Status": status,
-            "API_Content": data,
-            "Finished_DT": datetime.datetime.now().isoformat(timespec="milliseconds"),
-            "Error_Message": error_msg
-        })
+    @staticmethod
+    def add_new_api_log_when_start(apiSetup, direction=1, apiPIn=None, userID=None) -> Logger:
+        return Logger.add_new_api_log(apiSetup, direction, apiPIn, userID)
 
     # 更新成功执行时间
     @staticmethod
     def update_execute_time_to_task(company_code, sequence):
+        now_time = datetime.datetime.now().isoformat(timespec="milliseconds")
         db.session.query(ApiTaskSetup).filter(
             and_(ApiTaskSetup.Company_Code == company_code, ApiTaskSetup.Sequence == sequence))\
-            .update({"Last_Executed_Time": datetime.datetime.now().isoformat(timespec="milliseconds")})
+            .update({"Last_Executed_Time": now_time})
+
+    # 判断是否超时
+    @staticmethod
+    def time_out_or_not(apiSetup, api_log) -> bool:
+        # 开始时间
+        start = api_log.ExecuteDT
+        # 当前时间
+        now = datetime.datetime.now()
+        # 间隔设置
+        time_out = apiSetup.Time_out
+        delta = now - start
+        if delta.total_seconds() / 60 > time_out:
+            # 超时返回False
+            return False
+        return True
+
 
     # 将entry_no作为参数写入指定的ws
     def call_web_service(self):
