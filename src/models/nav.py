@@ -469,13 +469,10 @@ def invoiceLineBuffer(company_name):
     return model
 
 
-class OtherBuffer(db.Model):
-    __tablename__ = "OtherBuffer"
+# 根据公司名动态生成“公司名$OtherBuffer”类
+def otherBuffer(company_name):
+    __tablename__ = "{0}${1}".format(company_name, "OtherBuffer")
     __bind_key__ = "nav"
-
-    # 设置表名前缀
-    def set_table_prefix(self, prefix=""):
-        self.__tablename__ = "%s$%s" % (prefix, self.__tablename__)
 
     Record_ID = db.Column("[Record ID]", db.Integer, nullable=False, primary_key=True, autoincrement=False)
     DocumentNo_ = db.Column(db.String(20), default="", nullable=False)
@@ -555,3 +552,47 @@ class OtherBuffer(db.Model):
     def getLatestRecordId(self):
         max_record_id = db.session.query(func.max(self.__class__.Record_ID)).scalar()
         return max_record_id + 1 if max_record_id is not None else 1
+
+    # 构建属性列表
+    properties = {
+        "__tablename__": __tablename__,
+        "__bind_key__": __bind_key__,
+        "Record_ID": Record_ID,
+        "DocumentNo_": DocumentNo_,
+        "TransactionType": TransactionType,
+        "Line_No_": Line_No_,
+        "Posting_Date": Posting_Date,
+        "Document_Date": Document_Date,
+        "ExtDocumentNo_": ExtDocumentNo_,
+        "Account_No_": Account_No_,
+        "Description": Description,
+        "Debit_Value": Debit_Value,
+        "Credit_Value": Credit_Value,
+        "CostCenterCode": CostCenterCode,
+        "VehicleSeries": VehicleSeries,
+        "Entry_No_": Entry_No_,
+        "DateTime_Imported": DateTime_Imported,
+        "DateTime_handled": DateTime_handled,
+        "Error_Message": Error_Message,
+        "Handled_by": Handled_by,
+        "AccountType": AccountType,
+        "WIP_No_": WIP_No_,
+        "FA_Posting_Type": FA_Posting_Type,
+        "EntryType": EntryType,
+        "FromCompanyName": FromCompanyName,
+        "ToCompanyName": ToCompanyName,
+        "VIN": VIN,
+        "SourceType": SourceType,
+        "SourceNo": SourceNo,
+        "NotDuplicated": NotDuplicated,
+        "NAVDocumentNo_": NAVDocumentNo_,
+        "DMSItemType": DMSItemType,
+        "DMSItemTransType": DMSItemTransType,
+        "Location": Location,
+        "entry": entry,
+        "__setattr__": __setattr__,
+        "getLatestRecordId": getLatestRecordId
+    }
+    # 动态创建模型并返回
+    model = type(__tablename__, (db.Model,), properties)
+    return model

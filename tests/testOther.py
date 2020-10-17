@@ -1,6 +1,7 @@
 import pytest
 import requests
 
+from src import Company
 from src.dms.other import Other
 from src.models import nav
 from src.dms.setup import Setup
@@ -8,12 +9,18 @@ from src.dms.setup import Setup
 company_code = "K302ZH"
 api_code = "Other-xml-correct"
 global_vars = {}
-other_obj = Other(force_secondary=False)
+other_obj = None
 
 
 # 根据公司列表和接口设置确定数据源
 def test_1_dms_source(init_app):
     print("test_1_dms_source")
+    app, db = init_app
+    company_info = db.session.query(Company).filter(Company.Code == company_code).first()
+    assert company_info is not None
+    global_vars["company_name"] = company_info.Name
+    globals()["other_obj"] = Other(company_info.Name)
+
     api_setup = Setup.load_api_setup(company_code, api_code)
     assert api_setup is not None
     assert api_setup.API_Address1 != ""
@@ -69,7 +76,7 @@ def test_4_save_Other(init_app):
     assert "DaydookNo" in other_dict[0]
     assert "SourceNo" in other_dict[0]
     # with pytest.raises():
-    other_obj.save_data_to_nav(nav_data=other_dict, entry_no=entry_no, TABLE_CLASS=nav.OtherBuffer)
+    other_obj.save_data_to_nav(nav_data=other_dict, entry_no=entry_no, TABLE_CLASS=other_obj.TABLE_CLASS)
 
 
 # 检查数据正确性
@@ -78,7 +85,7 @@ def test_5_valid_data(init_app):
     app, db = init_app
     entry_no = global_vars["entry_no"]
     interfaceInfo = db.session.query(nav.InterfaceInfo).filter(nav.InterfaceInfo.Entry_No_ == entry_no).first()
-    lineList = db.session.query(nav.OtherBuffer).filter(nav.OtherBuffer.Entry_No_ == entry_no).all()
+    lineList = db.session.query(other_obj.TABLE_CLASS).filter(other_obj.TABLE_CLASS.Entry_No_ == entry_no).all()
 
     # 检查数据正确性
     assert interfaceInfo.DMSCode == "7000320"
