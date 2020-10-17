@@ -3,6 +3,7 @@ import requests
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 
+from src import Company
 from src.dms.setup import Setup
 from src.dms.custVend import CustVend
 from src.models import nav
@@ -11,12 +12,19 @@ from src.error import DataFieldEmptyError
 company_code = "K302ZH"
 api_code = "CustVendInfo-xml-correct"
 global_vars = {}
-cv_obj = CustVend(force_secondary=False)
+cv_obj = None
 
 
 # 根据公司列表和接口设置确定数据源
 def test_1_dms_source(init_app):
     print("test_1_dms_source")
+    app, db = init_app
+    company_info = db.session.query(Company).filter(Company.Code == company_code).first()
+    assert company_info is not None
+    globals()["cv_obj"] = CustVend(company_info.Name)
+    global_vars["company_name"] = company_info.Name
+    print(cv_obj.TABLE_CLASS)
+
     api_setup = Setup.load_api_setup(company_code, api_code)
     assert api_setup is not None
     assert api_setup.API_Address1 != ""
@@ -70,7 +78,7 @@ def test_4_save_custVendInfo(init_app):
     custVend_dict = cv_obj.splice_data_info(data, node_dict=custVend_node_dict)
     assert len(custVend_dict) > 0
     assert "No" in custVend_dict[0]
-    cv_obj.save_data_to_nav(custVend_dict, entry_no=entry_no, TABLE_CLASS=nav.CustVendBuffer)
+    cv_obj.save_data_to_nav(custVend_dict, entry_no=entry_no, TABLE_CLASS=cv_obj.TABLE_CLASS)
 
 
 # 检查数据正确性
@@ -78,7 +86,8 @@ def test_5_valid_data(init_app):
     app, db = init_app
     entry_no = global_vars["entry_no"]
     interfaceInfo = db.session.query(nav.InterfaceInfo).filter(nav.InterfaceInfo.Entry_No_ == entry_no).first()
-    custVendList = db.session.query(nav.CustVendBuffer).filter(nav.CustVendBuffer.Entry_No_ == entry_no).all()
+    custVendClass = cv_obj.TABLE_CLASS
+    custVendList = db.session.query(custVendClass).filter(custVendClass.Entry_No_ == entry_no).all()
 
     # 检查数据正确性
     assert interfaceInfo.DMSCode == "7000320"

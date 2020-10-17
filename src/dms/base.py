@@ -44,8 +44,11 @@ class DMSBase:
     TYPE_API = 1
     # 接口类型：文件
     TYPE_FILE = 2
+    # 公司名（作为nav表的前缀）
+    company_name = ""
 
-    def __init__(self, force_secondary=False):
+    def __init__(self, company_name, force_secondary=False):
+        self.company_name = company_name
         self.force_secondary = force_secondary
 
     # 拼接xml文件路径
@@ -177,6 +180,7 @@ class DMSBase:
             FA_Total_Count=0,
             Invoice_Total_Count=0
         )
+
         # 再补充一些默认值
         interfaceInfo.DateTime_Imported = datetime.datetime.now().isoformat(timespec="seconds")
 

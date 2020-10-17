@@ -18,6 +18,8 @@ def set_Env(env):
 
 class InterfaceInfo(db.Model):
     __tablename__ = "DMSInterfaceInfo"
+    __bind_key__ = "nav"
+
     # 非自增字段（[Entry No_]）
     Entry_No_ = db.Column("[Entry No_]", db.Integer, nullable=False, primary_key=True, comment="非自增字段")
     DMSCode = db.Column(db.String(20), nullable=False)
@@ -29,28 +31,34 @@ class InterfaceInfo(db.Model):
     # 导入时间
     DateTime_Imported = db.Column("[DateTime Imported]", db.DateTime, nullable=False, comment="导入时间")
     # 处理时间, 初始插入数据时插入('1753-01-01 00:00:00.000')
-    DateTime_Handled = db.Column("[DateTime Handled]", db.DateTime, nullable=False, default="1753-01-01 00:00:00.000", comment="处理时间")
+    DateTime_Handled = db.Column("[DateTime Handled]", db.DateTime, nullable=False, default="1753-01-01 00:00:00.000",
+                                 comment="处理时间")
     # 处理人, 初始插入数据时插入空字符('')
     Handled_by = db.Column("[Handled by]", db.String(20), nullable=False, default='', comment="处理人")
     # 状态(INIT, PROCESSING, ERROR, COMPLETED), 初始插入数据INIT
-    Status = db.Column(db.String(10), nullable=False, default="INIT", comment="状态(INIT, PROCESSING, ERROR, COMPLETED), 初始插入数据INIT")
+    Status = db.Column(db.String(10), nullable=False, default="INIT",
+                       comment="状态(INIT, PROCESSING, ERROR, COMPLETED), 初始插入数据INIT")
     # 错误消息, 初始插入数据时插入空字符('')
-    Error_Message = db.Column("[Error Message]", db.String(250), nullable=False, default='', comment="错误消息, 初始插入数据时插入空字符('')")
+    Error_Message = db.Column("[Error Message]", db.String(250), nullable=False, default='',
+                              comment="错误消息, 初始插入数据时插入空字符('')")
     # XML文件名，如使用的是WEB API则插入空字符('')
     XMLFileName = db.Column(db.String(250), nullable=False, comment="XML文件名")
     # 客户供应商记录数，对应CustVendorInfo文件或接口
-    Customer_Vendor_Total_Count = db.Column("[Customer_Vendor Total Count]", db.Integer, nullable=False, comment="客户供应商记录数，对应CustVendorInfo文件或接口")
+    Customer_Vendor_Total_Count = db.Column("[Customer_Vendor Total Count]", db.Integer, nullable=False,
+                                            comment="客户供应商记录数，对应CustVendorInfo文件或接口")
     # 发票记录数, 对应Invoice文件或接口
-    Invoice_Total_Count = db.Column("[Invoice Total Count]", db.Integer, nullable=False, comment="发票记录数, 对应Invoice文件或接口")
+    Invoice_Total_Count = db.Column("[Invoice Total Count]", db.Integer, nullable=False,
+                                    comment="发票记录数, 对应Invoice文件或接口")
     # 类型(0 - CustVendInfo, 1 - FA, 2 - Invoice, 3 - Other)
     Type = db.Column(db.Integer, nullable=False, comment="类型(0 - CustVendInfo, 1 - FA, 2 - Invoice, 3 - Other)")
     # Other记录数, 对应Other文件或接口
-    Other_Transaction_Total_Count = db.Column("[Other Transaction Total Count]", db.Integer, nullable=False, comment="Other记录数, 对应Other文件或接口")
+    Other_Transaction_Total_Count = db.Column("[Other Transaction Total Count]", db.Integer, nullable=False,
+                                              comment="Other记录数, 对应Other文件或接口")
     # FA记录数, 对应FA文件或接口
     FA_Total_Count = db.Column("[FA Total Count]", db.Integer, nullable=False, comment="FA记录数, 对应FA文件或接口")
 
     def __repr__(self):
-        return "EntryNo = %s: <DMSCode: %s, CompanyCode: %s>" %\
+        return "EntryNo = %s: <DMSCode: %s, CompanyCode: %s>" % \
                (self.Entry_No_, self.DMSCode, self.CompanyCode)
 
     # 获取最大id然后+1
@@ -60,55 +68,9 @@ class InterfaceInfo(db.Model):
         return max_entry_id + 1 if max_entry_id is not None else 1
 
 
-class CustVendBuffer(db.Model):
-    __tablename__ = "CustVendBuffer"
-    # 非自增字段
-    Record_ID = db.Column("[Record ID]", db.Integer, nullable=False, primary_key=True, comment="非自增字段")
-    No_ = db.Column(db.String(20), default='', nullable=False)
-    Name = db.Column(db.String(50), default='', nullable=False)
-    Address = db.Column(db.String(50), default='', nullable=False)
-    City = db.Column(db.String(30), default='', nullable=False)
-    Post_Code = db.Column("[Post Code]", db.String(20), default='', nullable=False)
-    # 默认值为'CN-0086'
-    Country = db.Column(db.String(10), nullable=False, default="CN-0086")
-    # 如果值为'RMB', 则插入空字符('')
-    Currency = db.Column(db.String(10), nullable=False, default='', comment="FA记录数, 对应FA文件或接口")
-    # 插入空字符('')
-    Gen_Bus_Posting_Group = db.Column("[Gen_ Bus_ Posting Group]", db.String(10), nullable=False, default='')
-    # 插入空字符('')
-    VAT_Bus_Posting_Group = db.Column("[VAT Bus_ Posting Group]", db.String(10), nullable=False, default='')
-    # 插入空字符('')
-    Cust_VendPostingGroup = db.Column(db.String(10), nullable=False, default="")
-    Application_Method = db.Column("[Application Method]", db.String(20), nullable=False, default='')
-    PaymentTermsCode = db.Column(db.String(10), nullable=False, default='')
-    Template = db.Column(db.String(20), nullable=False, default='')
-    # Link to Table: DMSInterfaceInfo
+# 根据公司名动态生成model
+def custVendBuffer(company_name):
     Entry_No_ = db.Column("[Entry No_]", db.Integer, nullable=False)
-    # 错误消息, 初始插入数据时插入空字符('')
-    Error_Message = db.Column("[Error Message]", db.String(250), nullable=False, default="")
-    # 导入时间
-    DateTime_Imported = db.Column("[DateTime Imported]", db.DateTime, nullable=False,
-                                  default=datetime.datetime.now().isoformat(timespec="seconds"), comment="导入时间")
-    # 处理时间, 初始插入数据时插入('1753-01-01 00:00:00.000')
-    DateTime_Handled = db.Column("[DateTime Handled]", db.DateTime, nullable=False,
-                                 default="1753-01-01 00:00:00.000", comment="处理时间, 初始插入数据时插入('1753-01-01 00:00:00.000')")
-    # 类型(0 - Customer, 1 - Vendor, 3 - Unknow)
-    Type = db.Column(db.Integer, nullable=False, default=1, comment="类型(0 - Customer, 1 - Vendor, 3 - Unknow)")
-    # 处理人, 初始插入数据时插入空字符('')
-    Handled_by = db.Column("[Handled by]", db.String(20), nullable=False, comment="处理人", default='')
-    Address_2 = db.Column("[Address 2]", db.String(50), nullable=False, default='')
-    PhoneNo = db.Column(db.String(30), nullable=False, default='')
-    FaxNo = db.Column(db.String(30), nullable=False, default='')
-    Blocked = db.Column(db.String(10), nullable=False, default='')
-    Email = db.Column(db.String(50), nullable=False, default='')
-    ARAPAccountNo = db.Column(db.String(50), nullable=False, default='')
-    PricesIncludingVAT = db.Column(db.Integer, nullable=False, default='')
-    PaymentMethodCode = db.Column(db.String(20), nullable=False, default='')
-    Cost_Center_Code = db.Column("[Cost Center Code]", db.String(20), nullable=False, default='')
-    ICPartnerCode = db.Column(db.String(50), nullable=False, default='')
-
-    entry = db.relationship("InterfaceInfo",
-                            primaryjoin=foreign(Entry_No_) == remote(InterfaceInfo.Entry_No_))
 
     def __repr__(self):
         return "[Record ID]=%d: <'Type': '%s', 'No': '%s', 'Name': '%s', [Entry No_]: '%s'>" \
@@ -142,10 +104,56 @@ class CustVendBuffer(db.Model):
         max_record_id = db.session.query(func.max(self.__class__.Record_ID)).scalar()
         return max_record_id + 1 if max_record_id is not None else 1
 
+    properties = {
+        "__tablename__": "{0}${1}".format(company_name, "CustVendBuffer"),
+        "__bind_key__": "nav",
+        "Record_ID": db.Column("[Record ID]", db.Integer, nullable=False, primary_key=True, comment="非自增字段"),
+        "No_": db.Column(db.String(20), default='', nullable=False),
+        "Name": db.Column(db.String(50), default='', nullable=False),
+        "Address": db.Column(db.String(50), default='', nullable=False),
+        "City": db.Column(db.String(30), default='', nullable=False),
+        "Post_Code": db.Column("[Post Code]", db.String(20), default='',nullable=False),
+        "Country": db.Column(db.String(10), nullable=False, default="CN-0086"),
+        "Currency": db.Column(db.String(10), nullable=False, default='', comment="FA记录数, 对应FA文件或接口"),
+        "Gen_Bus_Posting_Group": db.Column("[Gen_ Bus_ Posting Group]", db.String(10), nullable=False, default=''),
+        "VAT_Bus_Posting_Group": db.Column("[VAT Bus_ Posting Group]", db.String(10), nullable=False, default=''),
+        "Cust_VendPostingGroup": db.Column(db.String(10), nullable=False, default=""),
+        "Application_Method": db.Column("[Application Method]", db.String(20), nullable=False, default=''),
+        "PaymentTermsCode": db.Column(db.String(10), nullable=False, default=''),
+        "Template": db.Column(db.String(20), nullable=False, default=''),
+        "Entry_No_": Entry_No_,
+        "Error_Message": db.Column("[Error Message]", db.String(250), nullable=False, default=""),
+        "DateTime_Imported": db.Column("[DateTime Imported]", db.DateTime, nullable=False, default=datetime.datetime.now().isoformat(timespec="seconds"), comment="导入时间"),
+        "DateTime_Handled": db.Column("[DateTime Handled]", db.DateTime, nullable=False, default="1753-01-01 00:00:00.000", comment="处理时间, 初始插入数据时插入('1753-01-01 00:00:00.000')"),
+        "Type": db.Column(db.Integer, nullable=False, default=1, comment="类型(0 - Customer, 1 - Vendor, 3 - Unknow)"),
+        "Handled_by": db.Column("[Handled by]", db.String(20), nullable=False, comment="处理人", default=''),
+        "Address_2": db.Column("[Address 2]", db.String(50), nullable=False, default=''),
+        "PhoneNo": db.Column(db.String(30), nullable=False, default=''),
+        "FaxNo": db.Column(db.String(30), nullable=False, default=''),
+        "Blocked": db.Column(db.String(10), nullable=False, default=''),
+        "Email": db.Column(db.String(50), nullable=False, default=''),
+        "ARAPAccountNo": db.Column(db.String(50), nullable=False, default=''),
+        "PricesIncludingVAT": db.Column(db.Integer, nullable=False, default=''),
+        "PaymentMethodCode": db.Column(db.String(20), nullable=False, default=''),
+        "Cost_Center_Code": db.Column("[Cost Center Code]", db.String(20), nullable=False, default=''),
+        "ICPartnerCode": db.Column(db.String(50), nullable=False, default=''),
+        "entry": db.relationship("InterfaceInfo",primaryjoin=foreign(Entry_No_) == remote(InterfaceInfo.Entry_No_)),
+        "__repr__": __repr__,
+        "__setattr__": __setattr__,
+        "getLatestRecordId": getLatestRecordId
+    }
+
+    model = type("{0}${1}".format(company_name, "CustVendBuffer"), (db.Model,), properties)
+
+    return model
+
+
+
+
 
 class FABuffer(db.Model):
     __tablename__ = "FABuffer"
-    __env__ = ""
+    __bind_key__ = "nav"
     # 非自增主键
     Record_ID = db.Column("[Record ID]", db.Integer, nullable=False, primary_key=True, autoincrement=False)
     FANo_ = db.Column(db.String(20), default='', nullable=False)
@@ -168,7 +176,8 @@ class FABuffer(db.Model):
                                   default=datetime.datetime.now().isoformat(timespec="seconds"))
     # 处理时间, 初始插入数据时插入('1753-01-01 00:00:00.000')
     DateTime_Handled = db.Column("[DateTime Handled]", db.DateTime, nullable=False,
-                                 default="1753-01-01T00:00:00.000", comment="处理时间, 初始插入数据时插入('1753-01-01 00:00:00.000')")
+                                 default="1753-01-01T00:00:00.000",
+                                 comment="处理时间, 初始插入数据时插入('1753-01-01 00:00:00.000')")
     UnderMaintenance = db.Column(db.Integer, nullable=False)
     # 处理人, 初始插入数据时插入空字符('')
     Handled_by = db.Column("[Handled by]", db.String(20), nullable=False, default='', comment="处理人, 初始插入数据时插入空字符('')")
@@ -218,6 +227,7 @@ class FABuffer(db.Model):
 
 class InvoiceHeaderBuffer(db.Model):
     __tablename__ = "InvoiceHeaderBuffer"
+    __bind_key__ = "nav"
     Record_ID = db.Column("[Record ID]", db.Integer, nullable=False, primary_key=True, autoincrement=False)
     InvoiceNo = db.Column(db.String(20), default='', nullable=False)
     Posting_Date = db.Column("[Posting Date]", db.DateTime,
@@ -276,6 +286,7 @@ class InvoiceHeaderBuffer(db.Model):
 
 class InvoiceLineBuffer(db.Model):
     __tablename__ = "InvoiceLineBuffer"
+    __bind_key__ = "nav"
     Record_ID = db.Column("[Record ID]", db.Integer, nullable=False, primary_key=True, autoincrement=False)
     Line_No_ = db.Column("[Line No_]", db.Integer, default=0, nullable=False)
     DMSItemType = db.Column(db.String(20), default="", nullable=False)
@@ -294,9 +305,11 @@ class InvoiceLineBuffer(db.Model):
     Error_Message = db.Column("[Error Message]", db.String(250), default="", nullable=False, comment="错误消息")
     # 导入时间
     DateTime_Imported = db.Column("[DateTime Imported]", db.DateTime,
-                                  server_default=datetime.datetime.now().isoformat(timespec="seconds"), nullable=False, comment="导入时间")
+                                  server_default=datetime.datetime.now().isoformat(timespec="seconds"), nullable=False,
+                                  comment="导入时间")
     # 处理时间, 初始插入数据时插入('1753-01-01 00:00:00.000')
-    DateTime_Handled = db.Column("[DateTime Handled]", db.DateTime, nullable=False, default='1753-01-01 00:00:00.000', comment="处理时间")
+    DateTime_Handled = db.Column("[DateTime Handled]", db.DateTime, nullable=False, default='1753-01-01 00:00:00.000',
+                                 comment="处理时间")
     # 处理人, 初始插入数据时插入空字符('')
     Handled_by = db.Column("[Handled by]", db.String(20), nullable=False, default='', comment="处理人")
     # Link to Table: InvoiceHeaderBuffer
@@ -345,6 +358,12 @@ class InvoiceLineBuffer(db.Model):
 
 class OtherBuffer(db.Model):
     __tablename__ = "OtherBuffer"
+    __bind_key__ = "nav"
+
+    # 设置表名前缀
+    def set_table_prefix(self, prefix=""):
+        self.__tablename__ = "%s$%s" % (prefix, self.__tablename__)
+
     Record_ID = db.Column("[Record ID]", db.Integer, nullable=False, primary_key=True, autoincrement=False)
     DocumentNo_ = db.Column(db.String(20), default="", nullable=False)
     TransactionType = db.Column(db.String(20), default="", nullable=False)

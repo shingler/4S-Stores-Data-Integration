@@ -18,6 +18,9 @@ class Base:
 class Development(Base):
     ENV = "Development"
     SQLALCHEMY_DATABASE_URI = "mysql+pymysql://root:123456@127.0.0.1:3306/dms_interface?charset=utf8"
+    SQLALCHEMY_BINDS = {
+        'nav': "mysql+pymysql://root:123456@127.0.0.1:3306/nav?charset=utf8"
+    }
 
 
 class Test(Base):

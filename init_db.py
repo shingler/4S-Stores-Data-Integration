@@ -1566,8 +1566,8 @@ if __name__ == '__main__':
         answer = input("Please input Y to run or any key to cancel.")
         if answer.upper() != "Y":
             exit(0)
-        db.drop_all()
-        db.create_all()
+        db.drop_all(bind=None)
+        db.create_all(bind=None)
         # 插入测试数据
         db.session.add(test_data_for_company())
 
