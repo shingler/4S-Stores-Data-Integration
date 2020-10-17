@@ -68,10 +68,14 @@ class InterfaceInfo(db.Model):
         return max_entry_id + 1 if max_entry_id is not None else 1
 
 
-# 根据公司名动态生成model
+# 根据公司名动态生成“公司名$CustVendBuffer”类
 def custVendBuffer(company_name):
+    __tablename__ = "{0}${1}".format(company_name, "CustVendBuffer")
+    __bind_key__ = "nav"
+    # 因为Entry_No_是外键，需要引用，所以提前定义好
     Entry_No_ = db.Column("[Entry No_]", db.Integer, nullable=False)
 
+    # 字符串方法
     def __repr__(self):
         return "[Record ID]=%d: <'Type': '%s', 'No': '%s', 'Name': '%s', [Entry No_]: '%s'>" \
                % (self.Record_ID, self.Type, self.No_, self.Name, self.Entry_No_)
@@ -104,9 +108,10 @@ def custVendBuffer(company_name):
         max_record_id = db.session.query(func.max(self.__class__.Record_ID)).scalar()
         return max_record_id + 1 if max_record_id is not None else 1
 
+    # 动态类的属性定义
     properties = {
-        "__tablename__": "{0}${1}".format(company_name, "CustVendBuffer"),
-        "__bind_key__": "nav",
+        "__tablename__": __tablename__,
+        "__bind_key__": __bind_key__,
         "Record_ID": db.Column("[Record ID]", db.Integer, nullable=False, primary_key=True, comment="非自增字段"),
         "No_": db.Column(db.String(20), default='', nullable=False),
         "Name": db.Column(db.String(50), default='', nullable=False),
@@ -137,22 +142,20 @@ def custVendBuffer(company_name):
         "PaymentMethodCode": db.Column(db.String(20), nullable=False, default=''),
         "Cost_Center_Code": db.Column("[Cost Center Code]", db.String(20), nullable=False, default=''),
         "ICPartnerCode": db.Column(db.String(50), nullable=False, default=''),
-        "entry": db.relationship("InterfaceInfo",primaryjoin=foreign(Entry_No_) == remote(InterfaceInfo.Entry_No_)),
+        "entry": db.relationship("InterfaceInfo", primaryjoin=foreign(Entry_No_) == remote(InterfaceInfo.Entry_No_)),
         "__repr__": __repr__,
         "__setattr__": __setattr__,
         "getLatestRecordId": getLatestRecordId
     }
 
-    model = type("{0}${1}".format(company_name, "CustVendBuffer"), (db.Model,), properties)
-
+    # 动态生成类并返回
+    model = type(__tablename__, (db.Model,), properties)
     return model
 
 
-
-
-
-class FABuffer(db.Model):
-    __tablename__ = "FABuffer"
+# 根据公司名动态生成“公司名$FABuffer”类
+def faBuffer(company_name):
+    __tablename__ = "{0}${1}".format(company_name, "FABuffer")
     __bind_key__ = "nav"
     # 非自增主键
     Record_ID = db.Column("[Record ID]", db.Integer, nullable=False, primary_key=True, autoincrement=False)
@@ -223,6 +226,41 @@ class FABuffer(db.Model):
     def getLatestRecordId(self):
         max_record_id = db.session.query(func.max(self.__class__.Record_ID)).scalar()
         return max_record_id + 1 if max_record_id is not None else 1
+
+    # 动态生成类并返回
+    properties = {
+        "__tablename__": __tablename__,
+        "__bind_key__": __bind_key__,
+        "Record_ID": Record_ID,
+        "FANo_": FANo_,
+        "Description": Description,
+        "SerialNo": SerialNo,
+        "Inactive": Inactive,
+        "Blocked": Blocked,
+        "FAClassCode": FAClassCode,
+        "FASubclassCode": FASubclassCode,
+        "FALocationCode": FALocationCode,
+        "BudgetedAsset": BudgetedAsset,
+        "VendorNo": VendorNo,
+        "MaintenanceVendorNo": MaintenanceVendorNo,
+        "Entry_No_": Entry_No_,
+        "Error_Message": Error_Message,
+        "DateTime_Imported": DateTime_Imported,
+        "DateTime_Handled": DateTime_Handled,
+        "UnderMaintenance": UnderMaintenance,
+        "Handled_by": Handled_by,
+        "NextServiceDate": NextServiceDate,
+        "WarrantyDate": WarrantyDate,
+        "DepreciationPeriod": DepreciationPeriod,
+        "DepreciationStartingDate": DepreciationStartingDate,
+        "CostCenterCode": CostCenterCode,
+        "entry": entry,
+        "__setattr__": __setattr__,
+        "get_chinese_data": get_chinese_data,
+        "getLatestRecordId": getLatestRecordId
+    }
+    model = type(__tablename__, (db.Model,), properties)
+    return model
 
 
 class InvoiceHeaderBuffer(db.Model):

@@ -6,8 +6,12 @@ from src.models import nav
 
 
 class FA(DMSBase):
-    TABLE_CLASS = nav.FABuffer
+    TABLE_CLASS = None
     BIZ_NODE_LV1 = "FA"
+
+    def __init__(self, company_name, force_secondary=False):
+        super(__class__, self).__init__
+        self.TABLE_CLASS = nav.faBuffer(company_name)
 
     # 从api_p_out获取数据
     def splice_data_info(self, data, node_dict):

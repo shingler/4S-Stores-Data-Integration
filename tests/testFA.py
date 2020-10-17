@@ -2,6 +2,7 @@ import pytest
 import requests
 
 import src.dms
+from src import Company
 from src.dms.fa import FA
 from src.models import nav
 from src.dms.setup import Setup
@@ -9,12 +10,19 @@ from src.dms.setup import Setup
 company_code = "K302ZH"
 api_code = "FA-xml-correct"
 global_vars = {}
-fa_obj = FA(force_secondary=False)
+fa_obj = None
 
 
 # 根据公司列表和接口设置确定数据源
 def test_1_dms_source(init_app):
     print("test_1_dms_source")
+    app, db = init_app
+    company_info = db.session.query(Company).filter(Company.Code == company_code).first()
+    assert company_info is not None
+    global_vars["company_name"] = company_info.Name
+    # 将公司名给与全局变量fa_obj
+    globals()["fa_obj"] = FA(company_info.Name)
+
     api_setup = Setup.load_api_setup(company_code, api_code)
     assert api_setup is not None
     assert api_setup.API_Address1 != ""
@@ -77,7 +85,7 @@ def test_5_valid_data(init_app):
     app, db = init_app
     entry_no = global_vars["entry_no"]
     interfaceInfo = db.session.query(nav.InterfaceInfo).filter(nav.InterfaceInfo.Entry_No_ == entry_no).first()
-    faList = db.session.query(nav.FABuffer).filter(nav.FABuffer.Entry_No_ == entry_no).all()
+    faList = db.session.query(fa_obj.TABLE_CLASS).filter(fa_obj.TABLE_CLASS.Entry_No_ == entry_no).all()
 
     # 检查数据正确性
     assert interfaceInfo.DMSCode == "28976"

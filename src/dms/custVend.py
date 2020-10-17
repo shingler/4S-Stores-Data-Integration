@@ -11,6 +11,7 @@ class CustVend(DMSBase):
 
     def __init__(self, company_name, force_secondary=False):
         super(__class__, self).__init__
+        # 根据公司名动态获得nav表名
         self.TABLE_CLASS = nav.custVendBuffer(company_name)
 
     # 从api_p_out获取数据

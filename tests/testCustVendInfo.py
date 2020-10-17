@@ -23,7 +23,6 @@ def test_1_dms_source(init_app):
     assert company_info is not None
     globals()["cv_obj"] = CustVend(company_info.Name)
     global_vars["company_name"] = company_info.Name
-    print(cv_obj.TABLE_CLASS)
 
     api_setup = Setup.load_api_setup(company_code, api_code)
     assert api_setup is not None
