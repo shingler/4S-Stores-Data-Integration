@@ -19,9 +19,8 @@ def test_1_dms_source(init_app):
     app, db = init_app
     company_info = db.session.query(Company).filter(Company.Code == company_code).first()
     assert company_info is not None
-    global_vars["company_name"] = company_info.Name
-    globals()["invoiceHeader_obj"] = InvoiceHeader(company_info.Name)
-    globals()["invoiceLine_obj"] = InvoiceLine(company_info.Name)
+    globals()["invoiceHeader_obj"] = InvoiceHeader(company_info.NAV_Company_Code)
+    globals()["invoiceLine_obj"] = InvoiceLine(company_info.NAV_Company_Code)
 
     api_setup = Setup.load_api_setup(company_code, api_code)
     assert api_setup is not None

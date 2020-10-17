@@ -21,8 +21,7 @@ def test_1_dms_source(init_app):
     app, db = init_app
     company_info = db.session.query(Company).filter(Company.Code == company_code).first()
     assert company_info is not None
-    globals()["cv_obj"] = CustVend(company_info.Name)
-    global_vars["company_name"] = company_info.Name
+    globals()["cv_obj"] = CustVend(company_info.NAV_Company_Code)
 
     api_setup = Setup.load_api_setup(company_code, api_code)
     assert api_setup is not None
