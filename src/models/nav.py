@@ -263,8 +263,9 @@ def faBuffer(company_name):
     return model
 
 
-class InvoiceHeaderBuffer(db.Model):
-    __tablename__ = "InvoiceHeaderBuffer"
+# 根据公司名动态生成“公司名$InvoiceHeaderBuffer”类
+def invoiceHeaderBuffer(company_name):
+    __tablename__ = "{0}${1}".format(company_name, "InvoiceHeaderBuffer")
     __bind_key__ = "nav"
     Record_ID = db.Column("[Record ID]", db.Integer, nullable=False, primary_key=True, autoincrement=False)
     InvoiceNo = db.Column(db.String(20), default='', nullable=False)
@@ -321,9 +322,42 @@ class InvoiceHeaderBuffer(db.Model):
         max_record_id = db.session.query(func.max(self.__class__.Record_ID)).scalar()
         return max_record_id + 1 if max_record_id is not None else 1
 
+    # 构建属性列表
+    properties = {
+        "__tablename__": __tablename__,
+        "__bind_key__": __bind_key__,
+        "Record_ID": Record_ID,
+        "InvoiceNo": InvoiceNo,
+        "Posting_Date": Posting_Date,
+        "Document_Date": Document_Date,
+        "Due_Date": Due_Date,
+        "PayToBillToNo": PayToBillToNo,
+        "SellToBuyFromNo": SellToBuyFromNo,
+        "CostCenterCode": CostCenterCode,
+        "VehicleSeries": VehicleSeries,
+        "ExtDocumentNo": ExtDocumentNo,
+        "Entry_No_": Entry_No_,
+        "InvoiceType": InvoiceType,
+        "DateTime_Imported": DateTime_Imported,
+        "DateTime_handled": DateTime_handled,
+        "Error_Message":Error_Message,
+        "Handled_by": Handled_by,
+        "Line_Total_Count": Line_Total_Count,
+        "PriceIncludeVAT": PriceIncludeVAT,
+        "Description": Description,
+        "Location": Location,
+        "entry": entry,
+        "__setattr__": __setattr__,
+        "getLatestRecordId": getLatestRecordId
+    }
+    # 动态生成模型
+    model = type(__tablename__, (db.Model,), properties)
+    return model
 
-class InvoiceLineBuffer(db.Model):
-    __tablename__ = "InvoiceLineBuffer"
+
+# 根据公司名动态生成“公司名$InvoiceLineBuffer”类
+def invoiceLineBuffer(company_name):
+    __tablename__ = "{0}${1}".format(company_name, "InvoiceLineBuffer")
     __bind_key__ = "nav"
     Record_ID = db.Column("[Record ID]", db.Integer, nullable=False, primary_key=True, autoincrement=False)
     Line_No_ = db.Column("[Line No_]", db.Integer, default=0, nullable=False)
@@ -364,8 +398,9 @@ class InvoiceLineBuffer(db.Model):
 
     entry = db.relationship("InterfaceInfo",
                             primaryjoin=foreign(Entry_No_) == remote(InterfaceInfo.Entry_No_))
-    invoiceHeader = db.relationship("InvoiceHeaderBuffer",
-                                    primaryjoin=foreign(InvoiceNo) == remote(InvoiceHeaderBuffer.InvoiceNo))
+    # invoiceHeaderModelClass = invoiceHeaderBuffer(company_name)
+    # invoiceHeader = db.relationship("InvoiceHeaderBuffer",
+    #                                 primaryjoin=foreign(InvoiceNo) == remote(invoiceHeaderModelClass.InvoiceNo))
 
     # 来源字段和对象字段不一致的特殊情况
     def __setattr__(self, key, value):
@@ -392,6 +427,46 @@ class InvoiceLineBuffer(db.Model):
     def getLatestRecordId(self):
         max_record_id = db.session.query(func.max(self.__class__.Record_ID)).scalar()
         return max_record_id + 1 if max_record_id is not None else 1
+
+    # 构建属性列表
+    properties = {
+        "__tablename__": __tablename__,
+        "__bind_key__": __bind_key__,
+        "Record_ID": Record_ID,
+        "Line_No_": Line_No_,
+        "DMSItemType": DMSItemType,
+        "GLAccount": GLAccount,
+        "Description": Description,
+        "CostCenterCode": CostCenterCode,
+        "VehicleSeries": VehicleSeries,
+        "VIN": VIN,
+        "Quantity": Quantity,
+        "Line_Amount": Line_Amount,
+        "LineCost": LineCost,
+        "TransactionType": TransactionType,
+        "Entry_No_": Entry_No_,
+        "Error_Message": Error_Message,
+        "DateTime_Imported": DateTime_Imported,
+        "DateTime_Handled": DateTime_Handled,
+        "Handled_by": Handled_by,
+        "InvoiceNo": InvoiceNo,
+        "Line_Discount_Amount": Line_Discount_Amount,
+        "WIP_No_": WIP_No_,
+        "Line_VAT_Amount": Line_VAT_Amount,
+        "Line_VAT_Rate": Line_VAT_Rate,
+        "FromCompanyName": FromCompanyName,
+        "ToCompanyName": ToCompanyName,
+        "Location": Location,
+        "MovementType": MovementType,
+        "OEMCode": OEMCode,
+        "entry": entry,
+        # "invoiceHeader": invoiceHeader,
+        "__setattr__": __setattr__,
+        "getLatestRecordId": getLatestRecordId
+    }
+    # 动态获得模型
+    model = type(__tablename__, (db.Model,), properties)
+    return model
 
 
 class OtherBuffer(db.Model):
