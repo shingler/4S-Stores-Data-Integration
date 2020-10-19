@@ -71,7 +71,7 @@ class InterfaceInfo(db.Model):
 # 根据公司名动态生成“NAV公司代码$CustVendBuffer”类
 def custVendBuffer(nav_company_code):
     __tablename__ = "{0}${1}".format(nav_company_code, "CustVendBuffer")
-    __bind_key__ = "nav"
+    __bind_key__ = "{0}-nav".format(nav_company_code)
     # 因为Entry_No_是外键，需要引用，所以提前定义好
     Entry_No_ = db.Column("[Entry No_]", db.Integer, nullable=False)
 
@@ -156,7 +156,7 @@ def custVendBuffer(nav_company_code):
 # 根据公司名动态生成“NAV公司代码$FABuffer”类
 def faBuffer(nav_company_code):
     __tablename__ = "{0}${1}".format(nav_company_code, "FABuffer")
-    __bind_key__ = "nav"
+    __bind_key__ = "{0}-nav".format(nav_company_code)
     # 非自增主键
     Record_ID = db.Column("[Record ID]", db.Integer, nullable=False, primary_key=True, autoincrement=False)
     FANo_ = db.Column(db.String(20), default='', nullable=False)
@@ -260,13 +260,14 @@ def faBuffer(nav_company_code):
         "getLatestRecordId": getLatestRecordId
     }
     model = type(__tablename__, (db.Model,), properties)
+
     return model
 
 
 # 根据公司名动态生成“NAV公司代码$InvoiceHeaderBuffer”类
 def invoiceHeaderBuffer(nav_company_code):
     __tablename__ = "{0}${1}".format(nav_company_code, "InvoiceHeaderBuffer")
-    __bind_key__ = "nav"
+    __bind_key__ = "{0}-nav".format(nav_company_code)
     Record_ID = db.Column("[Record ID]", db.Integer, nullable=False, primary_key=True, autoincrement=False)
     InvoiceNo = db.Column(db.String(20), default='', nullable=False)
     Posting_Date = db.Column("[Posting Date]", db.DateTime,
@@ -358,7 +359,7 @@ def invoiceHeaderBuffer(nav_company_code):
 # 根据公司名动态生成“NAV公司代码$InvoiceLineBuffer”类
 def invoiceLineBuffer(nav_company_code):
     __tablename__ = "{0}${1}".format(nav_company_code, "InvoiceLineBuffer")
-    __bind_key__ = "nav"
+    __bind_key__ = "{0}-nav".format(nav_company_code)
     Record_ID = db.Column("[Record ID]", db.Integer, nullable=False, primary_key=True, autoincrement=False)
     Line_No_ = db.Column("[Line No_]", db.Integer, default=0, nullable=False)
     DMSItemType = db.Column(db.String(20), default="", nullable=False)
@@ -472,7 +473,7 @@ def invoiceLineBuffer(nav_company_code):
 # 根据公司名动态生成“NAV公司代码$OtherBuffer”类
 def otherBuffer(nav_company_code):
     __tablename__ = "{0}${1}".format(nav_company_code, "OtherBuffer")
-    __bind_key__ = "nav"
+    __bind_key__ = "{0}-nav".format(nav_company_code)
 
     Record_ID = db.Column("[Record ID]", db.Integer, nullable=False, primary_key=True, autoincrement=False)
     DocumentNo_ = db.Column(db.String(20), default="", nullable=False)

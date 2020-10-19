@@ -22,6 +22,8 @@ def test_1_dms_source(init_app):
     company_info = db.session.query(Company).filter(Company.Code == company_code).first()
     assert company_info is not None
     globals()["cv_obj"] = CustVend(company_info.NAV_Company_Code)
+    # 修改bind
+    app.config["SQLALCHEMY_BINDS"]["%s-nav"%company_info.NAV_Company_Code] = "mysql+pymysql://root:123456@127.0.0.1:3306/nav?charset=utf8"
 
     api_setup = Setup.load_api_setup(company_code, api_code)
     assert api_setup is not None
