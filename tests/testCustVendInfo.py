@@ -21,6 +21,7 @@ def test_1_dms_source(init_app):
     app, db = init_app
     company_info = db.session.query(Company).filter(Company.Code == company_code).first()
     assert company_info is not None
+    assert company_info.NAV_Company_Code != ""
     globals()["cv_obj"] = CustVend(company_info.NAV_Company_Code)
 
     # 修改bind
@@ -89,7 +90,9 @@ def test_4_save_custVendInfo(init_app):
 def test_5_valid_data(init_app):
     app, db = init_app
     entry_no = global_vars["entry_no"]
-    interfaceInfo = db.session.query(nav.InterfaceInfo).filter(nav.InterfaceInfo.Entry_No_ == entry_no).first()
+
+    interfaceInfoClass = cv_obj.GENERAL_CLASS
+    interfaceInfo = db.session.query(interfaceInfoClass).filter(interfaceInfoClass.Entry_No_ == entry_no).first()
     custVendClass = cv_obj.TABLE_CLASS
     custVendList = db.session.query(custVendClass).filter(custVendClass.Entry_No_ == entry_no).all()
 

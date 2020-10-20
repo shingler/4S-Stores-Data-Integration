@@ -110,7 +110,9 @@ def test_5_save_InvoiceLine(init_app):
 def test_6_valid_data(init_app):
     app, db = init_app
     entry_no = global_vars["entry_no"]
-    interfaceInfo = db.session.query(nav.InterfaceInfo).filter(nav.InterfaceInfo.Entry_No_ == entry_no).first()
+
+    interfaceInfoClass = invoiceHeader_obj.GENERAL_CLASS
+    interfaceInfo = db.session.query(interfaceInfoClass).filter(interfaceInfoClass.Entry_No_ == entry_no).first()
     headerInfo = db.session.query(invoiceHeader_obj.TABLE_CLASS).filter(invoiceHeader_obj.TABLE_CLASS.Entry_No_ == entry_no).first()
     lineList = db.session.query(invoiceLine_obj.TABLE_CLASS).filter(invoiceLine_obj.TABLE_CLASS.Entry_No_ == entry_no).all()
 

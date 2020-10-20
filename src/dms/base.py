@@ -46,10 +46,13 @@ class DMSBase:
     TYPE_FILE = 2
     # 公司名（作为nav表的前缀）
     company_name = ""
+    # General表模型
+    GENERAL_CLASS = None
 
     def __init__(self, company_name, force_secondary=False):
         self.company_name = company_name
         self.force_secondary = force_secondary
+        self.GENERAL_CLASS = nav.dmsInterfaceInfo(company_name)
 
     # 拼接xml文件路径
     def _splice_xml_file_path(self, apiSetUp) -> str:
@@ -166,7 +169,8 @@ class DMSBase:
     # 写入interfaceinfo获得entry_no
     def save_data_to_interfaceinfo(self, general_data, Type, Count, XMLFile=""):
         # 用数据初始化对象
-        interfaceInfo = nav.InterfaceInfo(
+        InterfaceClass = self.GENERAL_CLASS
+        interfaceInfo = InterfaceClass(
             DMSCode=general_data["DMSCode"],
             DMSTitle=general_data["DMSTitle"],
             CompanyCode=general_data["CompanyCode"],
@@ -180,7 +184,7 @@ class DMSBase:
             FA_Total_Count=0,
             Invoice_Total_Count=0
         )
-
+        print(self.company_name, interfaceInfo.__bind_key__)
         # 再补充一些默认值
         interfaceInfo.DateTime_Imported = datetime.datetime.now().isoformat(timespec="seconds")
 

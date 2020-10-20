@@ -13,7 +13,7 @@ class Other(DMSBase):
     _COMMON_FILED = "DaydookNo"
 
     def __init__(self, company_name, force_secondary=False):
-        super(__class__, self).__init__
+        super(__class__, self).__init__(company_name, force_secondary)
         self.TABLE_CLASS = nav.otherBuffer(company_name)
 
     # 读取出参配置配置

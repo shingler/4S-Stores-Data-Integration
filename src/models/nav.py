@@ -16,9 +16,12 @@ def set_Env(env):
     globals()["ENV"] = env
 
 
-class InterfaceInfo(db.Model):
-    __tablename__ = "DMSInterfaceInfo"
-    __bind_key__ = "nav"
+# 根据公司名动态生成“NAV公司代码$InterfaceInfo”类
+def dmsInterfaceInfo(nav_company_code):
+    print("dmsInterfaceInfo:%s" % nav_company_code)
+    __tablename__ = "{0}${1}".format(nav_company_code, "DMSInterfaceInfo")
+    __bind_key__ = "{0}-nav".format(nav_company_code)
+    __table_args__ = {'extend_existing': True}
 
     # 非自增字段（[Entry No_]）
     Entry_No_ = db.Column("[Entry No_]", db.Integer, nullable=False, primary_key=True, comment="非自增字段")
@@ -67,11 +70,42 @@ class InterfaceInfo(db.Model):
         # max_entry_id = 0
         return max_entry_id + 1 if max_entry_id is not None else 1
 
+    # 构建属性列表
+    properties = {
+        "__tablename__": __tablename__,
+        "__bind_key__": __bind_key__,
+        "__table_args__": __table_args__,
+        "Entry_No_": Entry_No_,
+        "DMSCode": DMSCode,
+        "DMSTitle": DMSTitle,
+        "CompanyCode": CompanyCode,
+        "CompanyTitle": CompanyTitle,
+        "CreateDateTime": CreateDateTime,
+        "Creator": Creator,
+        "DateTime_Imported": DateTime_Imported,
+        "DateTime_Handled": DateTime_Handled,
+        "Handled_by": Handled_by,
+        "Status": Status,
+        "Error_Message": Error_Message,
+        "XMLFileName": XMLFileName,
+        "Customer_Vendor_Total_Count": Customer_Vendor_Total_Count,
+        "Invoice_Total_Count": Invoice_Total_Count,
+        "Type": Type,
+        "Other_Transaction_Total_Count": Other_Transaction_Total_Count,
+        "FA_Total_Count": FA_Total_Count,
+        "__repr__": __repr__,
+        "getLatestEntryNo": getLatestEntryNo
+    }
+    # 动态创建类并返回
+    model = type(__tablename__, (db.Model,), properties)
+    return model
+
 
 # 根据公司名动态生成“NAV公司代码$CustVendBuffer”类
 def custVendBuffer(nav_company_code):
     __tablename__ = "{0}${1}".format(nav_company_code, "CustVendBuffer")
     __bind_key__ = "{0}-nav".format(nav_company_code)
+    __table_args__ = {"extend_existing": True}
     # 因为Entry_No_是外键，需要引用，所以提前定义好
     Entry_No_ = db.Column("[Entry No_]", db.Integer, nullable=False)
 
@@ -112,6 +146,7 @@ def custVendBuffer(nav_company_code):
     properties = {
         "__tablename__": __tablename__,
         "__bind_key__": __bind_key__,
+        "__table_args__": __table_args__,
         "Record_ID": db.Column("[Record ID]", db.Integer, nullable=False, primary_key=True, comment="非自增字段"),
         "No_": db.Column(db.String(20), default='', nullable=False),
         "Name": db.Column(db.String(50), default='', nullable=False),
@@ -142,7 +177,7 @@ def custVendBuffer(nav_company_code):
         "PaymentMethodCode": db.Column(db.String(20), nullable=False, default=''),
         "Cost_Center_Code": db.Column("[Cost Center Code]", db.String(20), nullable=False, default=''),
         "ICPartnerCode": db.Column(db.String(50), nullable=False, default=''),
-        "entry": db.relationship("InterfaceInfo", primaryjoin=foreign(Entry_No_) == remote(InterfaceInfo.Entry_No_)),
+        # "entry": db.relationship("InterfaceInfo", primaryjoin=foreign(Entry_No_) == remote(InterfaceInfo.Entry_No_)),
         "__repr__": __repr__,
         "__setattr__": __setattr__,
         "getLatestRecordId": getLatestRecordId
@@ -157,6 +192,7 @@ def custVendBuffer(nav_company_code):
 def faBuffer(nav_company_code):
     __tablename__ = "{0}${1}".format(nav_company_code, "FABuffer")
     __bind_key__ = "{0}-nav".format(nav_company_code)
+    __table_args__ = {"extend_existing": True}
     # 非自增主键
     Record_ID = db.Column("[Record ID]", db.Integer, nullable=False, primary_key=True, autoincrement=False)
     FANo_ = db.Column(db.String(20), default='', nullable=False)
@@ -193,8 +229,8 @@ def faBuffer(nav_company_code):
                                          nullable=False)
     CostCenterCode = db.Column(db.String(20), default='', nullable=False)
 
-    entry = db.relationship("InterfaceInfo",
-                            primaryjoin=foreign(Entry_No_) == remote(InterfaceInfo.Entry_No_))
+    # entry = db.relationship("InterfaceInfo",
+    #                         primaryjoin=foreign(Entry_No_) == remote(InterfaceInfo.Entry_No_))
 
     # 来源字段和对象字段不一致的特殊情况
     def __setattr__(self, key, value):
@@ -231,6 +267,7 @@ def faBuffer(nav_company_code):
     properties = {
         "__tablename__": __tablename__,
         "__bind_key__": __bind_key__,
+        "__table_args__": __table_args__,
         "Record_ID": Record_ID,
         "FANo_": FANo_,
         "Description": Description,
@@ -254,7 +291,7 @@ def faBuffer(nav_company_code):
         "DepreciationPeriod": DepreciationPeriod,
         "DepreciationStartingDate": DepreciationStartingDate,
         "CostCenterCode": CostCenterCode,
-        "entry": entry,
+        # "entry": entry,
         "__setattr__": __setattr__,
         "get_chinese_data": get_chinese_data,
         "getLatestRecordId": getLatestRecordId
@@ -268,6 +305,7 @@ def faBuffer(nav_company_code):
 def invoiceHeaderBuffer(nav_company_code):
     __tablename__ = "{0}${1}".format(nav_company_code, "InvoiceHeaderBuffer")
     __bind_key__ = "{0}-nav".format(nav_company_code)
+    __table_args__ = {"extend_existing": True}
     Record_ID = db.Column("[Record ID]", db.Integer, nullable=False, primary_key=True, autoincrement=False)
     InvoiceNo = db.Column(db.String(20), default='', nullable=False)
     Posting_Date = db.Column("[Posting Date]", db.DateTime,
@@ -300,8 +338,8 @@ def invoiceHeaderBuffer(nav_company_code):
     Description = db.Column(db.String(100), default='', nullable=False)
     Location = db.Column(db.String(20), default='', nullable=False)
 
-    entry = db.relationship("InterfaceInfo",
-                            primaryjoin=foreign(Entry_No_) == remote(InterfaceInfo.Entry_No_))
+    # entry = db.relationship("InterfaceInfo",
+    #                         primaryjoin=foreign(Entry_No_) == remote(InterfaceInfo.Entry_No_))
 
     # 来源字段和对象字段不一致的特殊情况
     def __setattr__(self, key, value):
@@ -327,6 +365,7 @@ def invoiceHeaderBuffer(nav_company_code):
     properties = {
         "__tablename__": __tablename__,
         "__bind_key__": __bind_key__,
+        "__table_args__": __table_args__,
         "Record_ID": Record_ID,
         "InvoiceNo": InvoiceNo,
         "Posting_Date": Posting_Date,
@@ -341,13 +380,13 @@ def invoiceHeaderBuffer(nav_company_code):
         "InvoiceType": InvoiceType,
         "DateTime_Imported": DateTime_Imported,
         "DateTime_handled": DateTime_handled,
-        "Error_Message":Error_Message,
+        "Error_Message": Error_Message,
         "Handled_by": Handled_by,
         "Line_Total_Count": Line_Total_Count,
         "PriceIncludeVAT": PriceIncludeVAT,
         "Description": Description,
         "Location": Location,
-        "entry": entry,
+        # "entry": entry,
         "__setattr__": __setattr__,
         "getLatestRecordId": getLatestRecordId
     }
@@ -360,6 +399,7 @@ def invoiceHeaderBuffer(nav_company_code):
 def invoiceLineBuffer(nav_company_code):
     __tablename__ = "{0}${1}".format(nav_company_code, "InvoiceLineBuffer")
     __bind_key__ = "{0}-nav".format(nav_company_code)
+    __table_args__ = {"extend_existing": True}
     Record_ID = db.Column("[Record ID]", db.Integer, nullable=False, primary_key=True, autoincrement=False)
     Line_No_ = db.Column("[Line No_]", db.Integer, default=0, nullable=False)
     DMSItemType = db.Column(db.String(20), default="", nullable=False)
@@ -397,8 +437,8 @@ def invoiceLineBuffer(nav_company_code):
     MovementType = db.Column(db.String(20), default="", nullable=False)
     OEMCode = db.Column(db.String(20), default="", nullable=False)
 
-    entry = db.relationship("InterfaceInfo",
-                            primaryjoin=foreign(Entry_No_) == remote(InterfaceInfo.Entry_No_))
+    # entry = db.relationship("InterfaceInfo",
+    #                         primaryjoin=foreign(Entry_No_) == remote(InterfaceInfo.Entry_No_))
     # invoiceHeaderModelClass = invoiceHeaderBuffer(company_name)
     # invoiceHeader = db.relationship("InvoiceHeaderBuffer",
     #                                 primaryjoin=foreign(InvoiceNo) == remote(invoiceHeaderModelClass.InvoiceNo))
@@ -433,6 +473,7 @@ def invoiceLineBuffer(nav_company_code):
     properties = {
         "__tablename__": __tablename__,
         "__bind_key__": __bind_key__,
+        "__table_args__": __table_args__,
         "Record_ID": Record_ID,
         "Line_No_": Line_No_,
         "DMSItemType": DMSItemType,
@@ -460,7 +501,7 @@ def invoiceLineBuffer(nav_company_code):
         "Location": Location,
         "MovementType": MovementType,
         "OEMCode": OEMCode,
-        "entry": entry,
+        # "entry": entry,
         # "invoiceHeader": invoiceHeader,
         "__setattr__": __setattr__,
         "getLatestRecordId": getLatestRecordId
@@ -474,6 +515,7 @@ def invoiceLineBuffer(nav_company_code):
 def otherBuffer(nav_company_code):
     __tablename__ = "{0}${1}".format(nav_company_code, "OtherBuffer")
     __bind_key__ = "{0}-nav".format(nav_company_code)
+    __table_args__ = {"extend_existing": True}
 
     Record_ID = db.Column("[Record ID]", db.Integer, nullable=False, primary_key=True, autoincrement=False)
     DocumentNo_ = db.Column(db.String(20), default="", nullable=False)
@@ -519,8 +561,8 @@ def otherBuffer(nav_company_code):
     DMSItemTransType = db.Column(db.String(20), default="", nullable=False)
     Location = db.Column(db.String(20), default="", nullable=False)
 
-    entry = db.relationship("InterfaceInfo",
-                            primaryjoin=foreign(Entry_No_) == remote(InterfaceInfo.Entry_No_))
+    # entry = db.relationship("InterfaceInfo",
+    #                         primaryjoin=foreign(Entry_No_) == remote(InterfaceInfo.Entry_No_))
 
     # 来源字段和对象字段不一致的特殊情况
     def __setattr__(self, key, value):
@@ -558,6 +600,7 @@ def otherBuffer(nav_company_code):
     properties = {
         "__tablename__": __tablename__,
         "__bind_key__": __bind_key__,
+        "__table_args__": __table_args__,
         "Record_ID": Record_ID,
         "DocumentNo_": DocumentNo_,
         "TransactionType": TransactionType,
@@ -590,7 +633,7 @@ def otherBuffer(nav_company_code):
         "DMSItemType": DMSItemType,
         "DMSItemTransType": DMSItemTransType,
         "Location": Location,
-        "entry": entry,
+        # "entry": entry,
         "__setattr__": __setattr__,
         "getLatestRecordId": getLatestRecordId
     }

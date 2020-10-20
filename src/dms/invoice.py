@@ -47,7 +47,7 @@ class InvoiceHeader(Invoice):
     TABLE_CLASS = None
 
     def __init__(self, company_name, force_secondary=False):
-        super(__class__, self).__init__
+        super(__class__, self).__init__(company_name, force_secondary)
         self.TABLE_CLASS = nav.invoiceHeaderBuffer(company_name)
 
     # 根据节点名处理二级/三级层级数据（假设一个xml文件里只有1个发票抬头）
@@ -66,7 +66,7 @@ class InvoiceLine(Invoice):
     TABLE_CLASS = None
 
     def __init__(self, company_name, force_secondary=False):
-        super(__class__, self).__init__
+        super(__class__, self).__init__(company_name, force_secondary)
         self.TABLE_CLASS = nav.invoiceLineBuffer(company_name)
 
     # 根据节点名处理二级/三级层级数据

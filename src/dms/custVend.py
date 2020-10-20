@@ -10,7 +10,7 @@ class CustVend(DMSBase):
     BIZ_NODE_LV1 = "CustVendInfo"
 
     def __init__(self, company_name, force_secondary=False):
-        super(__class__, self).__init__
+        super(__class__, self).__init__(company_name, force_secondary)
         # 根据公司名动态获得nav表名
         self.TABLE_CLASS = nav.custVendBuffer(company_name)
 

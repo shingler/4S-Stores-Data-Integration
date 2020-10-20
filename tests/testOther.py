@@ -89,7 +89,9 @@ def test_4_save_Other(init_app):
 def test_5_valid_data(init_app):
     app, db = init_app
     entry_no = global_vars["entry_no"]
-    interfaceInfo = db.session.query(nav.InterfaceInfo).filter(nav.InterfaceInfo.Entry_No_ == entry_no).first()
+
+    interfaceInfoClass = other_obj.GENERAL_CLASS
+    interfaceInfo = db.session.query(interfaceInfoClass).filter(interfaceInfoClass.Entry_No_ == entry_no).first()
     lineList = db.session.query(other_obj.TABLE_CLASS).filter(other_obj.TABLE_CLASS.Entry_No_ == entry_no).all()
 
     # 检查数据正确性
