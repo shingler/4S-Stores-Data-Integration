@@ -21,9 +21,12 @@ def test_1_dms_source(init_app):
     assert company_info is not None
     globals()["invoiceHeader_obj"] = InvoiceHeader(company_info.NAV_Company_Code)
     globals()["invoiceLine_obj"] = InvoiceLine(company_info.NAV_Company_Code)
+
     # 修改bind
+    conn_str = company_info.get_nav_connection_string(app.config)
+    assert conn_str.startswith(app.config["DATABASE_ENGINE"])
     app.config["SQLALCHEMY_BINDS"][
-        "%s-nav" % company_info.NAV_Company_Code] = "mysql+pymysql://root:123456@127.0.0.1:3306/nav?charset=utf8"
+        "%s-nav" % company_info.NAV_Company_Code] = conn_str
 
     api_setup = Setup.load_api_setup(company_code, api_code)
     assert api_setup is not None

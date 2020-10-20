@@ -45,6 +45,11 @@ def cast_chinese_decode(some_str):
     return cast(some_str, VARBINARY()).cast(VARCHAR(250)).collate("Chinese_PRC_CI_AS")
 
 
+# 拼接数据库连接字符串
+def splice_db_connect_string(db_engine, db_user, db_pwd, db_host, db_port, db_name, db_suffix):
+    return "{0}://{1}:{2}@{3}:{4}/{5}?{6}".format(db_engine, db_user, db_pwd, db_host, db_port, db_name, db_suffix)
+
+
 if __name__ == '__main__':
     print(cast_chinese_encode("测试"))
     print(cast_chinese_decode("t2"))
