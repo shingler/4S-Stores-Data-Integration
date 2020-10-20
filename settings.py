@@ -19,6 +19,8 @@ class Base:
     DATABASE_PORT = 3306
     # 连接字符串后缀
     DATABASE_SUFFIX = ""
+    # 多库连接绑定
+    SQLALCHEMY_BINDS = {}
 
 
 class Development(Base):

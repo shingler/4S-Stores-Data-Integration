@@ -324,7 +324,7 @@ def invoiceHeaderBuffer(nav_company_code):
     InvoiceType = db.Column(db.String(10), default='', nullable=False)
     # 导入时间
     DateTime_Imported = db.Column("[DateTime Imported]", db.DateTime,
-                                  server_default=datetime.datetime.now().isoformat(timespec="seconds"), nullable=False)
+                                  default=datetime.datetime.now().isoformat(timespec="seconds"), nullable=False)
     # 处理时间, 初始插入数据时插入('1753-01-01 00:00:00.000')
     DateTime_handled = db.Column("[DateTime handled]", db.DateTime, nullable=False,
                                  default='1753-01-01 00:00:00.000', comment="处理时间")
@@ -418,7 +418,7 @@ def invoiceLineBuffer(nav_company_code):
     Error_Message = db.Column("[Error Message]", db.String(250), default="", nullable=False, comment="错误消息")
     # 导入时间
     DateTime_Imported = db.Column("[DateTime Imported]", db.DateTime,
-                                  server_default=datetime.datetime.now().isoformat(timespec="seconds"), nullable=False,
+                                  default=datetime.datetime.now().isoformat(timespec="seconds"), nullable=False,
                                   comment="导入时间")
     # 处理时间, 初始插入数据时插入('1753-01-01 00:00:00.000')
     DateTime_Handled = db.Column("[DateTime Handled]", db.DateTime, nullable=False, default='1753-01-01 00:00:00.000',
@@ -524,7 +524,7 @@ def otherBuffer(nav_company_code):
     Posting_Date = db.Column("[Posting Date]", db.DateTime,
                              server_default=datetime.datetime.now().isoformat(timespec="seconds"), nullable=False)
     Document_Date = db.Column("[Document Date]", db.DateTime,
-                              server_default=datetime.datetime.now().isoformat(timespec="seconds"), nullable=False)
+                              default=datetime.datetime.now().isoformat(timespec="seconds"), nullable=False)
     ExtDocumentNo_ = db.Column(db.String(20), default="", nullable=False)
     Account_No_ = db.Column("[Account No_]", db.String(50), default="", nullable=False)
     Description = db.Column(db.String(100), default="", nullable=False)
@@ -536,7 +536,7 @@ def otherBuffer(nav_company_code):
     Entry_No_ = db.Column("[Entry No_]", db.Integer, default=0, nullable=False)
     # 导入时间
     DateTime_Imported = db.Column("[DateTime Imported]", db.DateTime,
-                                  server_default=datetime.datetime.now().isoformat(timespec="seconds"), nullable=False)
+                                  default=datetime.datetime.now().isoformat(timespec="seconds"), nullable=False)
     # 处理时间, 初始插入数据时插入('1753-01-01 00:00:00.000')
     DateTime_handled = db.Column("[DateTime handled]", db.DateTime, nullable=False,
                                  default="1753-01-01 00:00:00.000", comment="处理时间")
