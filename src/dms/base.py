@@ -120,7 +120,7 @@ class DMSBase:
             raise DataLoadTimeOutError(res.error_msg)
         else:
             # 处理成功，更新日志
-            logger.update_api_log_when_finish(data=res.content, status=self.STATUS_FINISH)
+            logger.update_api_log_when_finish(data=str(res.content), status=self.STATUS_FINISH)
             return path, res.data
 
     # 获取指定节点的数量（xml可以节点同名。在json这里，则判断节点是否是数组。是，则返回长度；非，则返回1。

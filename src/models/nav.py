@@ -24,7 +24,7 @@ def dmsInterfaceInfo(nav_company_code):
     __table_args__ = {'extend_existing': True}
 
     # 非自增字段（[Entry No_]）
-    Entry_No_ = db.Column("[Entry No_]", db.Integer, nullable=False, primary_key=True, comment="非自增字段")
+    Entry_No_ = db.Column("Entry No_", db.Integer, nullable=False, primary_key=True, autoincrement=False, comment="非自增字段")
     DMSCode = db.Column(db.String(20), nullable=False)
     DMSTitle = db.Column(db.String(50), nullable=False)
     CompanyCode = db.Column(db.String(20), nullable=False)
@@ -32,33 +32,33 @@ def dmsInterfaceInfo(nav_company_code):
     CreateDateTime = db.Column(db.DateTime(timezone=True), nullable=False)
     Creator = db.Column(db.String(30), nullable=False)
     # 导入时间
-    DateTime_Imported = db.Column("[DateTime Imported]", db.DateTime, nullable=False, comment="导入时间")
+    DateTime_Imported = db.Column("DateTime Imported", db.DateTime, nullable=False, comment="导入时间")
     # 处理时间, 初始插入数据时插入('1753-01-01 00:00:00.000')
-    DateTime_Handled = db.Column("[DateTime Handled]", db.DateTime, nullable=False, default="1753-01-01 00:00:00.000",
+    DateTime_Handled = db.Column("DateTime Handled", db.DateTime, nullable=False, default="1753-01-01 00:00:00.000",
                                  comment="处理时间")
     # 处理人, 初始插入数据时插入空字符('')
-    Handled_by = db.Column("[Handled by]", db.String(20), nullable=False, default='', comment="处理人")
+    Handled_by = db.Column("Handled by", db.String(20), nullable=False, default='', comment="处理人")
     # 状态(INIT, PROCESSING, ERROR, COMPLETED), 初始插入数据INIT
     Status = db.Column(db.String(10), nullable=False, default="INIT",
                        comment="状态(INIT, PROCESSING, ERROR, COMPLETED), 初始插入数据INIT")
     # 错误消息, 初始插入数据时插入空字符('')
-    Error_Message = db.Column("[Error Message]", db.String(250), nullable=False, default='',
+    Error_Message = db.Column("Error Message", db.String(250), nullable=False, default='',
                               comment="错误消息, 初始插入数据时插入空字符('')")
     # XML文件名，如使用的是WEB API则插入空字符('')
     XMLFileName = db.Column(db.String(250), nullable=False, comment="XML文件名")
     # 客户供应商记录数，对应CustVendorInfo文件或接口
-    Customer_Vendor_Total_Count = db.Column("[Customer_Vendor Total Count]", db.Integer, nullable=False,
+    Customer_Vendor_Total_Count = db.Column("Customer_Vendor Total Count", db.Integer, nullable=False,
                                             comment="客户供应商记录数，对应CustVendorInfo文件或接口")
     # 发票记录数, 对应Invoice文件或接口
-    Invoice_Total_Count = db.Column("[Invoice Total Count]", db.Integer, nullable=False,
+    Invoice_Total_Count = db.Column("Invoice Total Count", db.Integer, nullable=False,
                                     comment="发票记录数, 对应Invoice文件或接口")
     # 类型(0 - CustVendInfo, 1 - FA, 2 - Invoice, 3 - Other)
     Type = db.Column(db.Integer, nullable=False, comment="类型(0 - CustVendInfo, 1 - FA, 2 - Invoice, 3 - Other)")
     # Other记录数, 对应Other文件或接口
-    Other_Transaction_Total_Count = db.Column("[Other Transaction Total Count]", db.Integer, nullable=False,
+    Other_Transaction_Total_Count = db.Column("Other Transaction Total Count", db.Integer, nullable=False,
                                               comment="Other记录数, 对应Other文件或接口")
     # FA记录数, 对应FA文件或接口
-    FA_Total_Count = db.Column("[FA Total Count]", db.Integer, nullable=False, comment="FA记录数, 对应FA文件或接口")
+    FA_Total_Count = db.Column("FA Total Count", db.Integer, nullable=False, comment="FA记录数, 对应FA文件或接口")
 
     def __repr__(self):
         return "EntryNo = %s: <DMSCode: %s, CompanyCode: %s>" % \
@@ -107,7 +107,7 @@ def custVendBuffer(nav_company_code):
     __bind_key__ = "{0}-nav".format(nav_company_code)
     __table_args__ = {"extend_existing": True}
     # 因为Entry_No_是外键，需要引用，所以提前定义好
-    Entry_No_ = db.Column("[Entry No_]", db.Integer, nullable=False)
+    Entry_No_ = db.Column("Entry No_", db.Integer, nullable=False)
 
     # 字符串方法
     def __repr__(self):
@@ -147,27 +147,27 @@ def custVendBuffer(nav_company_code):
         "__tablename__": __tablename__,
         "__bind_key__": __bind_key__,
         "__table_args__": __table_args__,
-        "Record_ID": db.Column("[Record ID]", db.Integer, nullable=False, primary_key=True, comment="非自增字段"),
+        "Record_ID": db.Column("Record ID", db.Integer, nullable=False, primary_key=True, autoincrement=False, comment="非自增字段"),
         "No_": db.Column(db.String(20), default='', nullable=False),
         "Name": db.Column(db.String(50), default='', nullable=False),
         "Address": db.Column(db.String(50), default='', nullable=False),
         "City": db.Column(db.String(30), default='', nullable=False),
-        "Post_Code": db.Column("[Post Code]", db.String(20), default='',nullable=False),
+        "Post_Code": db.Column("Post Code", db.String(20), default='', nullable=False),
         "Country": db.Column(db.String(10), nullable=False, default="CN-0086"),
         "Currency": db.Column(db.String(10), nullable=False, default='', comment="FA记录数, 对应FA文件或接口"),
-        "Gen_Bus_Posting_Group": db.Column("[Gen_ Bus_ Posting Group]", db.String(10), nullable=False, default=''),
-        "VAT_Bus_Posting_Group": db.Column("[VAT Bus_ Posting Group]", db.String(10), nullable=False, default=''),
+        "Gen_Bus_Posting_Group": db.Column("Gen_ Bus_ Posting Group", db.String(10), nullable=False, default=''),
+        "VAT_Bus_Posting_Group": db.Column("VAT Bus_ Posting Group", db.String(10), nullable=False, default=''),
         "Cust_VendPostingGroup": db.Column(db.String(10), nullable=False, default=""),
-        "Application_Method": db.Column("[Application Method]", db.String(20), nullable=False, default=''),
+        "Application_Method": db.Column("Application Method", db.String(20), nullable=False, default=''),
         "PaymentTermsCode": db.Column(db.String(10), nullable=False, default=''),
         "Template": db.Column(db.String(20), nullable=False, default=''),
         "Entry_No_": Entry_No_,
-        "Error_Message": db.Column("[Error Message]", db.String(250), nullable=False, default=""),
-        "DateTime_Imported": db.Column("[DateTime Imported]", db.DateTime, nullable=False, default=datetime.datetime.now().isoformat(timespec="seconds"), comment="导入时间"),
-        "DateTime_Handled": db.Column("[DateTime Handled]", db.DateTime, nullable=False, default="1753-01-01 00:00:00.000", comment="处理时间, 初始插入数据时插入('1753-01-01 00:00:00.000')"),
+        "Error_Message": db.Column("Error Message", db.String(250), nullable=False, default=""),
+        "DateTime_Imported": db.Column("DateTime Imported", db.DateTime, nullable=False, default=datetime.datetime.now().isoformat(timespec="seconds"), comment="导入时间"),
+        "DateTime_Handled": db.Column("DateTime Handled", db.DateTime, nullable=False, default="1753-01-01 00:00:00.000", comment="处理时间, 初始插入数据时插入('1753-01-01 00:00:00.000')"),
         "Type": db.Column(db.Integer, nullable=False, default=1, comment="类型(0 - Customer, 1 - Vendor, 3 - Unknow)"),
-        "Handled_by": db.Column("[Handled by]", db.String(20), nullable=False, comment="处理人", default=''),
-        "Address_2": db.Column("[Address 2]", db.String(50), nullable=False, default=''),
+        "Handled_by": db.Column("Handled by", db.String(20), nullable=False, comment="处理人", default=''),
+        "Address_2": db.Column("Address 2", db.String(50), nullable=False, default=''),
         "PhoneNo": db.Column(db.String(30), nullable=False, default=''),
         "FaxNo": db.Column(db.String(30), nullable=False, default=''),
         "Blocked": db.Column(db.String(10), nullable=False, default=''),
@@ -175,7 +175,7 @@ def custVendBuffer(nav_company_code):
         "ARAPAccountNo": db.Column(db.String(50), nullable=False, default=''),
         "PricesIncludingVAT": db.Column(db.Integer, nullable=False, default=''),
         "PaymentMethodCode": db.Column(db.String(20), nullable=False, default=''),
-        "Cost_Center_Code": db.Column("[Cost Center Code]", db.String(20), nullable=False, default=''),
+        "Cost_Center_Code": db.Column("Cost Center Code", db.String(20), nullable=False, default=''),
         "ICPartnerCode": db.Column(db.String(50), nullable=False, default=''),
         # "entry": db.relationship("InterfaceInfo", primaryjoin=foreign(Entry_No_) == remote(InterfaceInfo.Entry_No_)),
         "__repr__": __repr__,
@@ -194,7 +194,7 @@ def faBuffer(nav_company_code):
     __bind_key__ = "{0}-nav".format(nav_company_code)
     __table_args__ = {"extend_existing": True}
     # 非自增主键
-    Record_ID = db.Column("[Record ID]", db.Integer, nullable=False, primary_key=True, autoincrement=False)
+    Record_ID = db.Column("Record ID", db.Integer, nullable=False, primary_key=True, autoincrement=False)
     FANo_ = db.Column(db.String(20), default='', nullable=False)
     Description = db.Column(db.String(30), default='', nullable=False)
     SerialNo = db.Column(db.String(30), default='', nullable=False)
@@ -207,19 +207,19 @@ def faBuffer(nav_company_code):
     VendorNo = db.Column(db.String(20), default='', nullable=False)
     MaintenanceVendorNo = db.Column(db.String(20), default='', nullable=False)
     # Link to Table: DMSInterfaceInfo
-    Entry_No_ = db.Column("[Entry No_]", db.Integer, nullable=False)
+    Entry_No_ = db.Column("Entry No_", db.Integer, nullable=False)
     # 错误消息, 初始插入数据时插入空字符('')
-    Error_Message = db.Column("[Error Message]", db.String(250), nullable=False, default='', comment="错误消息")
+    Error_Message = db.Column("Error Message", db.String(250), nullable=False, default='', comment="错误消息")
     # 导入时间
-    DateTime_Imported = db.Column("[DateTime Imported]", db.DateTime, nullable=False, comment="导入时间",
+    DateTime_Imported = db.Column("DateTime Imported", db.DateTime, nullable=False, comment="导入时间",
                                   default=datetime.datetime.now().isoformat(timespec="seconds"))
     # 处理时间, 初始插入数据时插入('1753-01-01 00:00:00.000')
-    DateTime_Handled = db.Column("[DateTime Handled]", db.DateTime, nullable=False,
+    DateTime_Handled = db.Column("DateTime Handled", db.DateTime, nullable=False,
                                  default="1753-01-01T00:00:00.000",
                                  comment="处理时间, 初始插入数据时插入('1753-01-01 00:00:00.000')")
     UnderMaintenance = db.Column(db.Integer, nullable=False)
     # 处理人, 初始插入数据时插入空字符('')
-    Handled_by = db.Column("[Handled by]", db.String(20), nullable=False, default='', comment="处理人, 初始插入数据时插入空字符('')")
+    Handled_by = db.Column("Handled by", db.String(20), nullable=False, default='', comment="处理人, 初始插入数据时插入空字符('')")
     # 如文件或接口里没有值, 初始插入数据时插入('1753-01-01 00:00:00.000')
     NextServiceDate = db.Column(db.DateTime, nullable=False, default="1753-01-01T00:00:00.000")
     # 如文件或接口里没有值, 初始插入数据时插入('1753-01-01 00:00:00.000')
@@ -306,34 +306,34 @@ def invoiceHeaderBuffer(nav_company_code):
     __tablename__ = "{0}${1}".format(nav_company_code, "InvoiceHeaderBuffer")
     __bind_key__ = "{0}-nav".format(nav_company_code)
     __table_args__ = {"extend_existing": True}
-    Record_ID = db.Column("[Record ID]", db.Integer, nullable=False, primary_key=True, autoincrement=False)
+    Record_ID = db.Column("Record ID", db.Integer, nullable=False, primary_key=True, autoincrement=False)
     InvoiceNo = db.Column(db.String(20), default='', nullable=False)
-    Posting_Date = db.Column("[Posting Date]", db.DateTime,
-                             server_default=datetime.datetime.now().isoformat(timespec="seconds"), nullable=False)
-    Document_Date = db.Column("[Document Date]", db.DateTime,
-                              server_default=datetime.datetime.now().isoformat(timespec="seconds"), nullable=False)
-    Due_Date = db.Column("[Due Date]", db.DateTime,
-                         server_default=datetime.datetime.now().isoformat(timespec="seconds"), nullable=False)
+    Posting_Date = db.Column("Posting Date", db.DateTime,
+                             default=datetime.datetime.now().isoformat(timespec="seconds"), nullable=False)
+    Document_Date = db.Column("Document Date", db.DateTime,
+                              default=datetime.datetime.now().isoformat(timespec="seconds"), nullable=False)
+    Due_Date = db.Column("Due Date", db.DateTime,
+                         default=datetime.datetime.now().isoformat(timespec="seconds"), nullable=False)
     PayToBillToNo = db.Column(db.String(20), default='', nullable=False)
     SellToBuyFromNo = db.Column(db.String(20), default='', nullable=False)
     CostCenterCode = db.Column(db.String(20), default='', nullable=False)
     VehicleSeries = db.Column(db.String(20), default='', nullable=False)
     ExtDocumentNo = db.Column(db.String(30), default='', nullable=False)
     # Link to Table: DMSInterfaceInfo
-    Entry_No_ = db.Column("[Entry No_]", db.Integer, default=0, nullable=False)
+    Entry_No_ = db.Column("Entry No_", db.Integer, default=0, nullable=False)
     InvoiceType = db.Column(db.String(10), default='', nullable=False)
     # 导入时间
-    DateTime_Imported = db.Column("[DateTime Imported]", db.DateTime,
+    DateTime_Imported = db.Column("DateTime Imported", db.DateTime,
                                   default=datetime.datetime.now().isoformat(timespec="seconds"), nullable=False)
     # 处理时间, 初始插入数据时插入('1753-01-01 00:00:00.000')
-    DateTime_handled = db.Column("[DateTime handled]", db.DateTime, nullable=False,
+    DateTime_handled = db.Column("DateTime handled", db.DateTime, nullable=False,
                                  default='1753-01-01 00:00:00.000', comment="处理时间")
     # 错误消息, 初始插入数据时插入空字符('')
-    Error_Message = db.Column("[Error Message]", db.String(250), nullable=False, default='', comment="错误消息")
+    Error_Message = db.Column("Error Message", db.String(250), nullable=False, default='', comment="错误消息")
     # 处理人, 初始插入数据时插入空字符('')
-    Handled_by = db.Column("[Handled by]", db.String(20), nullable=False, default='', comment="处理人")
+    Handled_by = db.Column("Handled by", db.String(20), nullable=False, default='', comment="处理人")
     # 发票行里的记录数
-    Line_Total_Count = db.Column("[Line Total Count]", db.Integer, default=0, nullable=False, comment="发票行里的记录数")
+    Line_Total_Count = db.Column("Line Total Count", db.Integer, default=0, nullable=False, comment="发票行里的记录数")
     PriceIncludeVAT = db.Column(db.Integer, default=0, nullable=False)
     Description = db.Column(db.String(100), default='', nullable=False)
     Location = db.Column(db.String(20), default='', nullable=False)
@@ -400,8 +400,8 @@ def invoiceLineBuffer(nav_company_code):
     __tablename__ = "{0}${1}".format(nav_company_code, "InvoiceLineBuffer")
     __bind_key__ = "{0}-nav".format(nav_company_code)
     __table_args__ = {"extend_existing": True}
-    Record_ID = db.Column("[Record ID]", db.Integer, nullable=False, primary_key=True, autoincrement=False)
-    Line_No_ = db.Column("[Line No_]", db.Integer, default=0, nullable=False)
+    Record_ID = db.Column("Record ID", db.Integer, nullable=False, primary_key=True, autoincrement=False)
+    Line_No_ = db.Column("Line No_", db.Integer, default=0, nullable=False)
     DMSItemType = db.Column(db.String(20), default="", nullable=False)
     GLAccount = db.Column(db.String(50), default="", nullable=False)
     Description = db.Column(db.String(100), default="", nullable=False)
@@ -409,28 +409,28 @@ def invoiceLineBuffer(nav_company_code):
     VehicleSeries = db.Column(db.String(20), default="", nullable=False)
     VIN = db.Column(db.String(20), default="", nullable=False)
     Quantity = db.Column(db.DECIMAL(38, 20), default=0, nullable=False)
-    Line_Amount = db.Column("[Line Amount]", db.DECIMAL(38, 20), default=0, nullable=False)
+    Line_Amount = db.Column("Line Amount", db.DECIMAL(38, 20), default=0, nullable=False)
     LineCost = db.Column(db.DECIMAL(38, 20), default=0, nullable=False)
     TransactionType = db.Column(db.String(20), default="", nullable=False)
     # Link to Table: DMSInterfaceInfo
-    Entry_No_ = db.Column("[Entry No_]", db.Integer, default=0, nullable=False)
+    Entry_No_ = db.Column("Entry No_", db.Integer, default=0, nullable=False)
     # 错误消息, 初始插入数据时插入空字符('')
-    Error_Message = db.Column("[Error Message]", db.String(250), default="", nullable=False, comment="错误消息")
+    Error_Message = db.Column("Error Message", db.String(250), default="", nullable=False, comment="错误消息")
     # 导入时间
-    DateTime_Imported = db.Column("[DateTime Imported]", db.DateTime,
+    DateTime_Imported = db.Column("DateTime Imported", db.DateTime,
                                   default=datetime.datetime.now().isoformat(timespec="seconds"), nullable=False,
                                   comment="导入时间")
     # 处理时间, 初始插入数据时插入('1753-01-01 00:00:00.000')
-    DateTime_Handled = db.Column("[DateTime Handled]", db.DateTime, nullable=False, default='1753-01-01 00:00:00.000',
+    DateTime_Handled = db.Column("DateTime Handled", db.DateTime, nullable=False, default='1753-01-01 00:00:00.000',
                                  comment="处理时间")
     # 处理人, 初始插入数据时插入空字符('')
-    Handled_by = db.Column("[Handled by]", db.String(20), nullable=False, default='', comment="处理人")
+    Handled_by = db.Column("Handled by", db.String(20), nullable=False, default='', comment="处理人")
     # Link to Table: InvoiceHeaderBuffer
     InvoiceNo = db.Column(db.String(20), default="", nullable=False)
-    Line_Discount_Amount = db.Column("[Line Discount Amount]", db.DECIMAL(38, 20), default=0, nullable=False)
-    WIP_No_ = db.Column("[WIP No_]", db.String(20), default="", nullable=False)
-    Line_VAT_Amount = db.Column("[Line VAT Amount]", db.DECIMAL(38, 20), default=0, nullable=False)
-    Line_VAT_Rate = db.Column("[Line VAT Rate]", db.DECIMAL(38, 20), default=0, nullable=False)
+    Line_Discount_Amount = db.Column("Line Discount Amount", db.DECIMAL(38, 20), default=0, nullable=False)
+    WIP_No_ = db.Column("WIP No_", db.String(20), default="", nullable=False)
+    Line_VAT_Amount = db.Column("Line VAT Amount", db.DECIMAL(38, 20), default=0, nullable=False)
+    Line_VAT_Rate = db.Column("Line VAT Rate", db.DECIMAL(38, 20), default=0, nullable=False)
     FromCompanyName = db.Column(db.String(50), default="", nullable=False)
     ToCompanyName = db.Column(db.String(50), default="", nullable=False)
     Location = db.Column(db.String(20), default="", nullable=False)
@@ -517,36 +517,36 @@ def otherBuffer(nav_company_code):
     __bind_key__ = "{0}-nav".format(nav_company_code)
     __table_args__ = {"extend_existing": True}
 
-    Record_ID = db.Column("[Record ID]", db.Integer, nullable=False, primary_key=True, autoincrement=False)
+    Record_ID = db.Column("Record ID", db.Integer, nullable=False, primary_key=True, autoincrement=False)
     DocumentNo_ = db.Column(db.String(20), default="", nullable=False)
     TransactionType = db.Column(db.String(20), default="", nullable=False)
-    Line_No_ = db.Column("[Line No_]", db.Integer, default=0, nullable=False)
-    Posting_Date = db.Column("[Posting Date]", db.DateTime,
-                             server_default=datetime.datetime.now().isoformat(timespec="seconds"), nullable=False)
-    Document_Date = db.Column("[Document Date]", db.DateTime,
+    Line_No_ = db.Column("Line No_", db.Integer, default=0, nullable=False)
+    Posting_Date = db.Column("Posting Date", db.DateTime,
+                             default=datetime.datetime.now().isoformat(timespec="seconds"), nullable=False)
+    Document_Date = db.Column("Document Date", db.DateTime,
                               default=datetime.datetime.now().isoformat(timespec="seconds"), nullable=False)
     ExtDocumentNo_ = db.Column(db.String(20), default="", nullable=False)
-    Account_No_ = db.Column("[Account No_]", db.String(50), default="", nullable=False)
+    Account_No_ = db.Column("Account No_", db.String(50), default="", nullable=False)
     Description = db.Column(db.String(100), default="", nullable=False)
-    Debit_Value = db.Column("[Debit Value]", db.DECIMAL(38, 20), default=0, nullable=False)
-    Credit_Value = db.Column("[Credit Value]", db.DECIMAL(38, 20), default=0, nullable=False)
+    Debit_Value = db.Column("Debit Value", db.DECIMAL(38, 20), default=0, nullable=False)
+    Credit_Value = db.Column("Credit Value", db.DECIMAL(38, 20), default=0, nullable=False)
     CostCenterCode = db.Column(db.String(20), default="", nullable=False)
     VehicleSeries = db.Column(db.String(20), default="", nullable=False)
     # Link to Table: DMSInterfaceInfo
-    Entry_No_ = db.Column("[Entry No_]", db.Integer, default=0, nullable=False)
+    Entry_No_ = db.Column("Entry No_", db.Integer, default=0, nullable=False)
     # 导入时间
-    DateTime_Imported = db.Column("[DateTime Imported]", db.DateTime,
+    DateTime_Imported = db.Column("DateTime Imported", db.DateTime,
                                   default=datetime.datetime.now().isoformat(timespec="seconds"), nullable=False)
     # 处理时间, 初始插入数据时插入('1753-01-01 00:00:00.000')
-    DateTime_handled = db.Column("[DateTime handled]", db.DateTime, nullable=False,
+    DateTime_handled = db.Column("DateTime handled", db.DateTime, nullable=False,
                                  default="1753-01-01 00:00:00.000", comment="处理时间")
     # 错误消息, 初始插入数据时插入空字符('')
-    Error_Message = db.Column("[Error Message]", db.String(250), nullable=False, default="", comment="错误消息")
+    Error_Message = db.Column("Error Message", db.String(250), nullable=False, default="", comment="错误消息")
     # 处理人, 初始插入数据时插入空字符('')
-    Handled_by = db.Column("[Handled by]", db.String(20), nullable=False, default='', comment="处理人")
+    Handled_by = db.Column("Handled by", db.String(20), nullable=False, default='', comment="处理人")
     AccountType = db.Column(db.String(20), default="", nullable=False)
-    WIP_No_ = db.Column("[WIP No_]", db.String(20), default="", nullable=False)
-    FA_Posting_Type = db.Column("[FA Posting Type]", db.String(20), default="", nullable=False)
+    WIP_No_ = db.Column("WIP No_", db.String(20), default="", nullable=False)
+    FA_Posting_Type = db.Column("FA Posting Type", db.String(20), default="", nullable=False)
     EntryType = db.Column(db.String(20), default="", nullable=False)
     FromCompanyName = db.Column(db.String(50), default="", nullable=False)
     ToCompanyName = db.Column(db.String(50), default="", nullable=False)
