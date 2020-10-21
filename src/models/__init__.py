@@ -33,11 +33,21 @@ def true_or_false_to_tinyint(bool_str):
 
 # 用cast函数进行中文的编码和解码
 def cast_chinese_encode(some_str):
-    return collate(some_str, "Chinese_PRC_CI_AS").cast(VARCHAR(250)).cast(VARBINARY())
+    exp = collate(some_str.encode("utf-8").decode("gbk"), "Chinese_PRC_CI_AS")
+    # exp = collate(some_str.encode("mbcs").decode("mbcs"), "Chinese_PRC_CI_AS")
+    exp = cast(exp, VARCHAR(250))
+    exp = cast(exp, VARBINARY())
+    return exp
+    # return collate(some_str, "Chinese_PRC_CI_AS").cast(VARCHAR(250)).cast(VARBINARY())
 
 
 def cast_chinese_decode(some_str):
     return cast(some_str, VARBINARY()).cast(VARCHAR(250)).collate("Chinese_PRC_CI_AS")
+
+
+# 拼接数据库连接字符串
+def splice_db_connect_string(db_engine, db_user, db_pwd, db_host, db_port, db_name, db_suffix):
+    return "{0}://{1}:{2}@{3}:{4}/{5}?{6}".format(db_engine, db_user, db_pwd, db_host, db_port, db_name, db_suffix)
 
 
 if __name__ == '__main__':

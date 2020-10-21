@@ -6,13 +6,17 @@
 # 3. 读取DMS_API_P_Out读取要保存的General的字段
 # 4. 根据配置字段将数据里的数据写入InterfaceInfo并返回entry no
 import datetime
+import json
 import os
+import time
 from collections import OrderedDict
 
 import xmltodict
+from sqlalchemy.sql.elements import and_
 
-from src import db
-from src.error import DataFieldEmptyError
+from src import db, ApiTaskSetup
+from src.dms.logger import Logger
+from src.error import DataFieldEmptyError, DataLoadError, DataLoadTimeOutError
 from src.models import dms, nav, to_local_time
 from src.models.log import APILog
 
@@ -20,13 +24,39 @@ from src.models.log import APILog
 class DMSBase:
     # 强制启用备用地址
     force_secondary = False
+    # dms方向
+    DIRECT_DMS = 1
+    # NAV方向
+    DIRECT_NAV = 2
+    # 状态：执行中
+    STATUS_PENDING = 1
+    # 状态：完成
+    STATUS_FINISH = 2
+    # 状态：超时
+    STATUS_TIMEOUT = 8
+    # 状态：错误
+    STATUS_ERROR = 9
+    # 格式：JSON
+    FORMAT_JSON = 1
+    # 格式：XML
+    FORMAT_XML = 2
+    # 接口类型：WebAPI
+    TYPE_API = 1
+    # 接口类型：文件
+    TYPE_FILE = 2
+    # 公司名（作为nav表的前缀）
+    company_name = ""
+    # General表模型
+    GENERAL_CLASS = None
 
-    def __init__(self, force_secondary=False):
+    def __init__(self, company_name, force_secondary=False):
+        self.company_name = company_name
         self.force_secondary = force_secondary
+        self.GENERAL_CLASS = nav.dmsInterfaceInfo(company_name)
 
     # 拼接xml文件路径
     def _splice_xml_file_path(self, apiSetUp) -> str:
-        if apiSetUp.API_Type == 1:
+        if apiSetUp.API_Type == self.TYPE_API:
             return ""
         if not self.force_secondary:
             if apiSetUp.API_Address1 == "" or apiSetUp.Archived_Path == "":
@@ -39,35 +69,59 @@ class DMSBase:
         return xml_src
 
     # 读取接口
-    def _load_data_from_dms_interface(self, apiSetup) -> dict:
-        return []
+    # @param string format 数据解析格式（JSON | XML）
+    # @param int time_out 超时时间，单位为秒。为0表示不判断超时
+    def _load_data_from_dms_interface(self, path, format="json", time_out=0):
+        return InterfaceResult(status=self.STATUS_FINISH, content="")
 
-    # 读取xml
-    def _load_data_from_xml(self, xml_src_path):
-        if not os.path.exists(xml_src_path):
-            raise FileNotFoundError("找不到xml文件：%s" % xml_src_path)
+    # 读取xml,返回InterfaceResult对象
+    # @param string format 数据解析格式（JSON | XML）
+    # @param int time_out 超时时间，单位为秒。为0表示不判断超时
+    def _load_data_from_file(self, path, format="xml", time_out=0):
+        if not os.path.exists(path):
+            error_msg = "找不到xml文件：%s" % path
+            return InterfaceResult(status=self.STATUS_ERROR, error_msg=error_msg)
 
-        with open(xml_src_path, "rb") as xml_handler:
+        with open(path, "rb") as xml_handler:
             data = xml_handler.read()
-        return data
+        # 模拟超时
+        # time.sleep(90)
+        if time.perf_counter() >= time_out:
+            return InterfaceResult(status=self.STATUS_TIMEOUT, error_msg="读取超时")
+
+        res = InterfaceResult(status=self.STATUS_FINISH, content=data)
+        if format == self.FORMAT_XML:
+            res.data = xmltodict.parse(data)
+        else:
+            res.data = json.loads(data, encoding="utf-8")
+        return res
 
     # 读取数据
     def load_data(self, apiSetup, userID=None) -> (str, dict):
-        execute_dt = datetime.datetime.now().isoformat(timespec="milliseconds")
-        if apiSetup.Data_Format == 1:
+        # 先写一条日志，记录执行时间
+        logger = self.add_new_api_log_when_start(apiSetup, direction=self.DIRECT_DMS, userID=userID)
+
+        if apiSetup.API_Type == self.TYPE_API:
             path = ""
-            data = self._load_data_from_dms_interface(apiSetup)
-            # 写入api日志
-            self.save_to_api_log(apiSetup, data=data)
+            res = self._load_data_from_dms_interface(path, format=apiSetup.Data_Format, time_out=apiSetup.Time_out*60)
         else:
             path = self._splice_xml_file_path(apiSetup)
-            xml_data = self._load_data_from_xml(path)
-            # 写入api日志
-            self.save_to_api_log(apiSetup, data=xml_data, execute_dt=execute_dt, userID=userID)
-            # 将xml转为字典
-            data = xmltodict.parse(xml_data)
+            res = self._load_data_from_file(path, format=apiSetup.Data_Format, time_out=apiSetup.Time_out*60)
+        print(res)
 
-        return path, data
+        # 根据结果进行后续处理
+        if res.status == self.STATUS_ERROR:
+            # 记录错误日志并抛出异常
+            logger.update_api_log_when_finish(status=self.STATUS_ERROR, error_msg=res.error_msg)
+            raise DataLoadError(res.error_msg)
+        elif res.status == self.STATUS_TIMEOUT:
+            # 记录错误日志并抛出异常
+            logger.update_api_log_when_finish(status=self.STATUS_ERROR, error_msg=res.error_msg)
+            raise DataLoadTimeOutError(res.error_msg)
+        else:
+            # 处理成功，更新日志
+            logger.update_api_log_when_finish(data=res.content, status=self.STATUS_FINISH)
+            return path, res.data
 
     # 获取指定节点的数量（xml可以节点同名。在json这里，则判断节点是否是数组。是，则返回长度；非，则返回1。
     def get_count_from_data(self, data, node_name) -> int:
@@ -115,7 +169,8 @@ class DMSBase:
     # 写入interfaceinfo获得entry_no
     def save_data_to_interfaceinfo(self, general_data, Type, Count, XMLFile=""):
         # 用数据初始化对象
-        interfaceInfo = nav.InterfaceInfo(
+        InterfaceClass = self.GENERAL_CLASS
+        interfaceInfo = InterfaceClass(
             DMSCode=general_data["DMSCode"],
             DMSTitle=general_data["DMSTitle"],
             CompanyCode=general_data["CompanyCode"],
@@ -129,6 +184,7 @@ class DMSBase:
             FA_Total_Count=0,
             Invoice_Total_Count=0
         )
+        print(self.company_name, interfaceInfo.__bind_key__)
         # 再补充一些默认值
         interfaceInfo.DateTime_Imported = datetime.datetime.now().isoformat(timespec="seconds")
 
@@ -165,25 +221,47 @@ class DMSBase:
             for key, value in row.items():
                 # 自动赋值
                 other_obj.__setattr__(key, value)
-            # print(custVend_obj)
             db.session.add(other_obj)
         db.session.commit()
 
-    # 将读取的数据写入API日志
-    def save_to_api_log(self, apiSetup, data, apiPIn=None, execute_dt=None, userID=None):
-        db.session.add(APILog(
-            Company_Code=apiSetup.Company_Code,
-            API_Code=apiSetup.API_Code,
-            API_P_In=apiPIn if apiPIn is not None else "",
-            API_Content=data,
-            Content_Type=apiSetup.Data_Format,
-            Executed_DT=execute_dt if execute_dt is not None else datetime.datetime.now().isoformat(timespec="milliseconds"),
-            Finished_DT=datetime.datetime.now().isoformat(timespec="milliseconds"),
-            Executed_By=1 if userID is None else 2,
-            UserID="System" if userID is None else userID
-        ))
-        db.session.commit()
+    # 访问接口/文件时先新增一条API日志，并返回API_Log的主键用于后续更新
+    @staticmethod
+    def add_new_api_log_when_start(apiSetup, direction=1, apiPIn=None, userID=None) -> Logger:
+        return Logger.add_new_api_log(apiSetup, direction, apiPIn, userID)
+
+    # 判断是否超时
+    @staticmethod
+    def time_out_or_not(apiSetup, api_log) -> bool:
+        # 开始时间
+        start = api_log.ExecuteDT
+        # 当前时间
+        now = datetime.datetime.now()
+        # 间隔设置
+        time_out = apiSetup.Time_out
+        delta = now - start
+        if delta.total_seconds() / 60 > time_out:
+            # 超时返回False
+            return False
+        return True
+
 
     # 将entry_no作为参数写入指定的ws
     def call_web_service(self):
         pass
+
+
+class InterfaceResult:
+    status = 0
+    error_msg = ""
+    content = ""
+    data = None
+
+    def __init__(self, status, error_msg="", content="", data=None):
+        self.status = status
+        self.error_msg = error_msg
+        self.content = content
+        self.data = data
+
+    def __repr__(self):
+        return "<%s> {status=%d, error_msg=%s, length of content=%d}" \
+               % (self.__class__, self.status, self.error_msg, len(self.content))

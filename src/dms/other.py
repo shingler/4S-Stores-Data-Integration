@@ -7,10 +7,14 @@ from src.models import dms, nav
 
 
 class Other(DMSBase):
-    TABLE_CLASS = nav.OtherBuffer
+    TABLE_CLASS = None
     BIZ_NODE_LV1 = "Daydook"
     BIZ_NODE_LV2 = "Line"
     _COMMON_FILED = "DaydookNo"
+
+    def __init__(self, company_name, force_secondary=False):
+        super(__class__, self).__init__(company_name, force_secondary)
+        self.TABLE_CLASS = nav.otherBuffer(company_name)
 
     # 读取出参配置配置
     def load_api_p_out_nodes(self, company_code, api_code, node_type="general", depth=3):

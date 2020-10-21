@@ -1,17 +1,24 @@
+import datetime
 import random
 
 import pytest
 
 import bin
 from bin import cust_vend, fa, invoice, other
+from src import UserList
 from src.dms.custVend import CustVend
 from src.dms.notification import Notification
-from src.error import DataFieldEmptyError
+from src.dms.task import Task
+from src.error import DataFieldEmptyError, DataLoadError, DataLoadTimeOutError
 from src.models import nav
-from src.models.dms import ApiTaskSetup
+from src.models.dms import ApiTaskSetup, NotificationUser
 from src.models.log import NotificationLog, APILog
+from src.dms.base import DMSBase
 
 
+runner = None
+current_task = None
+load_error = None
 global_vars = {
     "retry": False, "notify": False, "entry_no": 0
 }
@@ -19,118 +26,98 @@ global_vars = {
 
 # 从数据库随机读取一个任务
 def test_1_load_task(init_app):
-    app, db = init_app
-    task_list = db.session.query(ApiTaskSetup).all()
-    one_task = random.choice(task_list)
-    # one_task = task_list[0]
+    task_list = Task.load_tasks()
+    # one_task = random.choice(task_list)
+    one_task = task_list[0]
     assert one_task.Company_Code != ""
     assert one_task.API_Code != ""
     assert type(one_task.Fail_Handle) == int
     print(one_task)
-    global_vars["current_task"] = one_task
+    globals()["current_task"] = Task(one_task)
 
 
-# 成功执行这个任务
-@pytest.mark.skip("测试失败时先忽略")
-def test_2_run_task_success(init_app):
-    one_task = global_vars["current_task"]
-    company_code = one_task.Company_Code
-    api_code = one_task.API_Code
-    entry_no = 0
-
-    if one_task.API_Code == "CustVendInfo":
-        entry_no = cust_vend.main(company_code=company_code, api_code=api_code, retry=True)
-    elif one_task.API_Code == "FA":
-        entry_no = fa.main(company_code=one_task.Company_Code, api_code=one_task.API_Code, retry=True)
-    elif one_task.API_Code == "Invoice":
-        entry_no = invoice.main(company_code=one_task.Company_Code, api_code=one_task.API_Code, retry=True)
-    elif one_task.API_Code == "Other":
-        entry_no = other.main(company_code=one_task.Company_Code, api_code=one_task.API_Code, retry=True)
-    assert entry_no != 0
-    print(entry_no)
-    global_vars["entry_no"] = entry_no
-
-
-# 让这个任务执行失败（根据失败处理，进行重试及发邮件功能的测试）
+# 让这个任务执行失败（根据失败处理，进行重试测试）
 # @pytest.mark.skip("测试成功时忽略")
-def test_3_run_task_fail(init_app):
-    one_task = global_vars["current_task"]
+def test_2_run_task(init_app):
+    one_task = globals()["current_task"]
     company_code = one_task.Company_Code
     api_code = one_task.API_Code
     entry_no = 0
-    retry = False
-    notify = False
+    runner = None
 
     try:
-        if one_task.API_Code == "CustVendInfo":
-            entry_no = cust_vend.main(company_code=company_code, api_code=api_code)
-        elif one_task.API_Code == "FA":
-            entry_no = fa.main(company_code=one_task.Company_Code, api_code=one_task.API_Code)
-        elif one_task.API_Code == "Invoice":
-            entry_no = invoice.main(company_code=one_task.Company_Code, api_code=one_task.API_Code)
-        elif one_task.API_Code == "Other":
-            entry_no = other.main(company_code=one_task.Company_Code, api_code=one_task.API_Code)
-        assert entry_no != 0
-        print(entry_no)
+        if one_task.API_Code.startswith("CustVendInfo"):
+            runner = cust_vend
+        elif one_task.API_Code.startswith("FA"):
+            runner = fa
+        elif one_task.API_Code.startswith("Invoice"):
+            runner = invoice
+        elif one_task.API_Code.startswith("Other"):
+            runner = other
 
-    except FileNotFoundError as ex:
+        globals()["runner"] = runner
+        entry_no = runner.main(company_code=company_code, api_code=api_code)
+        assert entry_no != 0
+        print("读取成功，Entry_No=%d" % entry_no)
+        global_vars["entry_no"] = entry_no
+        # 更新成功执行时间
+        one_task.update_execute_time()
+
+    except Exception as ex:
+        print(ex)
         # 失败处理，主要读取task里的Fail_Handle字段
         if one_task.Fail_Handle == 1:
             print("Fail Handle设置为1，不继续执行")
-        elif one_task.Fail_Handle == 2:
-            print("Fail Handle设置为2，将重试")
-            retry = True
-        elif one_task.Fail_Handle == 3:
-            print("Fail Handle设置为3，将重试并发送邮件")
-            retry = True
-            notify = True
-
-    global_vars["retry"] = retry
-    global_vars["notify"] = notify
-
-    assert entry_no == 0
-    global_vars["entry_no"] = entry_no
+        else:
+            print("Fail Handle设置不为1，将重试")
+            global_vars["retry"] = True
+        assert entry_no == 0
 
 
 # 重试
-def test_4_retry_or_not(init_app):
+def test_3_retry_or_not(init_app):
     retry = global_vars["retry"]
     if retry:
         print("失败后重试")
-        one_task = global_vars["current_task"]
+        one_task = globals()["current_task"]
         company_code = one_task.Company_Code
         api_code = one_task.API_Code
         entry_no = 0
 
-        if one_task.API_Code == "CustVendInfo":
-            entry_no = cust_vend.main(company_code=company_code, api_code=api_code, retry=retry)
-        elif one_task.API_Code == "FA":
-            entry_no = fa.main(company_code=company_code, api_code=api_code, retry=retry)
-        elif one_task.API_Code == "Invoice":
-            entry_no = invoice.main(company_code=company_code, api_code=api_code, retry=retry)
-        elif one_task.API_Code == "Other":
-            entry_no = other.main(company_code=company_code, api_code=api_code, retry=retry)
-        assert entry_no != 0
-        print(entry_no)
-        global_vars["entry_no"] = entry_no
+        try:
+            runner = globals()["runner"]
+            entry_no = runner.main(company_code=company_code, api_code=api_code, retry=retry)
+            assert entry_no != 0
+            print("重试后，读取成功，Entry_No=%d" % entry_no)
+            global_vars["entry_no"] = entry_no
+            # 更新成功执行时间
+            one_task.update_execute_time()
+
+        except Exception as ex:
+            print("重试后，依然失败")
+            if one_task.Fail_Handle == 3:
+                # 重试后依然失败，如果Fail_Handle=3则发送提醒邮件
+                global_vars["notify"] = True
+                globals()["load_error"] = ex
     else:
-        print("失败后不重试")
+        print("失败后不重试或第一次读取成功")
 
 
 # 发送提醒邮件
-def test_5_send_notification(init_app):
+def test_4_send_notification(init_app):
     notify = global_vars["notify"]
     if not notify:
         print("不发送提醒邮件")
     else:
         print("发送提醒邮件")
-        one_task = global_vars["current_task"]
+        one_task = globals()["current_task"]
         # 读取邮件列表
         notify_obj = Notification(one_task.Company_Code, one_task.API_Code)
         receivers = notify_obj.get_receiver_email()
+        print(receivers)
         assert type(receivers) == list
         assert len(receivers) != 0
-        assert receivers[0].Activated == True
+        assert receivers[0].Activated or receivers[0].Receive_Notification
         # 发送邮件
         smtp_config = notify_obj.smtp_config
         assert smtp_config is not None
@@ -139,8 +126,19 @@ def test_5_send_notification(init_app):
 
         nids = []
         for r in receivers:
-            if r.Activated:
-                email_title, email_content = notify_obj.get_notification_content()
+            if (isinstance(r, NotificationUser) and r.Activated) \
+                    or (isinstance(r, UserList) and r.Receive_Notification):
+                email_title = ""
+                email_content = ""
+
+                if isinstance(load_error, DataLoadError):
+                    email_title, email_content = notify_obj.get_notification_content(
+                        type=notify_obj.TYPE_ERROR, error_msg=str(load_error)
+                    )
+                elif isinstance(load_error, DataLoadTimeOutError):
+                    email_title, email_content = notify_obj.get_notification_content(
+                        type=notify_obj.TYPE_TIMEOUT, error_msg=str(load_error)
+                    )
                 assert email_content != ""
                 result = notify_obj.send_mail(r.Email_Address, email_title, email_content)
                 assert result
@@ -153,13 +151,13 @@ def test_5_send_notification(init_app):
         app, db = init_app
         logs = db.session.query(NotificationLog).filter(NotificationLog.ID.in_(nids)).all()
         assert len(logs) > 0
-        one_log = random.choice(logs)
+        one_log = logs[0]
         assert one_log.Company_Code != ""
         assert one_log.Recipients == "shingler@gf-app.cn"
 
 
 # 验证写入的数据是否符合预期
-def test_6_valid_data(init_app):
+def test_5_valid_data(init_app):
     entry_no = global_vars["entry_no"]
     if entry_no == 0:
         # 执行失败用例，不用验证
