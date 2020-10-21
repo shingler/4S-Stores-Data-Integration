@@ -37,16 +37,22 @@ class APILog(db.Model):
     Company_Code = db.Column(db.String(20), nullable=False, comment="公司代码(Link to table: DMS_API_Setup)")
     # 接口代码(Link to table: DMS_API_Setup)
     API_Code = db.Column(db.String(100), nullable=False, comment="接口代码(Link to table: DMS_API_Setup)")
+    # API方向(1-DMS,2-NAV)
+    API_Direction = db.Column(db.Integer, nullable=False, default=1, comment="API方向(1-DMS,2-NAV)")
     # API输入参数(http包)
     API_P_In = db.Column(db.Text, nullable=True, comment="API输入参数(http包)")
     # API返回的内容(整个http包或者XML文件内容)
     API_Content = db.Column(db.Text, nullable=True, comment="API返回的内容(整个http包或者XML文件内容)")
     # 内容类型(1 - http包，2 - XML文件)
     Content_Type = db.Column(db.Integer, nullable=False, default=1, comment="内容类型(1 - http包，2 - XML文件)")
+    # 状态(1-执行中,2-完成,9-错误)
+    Status = db.Column(db.Integer, nullable=False, default=1, comment="状态(1-执行中,2-完成,9-错误)")
     # 执行时间
     Executed_DT = db.Column(db.DateTime, nullable=False, comment="执行时间")
     # 完成时间
     Finished_DT = db.Column(db.DateTime, nullable=True, comment="完成时间")
+    # 错误消息
+    Error_Message = db.Column(db.Text, nullable=False, default="", comment="错误消息")
     # 1 - 系统自动, 2 - 人工手动
     Executed_By = db.Column(db.Integer, nullable=False, default=1, comment="1 - 系统自动, 2 - 人工手动")
     # 用户ID(Link to table: User_List), 如果为系统自动执行，值为System

@@ -8,17 +8,27 @@ rootPath = os.path.split(curPath)[0]
 sys.path.append(rootPath)
 
 import requests
-from bin import app
+from bin import app, db
 from src.dms.fa import FA
 from src.dms.setup import Setup
+from src.models.dms import Company
 
 
 def main(company_code, api_code, retry=False):
-    fa_obj = FA(force_secondary=retry)
+    # 读取公司信息，创建业务对象
+    company_info = db.session.query(Company).filter(Company.Code == company_code).first()
+    fa_obj = FA(company_info.NAV_Company_Code, force_secondary=retry)
 
+    # 保存数据到nav，需要修改数据库连接设置
+    conn_str = company_info.get_nav_connection_string(app.config)
+    app.config["SQLALCHEMY_BINDS"][
+        "%s-nav" % company_info.NAV_Company_Code] = conn_str
+
+    # 读取API设置，拿到数据
     api_setup = Setup.load_api_setup(company_code, api_code)
     xml_src_path, data = fa_obj.load_data(api_setup)
 
+    # 读取输出设置，保存General
     general_node_dict = Setup.load_api_p_out_nodes(company_code, api_code, node_type="General")
     general_dict = fa_obj.splice_general_info(data, node_dict=general_node_dict)
 
@@ -32,7 +42,6 @@ def main(company_code, api_code, retry=False):
     fa_node_dict = Setup.load_api_p_out_nodes(company_code, api_code, node_type=fa_obj.BIZ_NODE_LV1)
     # 拼接fa数据
     fa_dict = fa_obj.splice_data_info(data, node_dict=fa_node_dict)
-
     fa_obj.save_data_to_nav(nav_data=fa_dict, entry_no=entry_no, TABLE_CLASS=fa_obj.TABLE_CLASS)
 
     # cv_obj.call_web_service()
@@ -42,5 +51,5 @@ def main(company_code, api_code, retry=False):
 if __name__ == '__main__':
     # 应由task提供
     company_code = "K302ZH"
-    api_code = "FA"
-    main(company_code, api_code, retry=True)
+    api_code = "FA-xml-correct"
+    main(company_code, api_code, retry=False)

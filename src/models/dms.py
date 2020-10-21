@@ -3,7 +3,7 @@
 import datetime
 
 from sqlalchemy.orm import foreign, remote
-
+from src.models import splice_db_connect_string
 from src import db
 from sqlalchemy import and_, func
 
@@ -45,6 +45,12 @@ class Company(db.Model):
     NAV_WEB_UserID = db.Column(db.String(50), nullable=True, comment="NAV WEB Service用户ID")
     # NAV WEB Service密码
     NAV_WEB_Password = db.Column(db.String(50), nullable=True, comment="NAV WEB Service密码")
+
+    # 返回NAV数据库连接字符串
+    def get_nav_connection_string(self, config):
+        return splice_db_connect_string(
+            db_engine=config["DATABASE_ENGINE"], db_port=config["DATABASE_PORT"], db_suffix=config["DATABASE_SUFFIX"],
+            db_user=self.NAV_DB_UserID, db_pwd=self.NAV_DB_Password, db_host=self.NAV_DB_Address, db_name=self.NAV_DB_Name)
 
 
 class ApiSetup(db.Model):
