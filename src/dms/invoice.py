@@ -9,10 +9,14 @@ from src.error import InvoiceEmptyError
 
 
 class Invoice(DMSBase):
-    BIZ_NODE_LV1 = ""
-    BIZ_NODE_LV2 = ""
     TABLE_CLASS = None
+    WS_METHOD = "HandleInvoiceWithEntryNo"
 
+    # 数据一级节点
+    BIZ_NODE_LV1 = ""
+    # 数据一级节点
+    BIZ_NODE_LV2 = ""
+    # 通用字段
     _COMMON_FILED = "InvoiceType"
 
     # 读取出参配置配置
@@ -65,9 +69,9 @@ class InvoiceLine(Invoice):
     BIZ_NODE_LV2 = "INVLine"
     TABLE_CLASS = None
 
-    def __init__(self, company_name, force_secondary=False):
-        super(__class__, self).__init__(company_name, force_secondary)
-        self.TABLE_CLASS = nav.invoiceLineBuffer(company_name)
+    def __init__(self, company_nav_code, force_secondary=False):
+        super(__class__, self).__init__(company_nav_code, force_secondary)
+        self.TABLE_CLASS = nav.invoiceLineBuffer(company_nav_code)
 
     # 根据节点名处理二级/三级层级数据
     def _splice_field_by_name(self, data, node_dict, invoice_no):

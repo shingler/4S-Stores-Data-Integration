@@ -1,4 +1,7 @@
+import asyncio
+
 import pytest
+import pytest_asyncio
 import requests
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
@@ -105,10 +108,17 @@ def test_5_valid_data(init_app):
 
 
 # 将entry_no作为参数写入指定的ws
-@pytest.mark.skip("先跑通app上下文")
-def test_6_invoke_ws(init_app):
-    cv_obj.call_web_service()
+# @pytest.mark.skip("先跑通app上下文")
+@pytest.mark.asyncio
+async def test_6_invoke_ws(init_app):
+    entry_no = global_vars["entry_no"]
+    company_info = cv_obj.get_company(company_code)
+    assert company_info is not None
+    api_setup = Setup.load_api_setup(company_code, api_code)
+    assert api_setup is not None
 
+    result = await cv_obj.call_web_service(entry_no, url=api_setup.CallBack_Address, user_id=company_info.NAV_WEB_UserID, password=company_info.NAV_WEB_Password)
+    print(result)
 
 # 清理测试数据
 @pytest.mark.skip("先确定数据编码")

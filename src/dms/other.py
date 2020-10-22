@@ -8,13 +8,19 @@ from src.models import dms, nav
 
 class Other(DMSBase):
     TABLE_CLASS = None
+    WS_METHOD = "HandleOtherWithEntryNo"
+
+    # 数据一级节点
     BIZ_NODE_LV1 = "Daydook"
+    # 数据二级节点
     BIZ_NODE_LV2 = "Line"
+    # 通用字段
     _COMMON_FILED = "DaydookNo"
 
-    def __init__(self, company_name, force_secondary=False):
-        super(__class__, self).__init__(company_name, force_secondary)
-        self.TABLE_CLASS = nav.otherBuffer(company_name)
+
+    def __init__(self, company_nav_code, force_secondary=False):
+        super(__class__, self).__init__(company_nav_code, force_secondary)
+        self.TABLE_CLASS = nav.otherBuffer(company_nav_code)
 
     # 读取出参配置配置
     def load_api_p_out_nodes(self, company_code, api_code, node_type="general", depth=3):

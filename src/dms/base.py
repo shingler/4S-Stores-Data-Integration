@@ -9,25 +9,39 @@ import datetime
 import json
 import os
 import time
+import urllib
 from collections import OrderedDict
+from operator import indexOf
+from urllib.parse import urlencode
 
 import xmltodict
 from sqlalchemy.sql.elements import and_
 
-from src import db, ApiTaskSetup
+from src import db, ApiTaskSetup, Company
 from src.dms.logger import Logger
 from src.error import DataFieldEmptyError, DataLoadError, DataLoadTimeOutError
 from src.models import dms, nav, to_local_time
 from src.models.log import APILog
+from asyncsuds.client import Client as aClient
+from suds.client import Client
 
 
 class DMSBase:
+    # 公司的NAV代码（作为nav表的前缀）
+    company_nav_code = ""
+    # General表模型
+    GENERAL_CLASS = None
     # 强制启用备用地址
     force_secondary = False
+    # NAV的WebService方法名
+    WS_METHOD = ""
+
+    # ------- 下面是常量 --------#
     # dms方向
     DIRECT_DMS = 1
     # NAV方向
     DIRECT_NAV = 2
+
     # 状态：执行中
     STATUS_PENDING = 1
     # 状态：完成
@@ -36,23 +50,21 @@ class DMSBase:
     STATUS_TIMEOUT = 8
     # 状态：错误
     STATUS_ERROR = 9
+
     # 格式：JSON
     FORMAT_JSON = 1
     # 格式：XML
     FORMAT_XML = 2
+
     # 接口类型：WebAPI
     TYPE_API = 1
     # 接口类型：文件
     TYPE_FILE = 2
-    # 公司名（作为nav表的前缀）
-    company_name = ""
-    # General表模型
-    GENERAL_CLASS = None
 
-    def __init__(self, company_name, force_secondary=False):
-        self.company_name = company_name
+    def __init__(self, company_nav_code, force_secondary=False):
+        self.company_nav_code = company_nav_code
         self.force_secondary = force_secondary
-        self.GENERAL_CLASS = nav.dmsInterfaceInfo(company_name)
+        self.GENERAL_CLASS = nav.dmsInterfaceInfo(company_nav_code)
 
     # 拼接xml文件路径
     def _splice_xml_file_path(self, apiSetUp) -> str:
@@ -184,7 +196,7 @@ class DMSBase:
             FA_Total_Count=0,
             Invoice_Total_Count=0
         )
-        print(self.company_name, interfaceInfo.__bind_key__)
+        print(self.company_nav_code, interfaceInfo.__bind_key__)
         # 再补充一些默认值
         interfaceInfo.DateTime_Imported = datetime.datetime.now().isoformat(timespec="seconds")
 
@@ -244,10 +256,35 @@ class DMSBase:
             return False
         return True
 
+    # 获得公司信息
+    @staticmethod
+    def get_company(code) -> Company:
+        return db.session.query(Company).filter(Company.Code == code).first()
 
     # 将entry_no作为参数写入指定的ws
-    def call_web_service(self):
-        pass
+    async def call_web_service_async(self, entry_no, url, user_id, password):
+        if indexOf(url, '%s'):
+            url = url % self.company_nav_code
+        print(url)
+        client = aClient(url, username=user_id, password=password)
+        await client.connect()
+        method = self.WS_METHOD
+        result = await client.method(entry_no, 0)
+        print(result)
+        return result
+
+    # 将entry_no作为参数写入指定的ws
+    async def call_web_service(self, entry_no, url, user_id, password):
+        if '%s' in url:
+            url = url % urllib.parse.quote(self.company_nav_code)
+        print(url, user_id, password)
+        client = Client(url, username=user_id, password=password)
+        methods = [method for method in client.wsdl.services[0].ports[0].methods]
+        print(methods)
+        ws_method = self.WS_METHOD
+        result = client.service.ws_method(entry_no, 0)
+        print(result)
+        return result
 
 
 class InterfaceResult:
