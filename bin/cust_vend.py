@@ -44,6 +44,9 @@ def main(company_code, api_code, retry=False):
     custVend_dict = cv_obj.splice_data_info(data, node_dict=custVend_node_dict)
     cv_obj.save_data_to_nav(custVend_dict, entry_no=entry_no, TABLE_CLASS=cv_obj.TABLE_CLASS)
 
+    # 读取文件，文件归档
+    cv_obj.archive_xml(xml_src_path, api_setup.Archived_Path)
+
     # cv_obj.call_web_service()
     return entry_no
 

@@ -52,6 +52,9 @@ def main(company_code, api_code, retry=False):
     il_dict = invoiceLine_obj.splice_data_info(data, node_dict=il_node_dict, invoice_no=invoice_no)
     invoiceLine_obj.save_data_to_nav(nav_data=il_dict, entry_no=entry_no, TABLE_CLASS=invoiceLine_obj.TABLE_CLASS)
 
+    # 读取文件，文件归档
+    invoiceLine_obj.archive_xml(xml_src_path, api_setup.Archived_Path)
+
     # cv_obj.call_web_service()
     return entry_no
 

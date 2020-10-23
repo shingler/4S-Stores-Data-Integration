@@ -43,6 +43,9 @@ def main(company_code, api_code, retry=False):
 
     other_obj.save_data_to_nav(nav_data=fa_dict, entry_no=entry_no, TABLE_CLASS=other_obj.TABLE_CLASS)
 
+    # 读取文件，文件归档
+    other_obj.archive_xml(xml_src_path, api_setup.Archived_Path)
+
     # cv_obj.call_web_service()
     return entry_no
 

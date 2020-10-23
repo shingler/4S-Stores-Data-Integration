@@ -1,3 +1,5 @@
+import os
+
 import pytest
 import requests
 
@@ -82,6 +84,10 @@ def test_4_save_Other(init_app):
     assert "SourceNo" in other_dict[0]
     # with pytest.raises():
     other_obj.save_data_to_nav(nav_data=other_dict, entry_no=entry_no, TABLE_CLASS=other_obj.TABLE_CLASS)
+    # 读取文件，文件归档
+    other_obj.archive_xml(global_vars["path"], global_vars["api_setup"].Archived_Path)
+    assert os.path.exists(global_vars["path"]) == False
+    assert os.path.exists(global_vars["api_setup"].Archived_Path) == True
 
 
 # 检查数据正确性

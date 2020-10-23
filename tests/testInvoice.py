@@ -1,3 +1,5 @@
+import os
+
 import pytest
 import requests
 
@@ -103,6 +105,10 @@ def test_5_save_InvoiceLine(init_app):
     assert "InvoiceNo" in il_dict[0]
     # with pytest.raises():
     invoiceLine_obj.save_data_to_nav(nav_data=il_dict, entry_no=entry_no, TABLE_CLASS=invoiceLine_obj.TABLE_CLASS)
+    # 读取文件，文件归档
+    invoiceLine_obj.archive_xml(global_vars["path"], global_vars["api_setup"].Archived_Path)
+    assert os.path.exists(global_vars["path"]) == False
+    assert os.path.exists(global_vars["api_setup"].Archived_Path) == True
 
 
 # 检查数据正确性

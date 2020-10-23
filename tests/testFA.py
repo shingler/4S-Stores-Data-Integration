@@ -1,3 +1,5 @@
+import os
+
 import pytest
 import requests
 
@@ -82,6 +84,10 @@ def test_4_save_FA(init_app):
     assert len(fa_dict) > 0
     assert "FANo" in fa_dict[0]
     fa_obj.save_data_to_nav(nav_data=fa_dict, entry_no=entry_no, TABLE_CLASS=fa_obj.TABLE_CLASS)
+    # 读取文件，文件归档
+    fa_obj.faarchive_xml(global_vars["path"], global_vars["api_setup"].Archived_Path)
+    assert os.path.exists(global_vars["path"]) == False
+    assert os.path.exists(global_vars["api_setup"].Archived_Path) == True
 
 
 # 检查数据正确性
@@ -99,8 +105,6 @@ def test_5_valid_data(init_app):
     assert interfaceInfo.FA_Total_Count == 1
     assert len(faList) > 0
     assert faList[0].FANo_ == "FA0001"
-    chinese_test_list = fa_obj.TABLE_CLASS().get_chinese_data("Description")
-    print(chinese_test_list)
 
 
 # 将entry_no作为参数写入指定的ws
