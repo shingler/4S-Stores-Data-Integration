@@ -185,7 +185,7 @@ def test_data_for_setup():
             File_Max_Size=10,
             Last_Modified_DT=datetime.datetime.now().isoformat(timespec="seconds"),
             Last_Modified_By="",
-            Archived_Path="CustVendInfo.xml"
+            Archived_Path="/Users/shingler/PycharmProjects/platform20200916/archive/K302ZH"
         ),
         ApiSetup(
             Company_Code="K302ZH",
@@ -207,7 +207,7 @@ def test_data_for_setup():
             File_Max_Size=10,
             Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'),
             Last_Modified_By="",
-            Archived_Path="FA.xml"
+            Archived_Path="/Users/shingler/PycharmProjects/platform20200916/archive/K302ZH"
         ),
         ApiSetup(
             Company_Code="K302ZH",
@@ -229,7 +229,7 @@ def test_data_for_setup():
             File_Max_Size=10,
             Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'),
             Last_Modified_By="",
-            Archived_Path="Invoice.xml"
+            Archived_Path="/Users/shingler/PycharmProjects/platform20200916/archive/K302ZH"
         ),
         ApiSetup(
             Company_Code="K302ZH",
@@ -251,7 +251,7 @@ def test_data_for_setup():
             File_Max_Size=10,
             Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'),
             Last_Modified_By="",
-            Archived_Path="Other.xml"
+            Archived_Path="/Users/shingler/PycharmProjects/platform20200916/archive/K302ZH"
         ),
     ]
     setup_will_retry = [
@@ -275,7 +275,7 @@ def test_data_for_setup():
             File_Max_Size=10,
             Last_Modified_DT=datetime.datetime.now().isoformat(timespec="seconds"),
             Last_Modified_By="",
-            Archived_Path="CustVendInfo.xml"
+            Archived_Path="/Users/shingler/PycharmProjects/platform20200916/archive/K302ZH"
         ),
         ApiSetup(
             Company_Code="K302ZH",
@@ -297,7 +297,7 @@ def test_data_for_setup():
             File_Max_Size=10,
             Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'),
             Last_Modified_By="",
-            Archived_Path="FA.xml"
+            Archived_Path="/Users/shingler/PycharmProjects/platform20200916/archive/K302ZH"
         ),
         ApiSetup(
             Company_Code="K302ZH",
@@ -319,7 +319,7 @@ def test_data_for_setup():
             File_Max_Size=10,
             Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'),
             Last_Modified_By="",
-            Archived_Path="Invoice.xml"
+            Archived_Path="/Users/shingler/PycharmProjects/platform20200916/archive/K302ZH"
         ),
         ApiSetup(
             Company_Code="K302ZH",
@@ -341,7 +341,7 @@ def test_data_for_setup():
             File_Max_Size=10,
             Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'),
             Last_Modified_By="",
-            Archived_Path="Other.xml"
+            Archived_Path="/Users/shingler/PycharmProjects/platform20200916/archive/K302ZH"
         ),
     ]
     setup_will_error = [
@@ -365,7 +365,7 @@ def test_data_for_setup():
             File_Max_Size=10,
             Last_Modified_DT=datetime.datetime.now().isoformat(timespec="seconds"),
             Last_Modified_By="",
-            Archived_Path="xxx.xml"
+            Archived_Path="/Users/shingler/PycharmProjects/platform20200916/archive/K302ZH"
         ),
         ApiSetup(
             Company_Code="K302ZH",
@@ -387,7 +387,7 @@ def test_data_for_setup():
             File_Max_Size=10,
             Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'),
             Last_Modified_By="",
-            Archived_Path="zzz.xml"
+            Archived_Path="/Users/shingler/PycharmProjects/platform20200916/archive/K302ZH"
         ),
     ]
     return setup_will_success, setup_will_retry, setup_will_error

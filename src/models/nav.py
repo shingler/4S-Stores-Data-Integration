@@ -64,6 +64,14 @@ def dmsInterfaceInfo(nav_company_code):
         return "EntryNo = %s: <DMSCode: %s, CompanyCode: %s>" % \
                (self.Entry_No_, self.DMSCode, self.CompanyCode)
 
+    def __setattr__(self, key, value):
+        if key == "DMSTitle" and globals()["ENV"] != "Development":
+            self.__dict__["DMSTitle"] = cast_chinese_encode(value)
+        elif key == "CompanyTitle" and globals()["ENV"] != "Development":
+            self.__dict__["CompanyTitle"] = cast_chinese_encode(value)
+        else:
+            self.__dict__[key] = value
+
     # 获取最大id然后+1
     def getLatestEntryNo(self):
         max_entry_id = db.session.query(func.max(self.__class__.Entry_No_)).scalar()
@@ -94,6 +102,7 @@ def dmsInterfaceInfo(nav_company_code):
         "Other_Transaction_Total_Count": Other_Transaction_Total_Count,
         "FA_Total_Count": FA_Total_Count,
         "__repr__": __repr__,
+        "__setattr__": __setattr__,
         "getLatestEntryNo": getLatestEntryNo
     }
     # 动态创建类并返回
@@ -134,6 +143,10 @@ def custVendBuffer(nav_company_code):
             self.__dict__["Type"] = 2
         elif key == "PricesIncludingVAT":
             self.__dict__["PricesIncludingVAT"] = true_or_false_to_tinyint(value)
+        elif key == "Name" and globals()["ENV"] != "Development":
+            self.__dict__["Name"] = cast_chinese_encode(value)
+        elif key == "City" and globals()["ENV"] != "Development":
+            self.__dict__["City"] = cast_chinese_encode(value)
         else:
             self.__dict__[key] = value
 
@@ -461,6 +474,8 @@ def invoiceLineBuffer(nav_company_code):
             self.__dict__["Line_VAT_Amount"] = value
         elif key == "LineVATRate":
             self.__dict__["Line_VAT_Rate"] = value
+        elif key == "Description" and globals()["ENV"] != "Development":
+            self.__dict__["Description"] = cast_chinese_encode(value)
         else:
             self.__dict__[key] = value
 
@@ -560,6 +575,7 @@ def otherBuffer(nav_company_code):
     DMSItemType = db.Column(db.String(20), default="", nullable=False)
     DMSItemTransType = db.Column(db.String(20), default="", nullable=False)
     Location = db.Column(db.String(20), default="", nullable=False)
+    MovementType = db.Column(db.String(20), default="", nullable=False)
 
     # entry = db.relationship("InterfaceInfo",
     #                         primaryjoin=foreign(Entry_No_) == remote(InterfaceInfo.Entry_No_))
@@ -588,6 +604,8 @@ def otherBuffer(nav_company_code):
             self.__dict__["FA_Posting_Type"] = value
         elif key == "VINNo":
             self.__dict__["VIN"] = value
+        elif key == "Description" and globals()["ENV"] != "Development":
+            self.__dict__["Description"] = cast_chinese_encode(value)
         else:
             self.__dict__[key] = value
 
@@ -633,6 +651,7 @@ def otherBuffer(nav_company_code):
         "DMSItemType": DMSItemType,
         "DMSItemTransType": DMSItemTransType,
         "Location": Location,
+        "MovementType": MovementType,
         # "entry": entry,
         "__setattr__": __setattr__,
         "getLatestRecordId": getLatestRecordId

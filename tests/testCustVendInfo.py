@@ -1,4 +1,5 @@
 import asyncio
+import os
 
 import pytest
 import pytest_asyncio
@@ -85,6 +86,10 @@ def test_4_save_custVendInfo(init_app):
     assert len(custVend_dict) > 0
     assert "No" in custVend_dict[0]
     cv_obj.save_data_to_nav(custVend_dict, entry_no=entry_no, TABLE_CLASS=cv_obj.TABLE_CLASS)
+    # 读取文件，文件归档
+    cv_obj.archive_xml(global_vars["path"], global_vars["api_setup"].Archived_Path)
+    assert os.path.exists(global_vars["path"]) == False
+    assert os.path.exists(global_vars["api_setup"].Archived_Path) == True
 
 
 # 检查数据正确性
@@ -108,8 +113,8 @@ def test_5_valid_data(init_app):
 
 
 # 将entry_no作为参数写入指定的ws
-# @pytest.mark.skip("先跑通app上下文")
-@pytest.mark.asyncio
+@pytest.mark.skip("先跑通app上下文")
+# @pytest.mark.asyncio
 async def test_6_invoke_ws(init_app):
     entry_no = global_vars["entry_no"]
     company_info = cv_obj.get_company(company_code)

@@ -17,7 +17,7 @@ from urllib.parse import urlencode
 import xmltodict
 from sqlalchemy.sql.elements import and_
 
-from src import db, ApiTaskSetup, Company
+from src import db, ApiTaskSetup, Company, ApiSetup
 from src.dms.logger import Logger
 from src.error import DataFieldEmptyError, DataLoadError, DataLoadTimeOutError
 from src.models import dms, nav, to_local_time
@@ -67,17 +67,25 @@ class DMSBase:
         self.GENERAL_CLASS = nav.dmsInterfaceInfo(company_nav_code)
 
     # 拼接xml文件路径
-    def _splice_xml_file_path(self, apiSetUp) -> str:
+    # @param src.models.dms.ApiSetup apiSetup
+    # @param string date 格式="YYYYMMDD"，默认为None。None则取当天日期
+    def _splice_xml_file_path(self, apiSetUp, cur_date=None) -> str:
         if apiSetUp.API_Type == self.TYPE_API:
             return ""
+        if cur_date == None:
+            cur_date = datetime.datetime.now().strftime("%Y%m%d")
+        if apiSetUp.File_Name_Format == "":
+            raise DataFieldEmptyError("File_Name_Format为空")
+        file_name = apiSetUp.File_Name_Format.replace("YYYYMMDD", cur_date)
+
         if not self.force_secondary:
-            if apiSetUp.API_Address1 == "" or apiSetUp.Archived_Path == "":
-                raise DataFieldEmptyError("API_Address或Archived_Path为空")
-            xml_src = "%s/%s" % (apiSetUp.API_Address1, apiSetUp.Archived_Path)
+            if apiSetUp.API_Address1 == "":
+                raise DataFieldEmptyError("API_Address1为空")
+            xml_src = "%s/%s" % (apiSetUp.API_Address1, file_name)
         else:
-            if apiSetUp.API_Address2 == "" or apiSetUp.Archived_Path == "":
-                raise DataFieldEmptyError("API_Address或Archived_Path为空")
-            xml_src = "%s/%s" % (apiSetUp.API_Address2, apiSetUp.Archived_Path)
+            if apiSetUp.API_Address2 == "":
+                raise DataFieldEmptyError("API_Address2为空")
+            xml_src = "%s/%s" % (apiSetUp.API_Address2, file_name)
         return xml_src
 
     # 读取接口
@@ -234,7 +242,21 @@ class DMSBase:
                 # 自动赋值
                 other_obj.__setattr__(key, value)
             db.session.add(other_obj)
+        # 更新一下中文
+
         db.session.commit()
+
+    # xml文件归档
+    # @param string xml_path xml源文件路径（完整路径）
+    # @param string archive_path 要归档的目录（不含文件名及公司名）
+    @staticmethod
+    def archive_xml(xml_path, archive_path):
+        # 如果目录不存在，就创建
+        if not os.path.exists(archive_path):
+            os.makedirs(archive_path, 0o777)
+
+        archive_path = "%s/%s" % (archive_path, os.path.basename(xml_path))
+        os.renames(xml_path, archive_path)
 
     # 访问接口/文件时先新增一条API日志，并返回API_Log的主键用于后续更新
     @staticmethod
