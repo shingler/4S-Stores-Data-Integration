@@ -1,19 +1,31 @@
 import pytest
 import requests
 
+from src import Company
 from src.dms.other import Other
 from src.models import nav
 from src.dms.setup import Setup
 
 company_code = "K302ZH"
-api_code = "Other"
+api_code = "Other-xml-correct"
 global_vars = {}
-other_obj = Other(force_secondary=True)
+other_obj = None
 
 
 # 根据公司列表和接口设置确定数据源
 def test_1_dms_source(init_app):
     print("test_1_dms_source")
+    app, db = init_app
+    company_info = db.session.query(Company).filter(Company.Code == company_code).first()
+    assert company_info is not None
+    globals()["other_obj"] = Other(company_info.NAV_Company_Code)
+
+    # 修改bind
+    conn_str = company_info.get_nav_connection_string(app.config)
+    assert conn_str.startswith(app.config["DATABASE_ENGINE"])
+    app.config["SQLALCHEMY_BINDS"][
+        "%s-nav" % company_info.NAV_Company_Code] = conn_str
+
     api_setup = Setup.load_api_setup(company_code, api_code)
     assert api_setup is not None
     assert api_setup.API_Address1 != ""
@@ -69,7 +81,7 @@ def test_4_save_Other(init_app):
     assert "DaydookNo" in other_dict[0]
     assert "SourceNo" in other_dict[0]
     # with pytest.raises():
-    other_obj.save_data_to_nav(nav_data=other_dict, entry_no=entry_no, TABLE_CLASS=nav.OtherBuffer)
+    other_obj.save_data_to_nav(nav_data=other_dict, entry_no=entry_no, TABLE_CLASS=other_obj.TABLE_CLASS)
 
 
 # 检查数据正确性
@@ -77,8 +89,10 @@ def test_4_save_Other(init_app):
 def test_5_valid_data(init_app):
     app, db = init_app
     entry_no = global_vars["entry_no"]
-    interfaceInfo = db.session.query(nav.InterfaceInfo).filter(nav.InterfaceInfo.Entry_No_ == entry_no).first()
-    lineList = db.session.query(nav.OtherBuffer).filter(nav.OtherBuffer.Entry_No_ == entry_no).all()
+
+    interfaceInfoClass = other_obj.GENERAL_CLASS
+    interfaceInfo = db.session.query(interfaceInfoClass).filter(interfaceInfoClass.Entry_No_ == entry_no).first()
+    lineList = db.session.query(other_obj.TABLE_CLASS).filter(other_obj.TABLE_CLASS.Entry_No_ == entry_no).all()
 
     # 检查数据正确性
     assert interfaceInfo.DMSCode == "7000320"

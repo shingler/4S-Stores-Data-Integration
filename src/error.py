@@ -8,3 +8,11 @@ class DataFieldEmptyError(Exception):
 
 class InvoiceEmptyError(Exception):
     pass
+
+
+class DataLoadError(Exception):
+    pass
+
+
+class DataLoadTimeOutError(Exception):
+    pass

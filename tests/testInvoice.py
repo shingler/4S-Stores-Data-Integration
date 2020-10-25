@@ -1,20 +1,33 @@
 import pytest
 import requests
 
+from src import Company
 from src.dms.invoice import InvoiceHeader, InvoiceLine
 from src.models import nav
 from src.dms.setup import Setup
 
 company_code = "K302ZH"
-api_code = "Invoice"
+api_code = "Invoice-xml-correct"
 global_vars = {}
-invoiceHeader_obj = InvoiceHeader(force_secondary=True)
-invoiceLine_obj = InvoiceLine()
+invoiceHeader_obj = None
+invoiceLine_obj = None
 
 
 # 根据公司列表和接口设置确定数据源
 def test_1_dms_source(init_app):
     print("test_1_dms_source")
+    app, db = init_app
+    company_info = db.session.query(Company).filter(Company.Code == company_code).first()
+    assert company_info is not None
+    globals()["invoiceHeader_obj"] = InvoiceHeader(company_info.NAV_Company_Code)
+    globals()["invoiceLine_obj"] = InvoiceLine(company_info.NAV_Company_Code)
+
+    # 修改bind
+    conn_str = company_info.get_nav_connection_string(app.config)
+    assert conn_str.startswith(app.config["DATABASE_ENGINE"])
+    app.config["SQLALCHEMY_BINDS"][
+        "%s-nav" % company_info.NAV_Company_Code] = conn_str
+
     api_setup = Setup.load_api_setup(company_code, api_code)
     assert api_setup is not None
     assert api_setup.API_Address1 != ""
@@ -69,7 +82,7 @@ def test_4_save_InvoiceHeader(init_app):
     assert len(ih_dict) > 0
     assert "InvoiceType" in ih_dict[0]
     assert "InvoiceNo" in ih_dict[0]
-    # with pytest.raises():
+    print(invoiceHeader_obj.TABLE_CLASS)
     invoiceHeader_obj.save_data_to_nav(nav_data=ih_dict, entry_no=entry_no, TABLE_CLASS=invoiceHeader_obj.TABLE_CLASS)
     global_vars["invoice_no"] = ih_dict[0]["InvoiceNo"]
 
@@ -97,9 +110,11 @@ def test_5_save_InvoiceLine(init_app):
 def test_6_valid_data(init_app):
     app, db = init_app
     entry_no = global_vars["entry_no"]
-    interfaceInfo = db.session.query(nav.InterfaceInfo).filter(nav.InterfaceInfo.Entry_No_ == entry_no).first()
-    headerInfo = db.session.query(nav.InvoiceHeaderBuffer).filter(nav.InvoiceHeaderBuffer.Entry_No_ == entry_no).first()
-    lineList = db.session.query(nav.InvoiceLineBuffer).filter(nav.InvoiceLineBuffer.Entry_No_ == entry_no).all()
+
+    interfaceInfoClass = invoiceHeader_obj.GENERAL_CLASS
+    interfaceInfo = db.session.query(interfaceInfoClass).filter(interfaceInfoClass.Entry_No_ == entry_no).first()
+    headerInfo = db.session.query(invoiceHeader_obj.TABLE_CLASS).filter(invoiceHeader_obj.TABLE_CLASS.Entry_No_ == entry_no).first()
+    lineList = db.session.query(invoiceLine_obj.TABLE_CLASS).filter(invoiceLine_obj.TABLE_CLASS.Entry_No_ == entry_no).all()
 
     # 检查数据正确性
     assert interfaceInfo.DMSCode == "7000320"
