@@ -106,8 +106,8 @@ class DMSBase:
             data = xml_handler.read()
         # 模拟超时
         # time.sleep(90)
-        if time.perf_counter() >= time_out:
-            return InterfaceResult(status=self.STATUS_TIMEOUT, error_msg="读取超时")
+        if time_out > 0 and time.perf_counter() >= time_out*60:
+            return InterfaceResult(status=self.STATUS_TIMEOUT, error_msg="文件：%s 读取超时" % path)
 
         res = InterfaceResult(status=self.STATUS_FINISH, content=data)
         if format == self.FORMAT_XML:
@@ -117,7 +117,7 @@ class DMSBase:
         return res
 
     # 读取数据
-    def load_data(self, apiSetup, userID=None) -> (str, dict):
+    def load_data(self, apiSetup, userID=None, cur_date=None) -> (str, dict):
         # 先写一条日志，记录执行时间
         logger = self.add_new_api_log_when_start(apiSetup, direction=self.DIRECT_DMS, userID=userID)
 
@@ -125,7 +125,7 @@ class DMSBase:
             path = ""
             res = self._load_data_from_dms_interface(path, format=apiSetup.Data_Format, time_out=apiSetup.Time_out*60)
         else:
-            path = self._splice_xml_file_path(apiSetup)
+            path = self._splice_xml_file_path(apiSetup, cur_date=cur_date)
             res = self._load_data_from_file(path, format=apiSetup.Data_Format, time_out=apiSetup.Time_out*60)
         print(res)
 
@@ -256,7 +256,7 @@ class DMSBase:
             os.makedirs(archive_path, 0o777)
 
         archive_path = "%s/%s" % (archive_path, os.path.basename(xml_path))
-        os.renames(xml_path, archive_path)
+        os.replace(xml_path, archive_path)
 
     # 访问接口/文件时先新增一条API日志，并返回API_Log的主键用于后续更新
     @staticmethod

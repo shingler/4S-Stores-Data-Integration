@@ -14,7 +14,7 @@ from src.dms.setup import Setup
 from src.models.dms import Company
 
 
-def main(company_code, api_code, retry=False):
+def main(company_code, api_code, retry=False, cur_date=None):
     # 读取公司信息，创建业务对象
     company_info = db.session.query(Company).filter(Company.Code == company_code).first()
     fa_obj = FA(company_info.NAV_Company_Code, force_secondary=retry)
@@ -26,7 +26,7 @@ def main(company_code, api_code, retry=False):
 
     # 读取API设置，拿到数据
     api_setup = Setup.load_api_setup(company_code, api_code)
-    xml_src_path, data = fa_obj.load_data(api_setup)
+    xml_src_path, data = fa_obj.load_data(api_setup, cur_date=cur_date)
 
     # 读取输出设置，保存General
     general_node_dict = Setup.load_api_p_out_nodes(company_code, api_code, node_type="General")
