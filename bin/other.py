@@ -46,7 +46,9 @@ def main(company_code, api_code, retry=False, cur_date=None):
     # 读取文件，文件归档
     other_obj.archive_xml(xml_src_path, api_setup.Archived_Path)
 
-    # cv_obj.call_web_service()
+    # 调用web service
+    other_obj.call_web_service(entry_no, api_setup=api_setup, user_id=company_info.NAV_WEB_UserID,
+                                     password=company_info.NAV_WEB_Password)
     return entry_no
 
 

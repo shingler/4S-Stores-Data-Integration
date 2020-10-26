@@ -9,6 +9,7 @@ class FA(DMSBase):
     TABLE_CLASS = None
     BIZ_NODE_LV1 = "FA"
     WS_METHOD = "HandleFAWithEntryNo"
+    WS_ACTION = "urn:microsoft-dynamics-schemas/codeunit/DMSWebAPI:HandleFAWithEntryNo"
 
     def __init__(self, company_nav_code, force_secondary=False):
         super(__class__, self).__init__(company_nav_code, force_secondary)
@@ -21,7 +22,3 @@ class FA(DMSBase):
         if type(data_dict_list) == "dict":
             data_dict_list = [data_dict_list]
         return data_dict_list
-
-    # 将entry_no作为参数写入指定的ws
-    def call_web_service(self):
-        pass

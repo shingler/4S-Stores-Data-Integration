@@ -9,6 +9,7 @@ from src.models import dms, nav
 class Other(DMSBase):
     TABLE_CLASS = None
     WS_METHOD = "HandleOtherWithEntryNo"
+    WS_ACTION = "urn:microsoft-dynamics-schemas/codeunit/DMSWebAPI:HandleOtherWithEntryNo"
 
     # 数据一级节点
     BIZ_NODE_LV1 = "Daydook"
@@ -54,7 +55,3 @@ class Other(DMSBase):
         if type(data_dict_list) == "dict":
             data_dict_list = [data_dict_list]
         return data_dict_list
-
-    # 将entry_no作为参数写入指定的ws
-    def call_web_service(self):
-        pass

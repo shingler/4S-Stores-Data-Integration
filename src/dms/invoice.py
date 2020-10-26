@@ -11,6 +11,7 @@ from src.error import InvoiceEmptyError
 class Invoice(DMSBase):
     TABLE_CLASS = None
     WS_METHOD = "HandleInvoiceWithEntryNo"
+    WS_ACTION = "urn:microsoft-dynamics-schemas/codeunit/DMSWebAPI:HandleInvoiceWithEntryNo"
 
     # 数据一级节点
     BIZ_NODE_LV1 = ""
@@ -38,10 +39,6 @@ class Invoice(DMSBase):
 
     # 根据节点名处理二级/三级层级数据
     def _splice_field_by_name(self, data, node_dict, invoice_no):
-        pass
-
-    # 将entry_no作为参数写入指定的ws
-    def call_web_service(self):
         pass
 
 

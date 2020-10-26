@@ -14,10 +14,12 @@ from collections import OrderedDict
 from operator import indexOf
 from urllib.parse import urlencode
 
+import requests
 import xmltodict
+from requests_ntlm import HttpNtlmAuth
 from sqlalchemy.sql.elements import and_
 
-from src import db, ApiTaskSetup, Company, ApiSetup
+from src import db, ApiTaskSetup, Company, ApiSetup, ApiPInSetup
 from src.dms.logger import Logger
 from src.error import DataFieldEmptyError, DataLoadError, DataLoadTimeOutError
 from src.models import dms, nav, to_local_time
@@ -35,6 +37,8 @@ class DMSBase:
     force_secondary = False
     # NAV的WebService方法名
     WS_METHOD = ""
+    # NAV的WebService的SOAPAction
+    WS_ACTION = ""
 
     # ------- 下面是常量 --------#
     # dms方向
@@ -260,7 +264,7 @@ class DMSBase:
 
     # 访问接口/文件时先新增一条API日志，并返回API_Log的主键用于后续更新
     @staticmethod
-    def add_new_api_log_when_start(apiSetup, direction=1, apiPIn=None, userID=None) -> Logger:
+    def add_new_api_log_when_start(apiSetup: ApiSetup, direction: int = 1, apiPIn: ApiPInSetup = None, userID: str = None) -> object:
         return Logger.add_new_api_log(apiSetup, direction, apiPIn, userID)
 
     # 判断是否超时
@@ -296,17 +300,30 @@ class DMSBase:
         return result
 
     # 将entry_no作为参数写入指定的ws
-    async def call_web_service(self, entry_no, url, user_id, password):
+    def call_web_service(self, entry_no, api_setup, user_id, password):
+        url = api_setup.CallBack_Address
         if '%s' in url:
             url = url % urllib.parse.quote(self.company_nav_code)
-        print(url, user_id, password)
-        client = Client(url, username=user_id, password=password)
-        methods = [method for method in client.wsdl.services[0].ports[0].methods]
-        print(methods)
-        ws_method = self.WS_METHOD
-        result = client.service.ws_method(entry_no, 0)
-        print(result)
-        return result
+        # url = "http://62.234.26.35:7047/DynamicsNAV/WS/K302%20Zhuhai%20JJ/Codeunit/DMSWebAPI"
+
+        # 新插入一条日志
+        logger = self.add_new_api_log_when_start(api_setup, direction=self.DIRECT_NAV)
+        headers = {
+            "Content-Type": "text/xml",
+            "SOAPAction": self.WS_ACTION
+        }
+        postcontent = '<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"><soap:Body><{0} xmlns="urn:microsoft-dynamics-schemas/codeunit/DMSWebAPI"><entryNo>{1}</entryNo><_CalledBy>0</_CalledBy></{0}></soap:Body></soap:Envelope>'.format(self.WS_METHOD, entry_no)
+        print(url, headers)
+        print(postcontent)
+        req = requests.post(url, headers=headers, auth=HttpNtlmAuth(user_id, password),
+                            data=postcontent.encode('utf-8'))
+        # 更新日志
+        if req.status_code == 200:
+            logger.update_api_log_when_finish(status=self.STATUS_FINISH, data=req.text)
+            return True
+        else:
+            logger.update_api_log_when_finish(status=self.STATUS_ERROR, error_msg=req.text)
+            return False
 
 
 class InterfaceResult:

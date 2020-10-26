@@ -10,6 +10,8 @@ class CustVend(DMSBase):
     # 数据一级节点名
     BIZ_NODE_LV1 = "CustVendInfo"
     WS_METHOD = "HandleCVInfoWithEntryNo"
+    # NAV的WebService的SOAPAction
+    WS_ACTION = "urn:microsoft-dynamics-schemas/codeunit/DMSWebAPI:HandleCVInfoWithEntryNo"
 
     def __init__(self, company_nav_code, force_secondary=False):
         super(__class__, self).__init__(company_nav_code, force_secondary)

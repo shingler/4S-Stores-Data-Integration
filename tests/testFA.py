@@ -85,7 +85,7 @@ def test_4_save_FA(init_app):
     assert "FANo" in fa_dict[0]
     fa_obj.save_data_to_nav(nav_data=fa_dict, entry_no=entry_no, TABLE_CLASS=fa_obj.TABLE_CLASS)
     # 读取文件，文件归档
-    fa_obj.faarchive_xml(global_vars["path"], global_vars["api_setup"].Archived_Path)
+    fa_obj.archive_xml(global_vars["path"], global_vars["api_setup"].Archived_Path)
     assert os.path.exists(global_vars["path"]) == False
     assert os.path.exists(global_vars["api_setup"].Archived_Path) == True
 
@@ -108,9 +108,18 @@ def test_5_valid_data(init_app):
 
 
 # 将entry_no作为参数写入指定的ws
-@pytest.mark.skip("等刘总提供ws再测试")
+# @pytest.mark.skip("等刘总提供ws再测试")
 def test_6_invoke_ws(init_app):
-    fa_obj.call_web_service()
+    entry_no = global_vars["entry_no"]
+    company_info = fa_obj.get_company(company_code)
+    assert company_info is not None
+    api_setup = Setup.load_api_setup(company_code, api_code)
+    assert api_setup is not None
+
+    # result = await cv_obj.call_web_service(entry_no, url=api_setup.CallBack_Address, user_id=company_info.NAV_WEB_UserID, password=company_info.NAV_WEB_Password)
+    result = fa_obj.call_web_service(entry_no, api_setup=api_setup, user_id=company_info.NAV_WEB_UserID,
+                                     password=company_info.NAV_WEB_Password)
+    assert result is not None
 
 
 # 清理测试数据
