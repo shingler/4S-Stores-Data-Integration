@@ -72,12 +72,11 @@ class DMSBase:
 
     # 拼接xml文件路径
     # @param src.models.dms.ApiSetup apiSetup
-    # @param string date 格式="YYYYMMDD"，默认为None。None则取当天日期
-    def _splice_xml_file_path(self, apiSetUp, cur_date=None) -> str:
+    def _splice_xml_file_path(self, apiSetUp) -> str:
         if apiSetUp.API_Type == self.TYPE_API:
             return ""
-        if cur_date == None:
-            cur_date = datetime.datetime.now().strftime("%Y%m%d")
+
+        cur_date = datetime.datetime.now().strftime("%Y%m%d")
         if apiSetUp.File_Name_Format == "":
             raise DataFieldEmptyError("File_Name_Format为空")
         file_name = apiSetUp.File_Name_Format.replace("YYYYMMDD", cur_date)
@@ -121,15 +120,21 @@ class DMSBase:
         return res
 
     # 读取数据
-    def load_data(self, apiSetup, userID=None, cur_date=None) -> (str, dict):
+    def load_data(self, apiSetup, userID=None, file_path=None) -> (str, dict):
         # 先写一条日志，记录执行时间
         logger = self.add_new_api_log_when_start(apiSetup, direction=self.DIRECT_DMS, userID=userID)
 
         if apiSetup.API_Type == self.TYPE_API:
+            # 读取JSON API
             path = ""
             res = self._load_data_from_dms_interface(path, format=apiSetup.Data_Format, time_out=apiSetup.Time_out*60)
-        else:
-            path = self._splice_xml_file_path(apiSetup, cur_date=cur_date)
+        elif apiSetup.API_Type == self.TYPE_FILE and file_path is not None:
+            # 直接提供XML地址
+            path = file_path
+            res = self._load_data_from_file(file_path, format=apiSetup.Data_Format, time_out=apiSetup.Time_out * 60)
+        elif apiSetup.API_Type == self.TYPE_FILE:
+            # 使用当天的XML文件
+            path = self._splice_xml_file_path(apiSetup)
             res = self._load_data_from_file(path, format=apiSetup.Data_Format, time_out=apiSetup.Time_out*60)
         print(res)
 
