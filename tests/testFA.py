@@ -85,6 +85,10 @@ def test_4_save_FA(init_app):
     assert "FANo" in fa_dict[0]
     fa_obj.save_data_to_nav(nav_data=fa_dict, entry_no=entry_no, TABLE_CLASS=fa_obj.TABLE_CLASS)
     # 读取文件，文件归档
+    # 环境不同，归档路径不同
+    app, db = init_app
+    if app.config["ENV"] == "Development":
+        global_vars["api_setup"] = "/Users/shingler/PycharmProjects/platform20200916/archive/K302ZH"
     fa_obj.archive_xml(global_vars["path"], global_vars["api_setup"].Archived_Path)
     assert os.path.exists(global_vars["path"]) == False
     assert os.path.exists(global_vars["api_setup"].Archived_Path) == True
@@ -102,7 +106,7 @@ def test_5_valid_data(init_app):
 
     # 检查数据正确性
     assert interfaceInfo.DMSCode == "28976"
-    assert interfaceInfo.FA_Total_Count == 1
+    assert interfaceInfo.FA_Total_Count > 0
     assert len(faList) > 0
     assert faList[0].FANo_ == "FA0001"
 

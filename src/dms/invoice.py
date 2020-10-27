@@ -54,9 +54,15 @@ class InvoiceHeader(Invoice):
     # 根据节点名处理二级/三级层级数据（假设一个xml文件里只有1个发票抬头）
     def _splice_field_by_name(self, data, node_dict, invoice_no=""):
         data_dict_list = self._splice_field(data, node_dict, node_lv0="Transaction", node_lv1=self.BIZ_NODE_LV1,
-                                            node_type="node")
-        data_list = data_dict_list[self.BIZ_NODE_LV2]
-        data_list[self._COMMON_FILED] = data_dict_list[self._COMMON_FILED]
+                                            node_type="list")
+        # 多Invoice会变成列表，所以改用列表来处理
+        data_list = []
+        for inv in data_dict_list:
+            # 获取INVHeader
+            one_header = inv[self.BIZ_NODE_LV2]
+            # 将InvoiceType与INVHeader合并
+            one_header[self._COMMON_FILED] = inv[self._COMMON_FILED]
+            data_list.append(one_header)
 
         return data_list
 
@@ -73,23 +79,27 @@ class InvoiceLine(Invoice):
     # 根据节点名处理二级/三级层级数据
     def _splice_field_by_name(self, data, node_dict, invoice_no):
         data_dict_list = self._splice_field(data, node_dict, node_lv0="Transaction", node_lv1=self.BIZ_NODE_LV1,
-                                            node_type="node")
+                                            node_type="list")
         # print(data_dict_list)
         # 用node的方式装载出来是字典，还需要再处理成有冗余字段的列表
         data_list = []
-        if type(data_dict_list[self.BIZ_NODE_LV2]) == OrderedDict:
-            # 单个数据对象
-            one_dict = data_dict_list[self.BIZ_NODE_LV2]
-            one_dict[self._COMMON_FILED] = data_dict_list[self._COMMON_FILED]
-            data_list = [one_dict, ]
-        else:
-            # 数组对象
-            for one in data_dict_list[self.BIZ_NODE_LV2]:
-                one_dict = {self._COMMON_FILED: data_dict_list[self._COMMON_FILED]}
-                # print(type(one))
-                for key, value in one.items():
-                    one_dict[key] = value
-                data_list.append(one_dict)
+        # 多Invoice会变成列表，所以改用列表来处理
+        for inv in data_dict_list:
+            # inv是一个完整的invoice节点
+            if type(inv[self.BIZ_NODE_LV2]) == OrderedDict:
+                # 单个发票行数据对象INVLine
+                one_dict = inv[self.BIZ_NODE_LV2]
+                # 将InvoiceType放入INVLine
+                one_dict[self._COMMON_FILED] = inv[self._COMMON_FILED]
+                data_list = [one_dict, ]
+            else:
+                # 数组对象
+                for one in inv[self.BIZ_NODE_LV2]:
+                    one_dict = {self._COMMON_FILED: inv[self._COMMON_FILED]}
+                    # print(type(one))
+                    for key, value in one.items():
+                        one_dict[key] = value
+                    data_list.append(one_dict)
         # print(data_list)
         # 把发票号放入明细中
         data_list = self.set_invoice_no(data_list, invoice_no=invoice_no)
