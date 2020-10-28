@@ -2,13 +2,19 @@
 # -*- coding:utf-8 -*-
 import json
 
-from flask import jsonify, request
+from flask import jsonify, request, Response
 import datetime
 from src import create_app
 from bin import cust_vend, fa, invoice, other
 from src import error
 
 app = create_app()
+
+
+# 接口状态获取
+@app.route("/")
+def default():
+    return Response("It Works!")
 
 
 # cust vend 接口手动调用
@@ -147,6 +153,8 @@ def invoice_api():
             res = {"status": 30004, "error_message": str(ex)}
         except Exception as ex:
             res = {"status": 30000, "error_message": str(ex)}
+    else:
+        res = {"status": 30005, "error_message": "无效的参数"}
     return jsonify(res)
 
 
@@ -192,6 +200,8 @@ def other_api():
             res = {"status": 40004, "error_message": str(ex)}
         except Exception as ex:
             res = {"status": 40000, "error_message": str(ex)}
+    else:
+        res = {"status": 40005, "error_message": "无效的参数"}
     return jsonify(res)
 
 
