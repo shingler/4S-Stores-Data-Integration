@@ -9,25 +9,43 @@ import datetime
 import json
 import os
 import time
+import urllib
 from collections import OrderedDict
+from operator import indexOf
+from urllib.parse import urlencode
 
+import requests
 import xmltodict
+from requests_ntlm import HttpNtlmAuth
 from sqlalchemy.sql.elements import and_
 
-from src import db, ApiTaskSetup
+from src import db, ApiTaskSetup, Company, ApiSetup, ApiPInSetup
 from src.dms.logger import Logger
 from src.error import DataFieldEmptyError, DataLoadError, DataLoadTimeOutError
 from src.models import dms, nav, to_local_time
 from src.models.log import APILog
+from asyncsuds.client import Client as aClient
+from suds.client import Client
 
 
 class DMSBase:
+    # 公司的NAV代码（作为nav表的前缀）
+    company_nav_code = ""
+    # General表模型
+    GENERAL_CLASS = None
     # 强制启用备用地址
     force_secondary = False
+    # NAV的WebService方法名
+    WS_METHOD = ""
+    # NAV的WebService的SOAPAction
+    WS_ACTION = ""
+
+    # ------- 下面是常量 --------#
     # dms方向
     DIRECT_DMS = 1
     # NAV方向
     DIRECT_NAV = 2
+
     # 状态：执行中
     STATUS_PENDING = 1
     # 状态：完成
@@ -36,36 +54,41 @@ class DMSBase:
     STATUS_TIMEOUT = 8
     # 状态：错误
     STATUS_ERROR = 9
+
     # 格式：JSON
     FORMAT_JSON = 1
     # 格式：XML
     FORMAT_XML = 2
+
     # 接口类型：WebAPI
     TYPE_API = 1
     # 接口类型：文件
     TYPE_FILE = 2
-    # 公司名（作为nav表的前缀）
-    company_name = ""
-    # General表模型
-    GENERAL_CLASS = None
 
-    def __init__(self, company_name, force_secondary=False):
-        self.company_name = company_name
+    def __init__(self, company_nav_code, force_secondary=False):
+        self.company_nav_code = company_nav_code
         self.force_secondary = force_secondary
-        self.GENERAL_CLASS = nav.dmsInterfaceInfo(company_name)
+        self.GENERAL_CLASS = nav.dmsInterfaceInfo(company_nav_code)
 
     # 拼接xml文件路径
+    # @param src.models.dms.ApiSetup apiSetup
     def _splice_xml_file_path(self, apiSetUp) -> str:
         if apiSetUp.API_Type == self.TYPE_API:
             return ""
+
+        cur_date = datetime.datetime.now().strftime("%Y%m%d")
+        if apiSetUp.File_Name_Format == "":
+            raise DataFieldEmptyError("File_Name_Format为空")
+        file_name = apiSetUp.File_Name_Format.replace("YYYYMMDD", cur_date)
+
         if not self.force_secondary:
-            if apiSetUp.API_Address1 == "" or apiSetUp.Archived_Path == "":
-                raise DataFieldEmptyError("API_Address或Archived_Path为空")
-            xml_src = "%s/%s" % (apiSetUp.API_Address1, apiSetUp.Archived_Path)
+            if apiSetUp.API_Address1 == "":
+                raise DataFieldEmptyError("API_Address1为空")
+            xml_src = "%s/%s" % (apiSetUp.API_Address1, file_name)
         else:
-            if apiSetUp.API_Address2 == "" or apiSetUp.Archived_Path == "":
-                raise DataFieldEmptyError("API_Address或Archived_Path为空")
-            xml_src = "%s/%s" % (apiSetUp.API_Address2, apiSetUp.Archived_Path)
+            if apiSetUp.API_Address2 == "":
+                raise DataFieldEmptyError("API_Address2为空")
+            xml_src = "%s/%s" % (apiSetUp.API_Address2, file_name)
         return xml_src
 
     # 读取接口
@@ -86,8 +109,8 @@ class DMSBase:
             data = xml_handler.read()
         # 模拟超时
         # time.sleep(90)
-        if time.perf_counter() >= time_out:
-            return InterfaceResult(status=self.STATUS_TIMEOUT, error_msg="读取超时")
+        if time_out > 0 and time.perf_counter() >= time_out*60:
+            return InterfaceResult(status=self.STATUS_TIMEOUT, error_msg="文件：%s 读取超时" % path)
 
         res = InterfaceResult(status=self.STATUS_FINISH, content=data)
         if format == self.FORMAT_XML:
@@ -97,14 +120,20 @@ class DMSBase:
         return res
 
     # 读取数据
-    def load_data(self, apiSetup, userID=None) -> (str, dict):
+    def load_data(self, apiSetup, userID=None, file_path=None) -> (str, dict):
         # 先写一条日志，记录执行时间
         logger = self.add_new_api_log_when_start(apiSetup, direction=self.DIRECT_DMS, userID=userID)
 
         if apiSetup.API_Type == self.TYPE_API:
+            # 读取JSON API
             path = ""
             res = self._load_data_from_dms_interface(path, format=apiSetup.Data_Format, time_out=apiSetup.Time_out*60)
-        else:
+        elif apiSetup.API_Type == self.TYPE_FILE and file_path is not None:
+            # 直接提供XML地址
+            path = file_path
+            res = self._load_data_from_file(file_path, format=apiSetup.Data_Format, time_out=apiSetup.Time_out * 60)
+        elif apiSetup.API_Type == self.TYPE_FILE:
+            # 使用当天的XML文件
             path = self._splice_xml_file_path(apiSetup)
             res = self._load_data_from_file(path, format=apiSetup.Data_Format, time_out=apiSetup.Time_out*60)
         print(res)
@@ -120,7 +149,7 @@ class DMSBase:
             raise DataLoadTimeOutError(res.error_msg)
         else:
             # 处理成功，更新日志
-            logger.update_api_log_when_finish(data=res.content, status=self.STATUS_FINISH)
+            logger.update_api_log_when_finish(data=str(res.content), status=self.STATUS_FINISH)
             return path, res.data
 
     # 获取指定节点的数量（xml可以节点同名。在json这里，则判断节点是否是数组。是，则返回长度；非，则返回1。
@@ -184,7 +213,7 @@ class DMSBase:
             FA_Total_Count=0,
             Invoice_Total_Count=0
         )
-        print(self.company_name, interfaceInfo.__bind_key__)
+        print(self.company_nav_code, interfaceInfo.__bind_key__)
         # 再补充一些默认值
         interfaceInfo.DateTime_Imported = datetime.datetime.now().isoformat(timespec="seconds")
 
@@ -222,11 +251,25 @@ class DMSBase:
                 # 自动赋值
                 other_obj.__setattr__(key, value)
             db.session.add(other_obj)
+        # 更新一下中文
+
         db.session.commit()
+
+    # xml文件归档
+    # @param string xml_path xml源文件路径（完整路径）
+    # @param string archive_path 要归档的目录（不含文件名及公司名）
+    @staticmethod
+    def archive_xml(xml_path, archive_path):
+        # 如果目录不存在，就创建
+        if not os.path.exists(archive_path):
+            os.makedirs(archive_path, 0o777)
+
+        archive_path = "%s/%s" % (archive_path, os.path.basename(xml_path))
+        os.replace(xml_path, archive_path)
 
     # 访问接口/文件时先新增一条API日志，并返回API_Log的主键用于后续更新
     @staticmethod
-    def add_new_api_log_when_start(apiSetup, direction=1, apiPIn=None, userID=None) -> Logger:
+    def add_new_api_log_when_start(apiSetup: ApiSetup, direction: int = 1, apiPIn: ApiPInSetup = None, userID: str = None) -> object:
         return Logger.add_new_api_log(apiSetup, direction, apiPIn, userID)
 
     # 判断是否超时
@@ -244,10 +287,48 @@ class DMSBase:
             return False
         return True
 
+    # 获得公司信息
+    @staticmethod
+    def get_company(code) -> Company:
+        return db.session.query(Company).filter(Company.Code == code).first()
 
     # 将entry_no作为参数写入指定的ws
-    def call_web_service(self):
-        pass
+    async def call_web_service_async(self, entry_no, url, user_id, password):
+        if indexOf(url, '%s'):
+            url = url % self.company_nav_code
+        print(url)
+        client = aClient(url, username=user_id, password=password)
+        await client.connect()
+        method = self.WS_METHOD
+        result = await client.method(entry_no, 0)
+        print(result)
+        return result
+
+    # 将entry_no作为参数写入指定的ws
+    def call_web_service(self, entry_no, api_setup, user_id, password):
+        url = api_setup.CallBack_Address
+        if '%s' in url:
+            url = url % urllib.parse.quote(self.company_nav_code)
+        # url = "http://62.234.26.35:7047/DynamicsNAV/WS/K302%20Zhuhai%20JJ/Codeunit/DMSWebAPI"
+
+        # 新插入一条日志
+        logger = self.add_new_api_log_when_start(api_setup, direction=self.DIRECT_NAV)
+        headers = {
+            "Content-Type": "text/xml",
+            "SOAPAction": self.WS_ACTION
+        }
+        postcontent = '<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"><soap:Body><{0} xmlns="urn:microsoft-dynamics-schemas/codeunit/DMSWebAPI"><entryNo>{1}</entryNo><_CalledBy>0</_CalledBy></{0}></soap:Body></soap:Envelope>'.format(self.WS_METHOD, entry_no)
+        print(url, headers)
+        print(postcontent)
+        req = requests.post(url, headers=headers, auth=HttpNtlmAuth(user_id, password),
+                            data=postcontent.encode('utf-8'))
+        # 更新日志
+        if req.status_code == 200:
+            logger.update_api_log_when_finish(status=self.STATUS_FINISH, data=req.text)
+            return True
+        else:
+            logger.update_api_log_when_finish(status=self.STATUS_ERROR, error_msg=req.text)
+            return False
 
 
 class InterfaceResult:

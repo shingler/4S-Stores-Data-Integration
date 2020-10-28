@@ -11,7 +11,7 @@ from src.dms.notification import Notification
 from src.dms.task import Task
 from src.error import DataFieldEmptyError, DataLoadError, DataLoadTimeOutError
 from src.models import nav
-from src.models.dms import ApiTaskSetup, NotificationUser
+from src.models.dms import ApiTaskSetup, NotificationUser, Company
 from src.models.log import NotificationLog, APILog
 from src.dms.base import DMSBase
 
@@ -27,8 +27,8 @@ global_vars = {
 # 从数据库随机读取一个任务
 def test_1_load_task(init_app):
     task_list = Task.load_tasks()
-    # one_task = random.choice(task_list)
-    one_task = task_list[0]
+    one_task = random.choice(task_list)
+    # one_task = task_list[0]
     assert one_task.Company_Code != ""
     assert one_task.API_Code != ""
     assert type(one_task.Fail_Handle) == int
@@ -66,7 +66,7 @@ def test_2_run_task(init_app):
     except Exception as ex:
         print(ex)
         # 失败处理，主要读取task里的Fail_Handle字段
-        if one_task.Fail_Handle == 1:
+        if one_task.api_task_setup.Fail_Handle == 1:
             print("Fail Handle设置为1，不继续执行")
         else:
             print("Fail Handle设置不为1，将重试")
@@ -95,7 +95,7 @@ def test_3_retry_or_not(init_app):
 
         except Exception as ex:
             print("重试后，依然失败")
-            if one_task.Fail_Handle == 3:
+            if one_task.api_task_setup.Fail_Handle == 3:
                 # 重试后依然失败，如果Fail_Handle=3则发送提醒邮件
                 global_vars["notify"] = True
                 globals()["load_error"] = ex
@@ -167,13 +167,23 @@ def test_5_valid_data(init_app):
     # 验证数据
     app, db = init_app
     db.session.expire_all()
-    interface_data = db.session.query(nav.InterfaceInfo).filter(nav.InterfaceInfo.Entry_No_ == entry_no).first()
+    # 读取公司信息
+    company_info = db.session.query(Company).filter(Company.Code == current_task.Company_Code).first()
+    # 访问nav数据，需要修改数据库连接设置
+    conn_str = company_info.get_nav_connection_string(app.config)
+    app.config["SQLALCHEMY_BINDS"][
+        "%s-nav" % company_info.NAV_Company_Code] = conn_str
+
+    # interfaceInfo数据
+    interfaceInfoClass = nav.dmsInterfaceInfo(company_info.NAV_Company_Code)
+    interface_data = db.session.query(interfaceInfoClass).filter(interfaceInfoClass.Entry_No_ == entry_no).first()
     assert interface_data is not None
     assert type(interface_data.Type) == int
     print(interface_data.Type)
     # 根据type，验证对应数据
     if interface_data.Type == 0:
-        data_list = db.session.query(nav.CustVendBuffer).filter(nav.CustVendBuffer.Entry_No_ == entry_no).all()
+        custVendClass = nav.custVendBuffer(company_info.NAV_Company_Code)
+        data_list = db.session.query(custVendClass).filter(custVendClass.Entry_No_ == entry_no).all()
         # 检查数据正确性
         assert interface_data.DMSCode == "7000320"
         assert interface_data.Customer_Vendor_Total_Count == 2
@@ -183,15 +193,18 @@ def test_5_valid_data(init_app):
         assert data_list[1].No_ == "V00000002"
         assert data_list[1].Type == 1
     elif interface_data.Type == 1:
-        data_list = db.session.query(nav.FABuffer).filter(nav.FABuffer.Entry_No_ == entry_no).all()
+        faClass = nav.faBuffer(company_info.NAV_Company_Code)
+        data_list = db.session.query(faClass).filter(faClass.Entry_No_ == entry_no).all()
         # 检查数据正确性
         assert interface_data.DMSCode == "28976"
         assert interface_data.FA_Total_Count == 1
         assert len(data_list) > 0
         assert data_list[0].FANo_ == "FA0001"
     elif interface_data.Type == 2:
-        headerInfo = db.session.query(nav.InvoiceHeaderBuffer).filter(nav.InvoiceHeaderBuffer.Entry_No_ == entry_no).first()
-        lineList = db.session.query(nav.InvoiceLineBuffer).filter(nav.InvoiceLineBuffer.Entry_No_ == entry_no).all()
+        invoiceHeaderClass = nav.invoiceHeaderBuffer(company_info.NAV_Company_Code)
+        invoiceLineClass = nav.invoiceLineBuffer(company_info.NAV_Company_Code)
+        headerInfo = db.session.query(invoiceHeaderClass).filter(invoiceHeaderClass.Entry_No_ == entry_no).first()
+        lineList = db.session.query(invoiceLineClass).filter(invoiceLineClass.Entry_No_ == entry_no).all()
 
         print(headerInfo)
         # 检查数据正确性
@@ -209,9 +222,9 @@ def test_5_valid_data(init_app):
         # 检查数据正确性
         assert interface_data.DMSCode == "7000320"
         assert interface_data.Other_Transaction_Total_Count == 1
-        data_list = db.session.query(nav.OtherBuffer).filter(nav.OtherBuffer.Entry_No_ == entry_no).all()
+        otherClass = nav.otherBuffer(company_info.NAV_Company_Code)
+        data_list = db.session.query(otherClass).filter(otherClass.Entry_No_ == entry_no).all()
         assert len(data_list) > 0
         assert data_list[0].DocumentNo_ == "XXXXX"
         assert data_list[0].SourceNo == "C0000001"
         assert data_list[1].SourceNo == "BNK_320_11_00003"
-    # 验证api日志是否写入

@@ -23,8 +23,8 @@ def test_data_for_company():
             NAV_Company_Name="K302 Zhuhai JJ",
             Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'),
             Last_Modified_By="",
-            NAV_WEB_UserID="",
-            NAV_WEB_Password=""
+            NAV_WEB_UserID="NAVWebUser",
+            NAV_WEB_Password="Hytc_1qaz@WSX"
         )
 
 
@@ -180,12 +180,12 @@ def test_data_for_setup():
             Activated=True,
             File_Name_Format="YYYYMMDD_CustVendInfo.XML",
             Notification_Activated=True,
-            CallBack_Address="http://192.168.1.5/XXXXX",
+            CallBack_Address="http://62.234.26.35:7047/DynamicsNAV/WS/%s/Codeunit/DMSWebAPI",
             Time_out=1,
             File_Max_Size=10,
             Last_Modified_DT=datetime.datetime.now().isoformat(timespec="seconds"),
             Last_Modified_By="",
-            Archived_Path="CustVendInfo.xml"
+            Archived_Path="/Users/shingler/PycharmProjects/platform20200916/archive/K302ZH"
         ),
         ApiSetup(
             Company_Code="K302ZH",
@@ -202,12 +202,12 @@ def test_data_for_setup():
             Activated=True,
             File_Name_Format="YYYYMMDD_FA.XML",
             Notification_Activated=True,
-            CallBack_Address="http://192.168.1.5/XXXXX",
+            CallBack_Address="http://62.234.26.35:7047/DynamicsNAV/WS/%s/Codeunit/DMSWebAPI",
             Time_out=1,
             File_Max_Size=10,
             Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'),
             Last_Modified_By="",
-            Archived_Path="FA.xml"
+            Archived_Path="/Users/shingler/PycharmProjects/platform20200916/archive/K302ZH"
         ),
         ApiSetup(
             Company_Code="K302ZH",
@@ -224,12 +224,12 @@ def test_data_for_setup():
             Activated=True,
             File_Name_Format="YYYYMMDD_Invoice.XML",
             Notification_Activated=True,
-            CallBack_Address="http://192.168.1.5/XXXXX",
+            CallBack_Address="http://62.234.26.35:7047/DynamicsNAV/WS/%s/Codeunit/DMSWebAPI",
             Time_out=1,
             File_Max_Size=10,
             Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'),
             Last_Modified_By="",
-            Archived_Path="Invoice.xml"
+            Archived_Path="/Users/shingler/PycharmProjects/platform20200916/archive/K302ZH"
         ),
         ApiSetup(
             Company_Code="K302ZH",
@@ -246,12 +246,12 @@ def test_data_for_setup():
             Activated=True,
             File_Name_Format="YYYYMMDD_Other.XML",
             Notification_Activated=True,
-            CallBack_Address="http://192.168.1.5/XXXXX",
+            CallBack_Address="http://62.234.26.35:7047/DynamicsNAV/WS/%s/Codeunit/DMSWebAPI",
             Time_out=1,
             File_Max_Size=10,
             Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'),
             Last_Modified_By="",
-            Archived_Path="Other.xml"
+            Archived_Path="/Users/shingler/PycharmProjects/platform20200916/archive/K302ZH"
         ),
     ]
     setup_will_retry = [
@@ -270,12 +270,12 @@ def test_data_for_setup():
             Activated=True,
             File_Name_Format="YYYYMMDD_CustVendInfo.XML",
             Notification_Activated=True,
-            CallBack_Address="http://192.168.1.5/XXXXX",
+            CallBack_Address="http://62.234.26.35:7047/DynamicsNAV/WS/%s/Codeunit/DMSWebAPI",
             Time_out=1,
             File_Max_Size=10,
             Last_Modified_DT=datetime.datetime.now().isoformat(timespec="seconds"),
             Last_Modified_By="",
-            Archived_Path="CustVendInfo.xml"
+            Archived_Path="/Users/shingler/PycharmProjects/platform20200916/archive/K302ZH"
         ),
         ApiSetup(
             Company_Code="K302ZH",
@@ -292,12 +292,12 @@ def test_data_for_setup():
             Activated=True,
             File_Name_Format="YYYYMMDD_FA.XML",
             Notification_Activated=True,
-            CallBack_Address="http://192.168.1.5/XXXXX",
+            CallBack_Address="http://62.234.26.35:7047/DynamicsNAV/WS/%s/Codeunit/DMSWebAPI",
             Time_out=1,
             File_Max_Size=10,
             Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'),
             Last_Modified_By="",
-            Archived_Path="FA.xml"
+            Archived_Path="/Users/shingler/PycharmProjects/platform20200916/archive/K302ZH"
         ),
         ApiSetup(
             Company_Code="K302ZH",
@@ -314,12 +314,12 @@ def test_data_for_setup():
             Activated=True,
             File_Name_Format="YYYYMMDD_Invoice.XML",
             Notification_Activated=True,
-            CallBack_Address="http://192.168.1.5/XXXXX",
+            CallBack_Address="http://62.234.26.35:7047/DynamicsNAV/WS/%s/Codeunit/DMSWebAPI",
             Time_out=1,
             File_Max_Size=10,
             Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'),
             Last_Modified_By="",
-            Archived_Path="Invoice.xml"
+            Archived_Path="/Users/shingler/PycharmProjects/platform20200916/archive/K302ZH"
         ),
         ApiSetup(
             Company_Code="K302ZH",
@@ -336,12 +336,12 @@ def test_data_for_setup():
             Activated=True,
             File_Name_Format="YYYYMMDD_Other.XML",
             Notification_Activated=True,
-            CallBack_Address="http://192.168.1.5/XXXXX",
+            CallBack_Address="http://62.234.26.35:7047/DynamicsNAV/WS/%s/Codeunit/DMSWebAPI",
             Time_out=1,
             File_Max_Size=10,
             Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'),
             Last_Modified_By="",
-            Archived_Path="Other.xml"
+            Archived_Path="/Users/shingler/PycharmProjects/platform20200916/archive/K302ZH"
         ),
     ]
     setup_will_error = [
@@ -360,12 +360,12 @@ def test_data_for_setup():
             Activated=True,
             File_Name_Format="YYYYMMDD_CustVendInfo.XML",
             Notification_Activated=True,
-            CallBack_Address="http://192.168.1.5/XXXXX",
+            CallBack_Address="http://62.234.26.35:7047/DynamicsNAV/WS/%s/Codeunit/DMSWebAPI",
             Time_out=1,
             File_Max_Size=10,
             Last_Modified_DT=datetime.datetime.now().isoformat(timespec="seconds"),
             Last_Modified_By="",
-            Archived_Path="xxx.xml"
+            Archived_Path="/Users/shingler/PycharmProjects/platform20200916/archive/K302ZH"
         ),
         ApiSetup(
             Company_Code="K302ZH",
@@ -382,12 +382,12 @@ def test_data_for_setup():
             Activated=True,
             File_Name_Format="YYYYMMDD_FA.XML",
             Notification_Activated=True,
-            CallBack_Address="http://192.168.1.5/XXXXX",
+            CallBack_Address="http://62.234.26.35:7047/DynamicsNAV/WS/%s/Codeunit/DMSWebAPI",
             Time_out=1,
             File_Max_Size=10,
             Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'),
             Last_Modified_By="",
-            Archived_Path="zzz.xml"
+            Archived_Path="/Users/shingler/PycharmProjects/platform20200916/archive/K302ZH"
         ),
     ]
     return setup_will_success, setup_will_retry, setup_will_error

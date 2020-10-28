@@ -5,14 +5,13 @@ curPath = os.path.abspath(os.path.dirname(__file__))
 rootPath = os.path.split(curPath)[0]
 sys.path.append(rootPath)
 
-import requests
 from bin import app, db
 from src.dms.invoice import InvoiceHeader, InvoiceLine
 from src.dms.setup import Setup
 from src.models.dms import Company
 
 
-def main(company_code, api_code, retry=False):
+def main(company_code, api_code, retry=False, file_path=None):
     # 读取公司信息，创建业务对象
     company_info = db.session.query(Company).filter(Company.Code == company_code).first()
     invoiceHeader_obj = InvoiceHeader(company_info.NAV_Company_Code, force_secondary=retry)
@@ -25,7 +24,7 @@ def main(company_code, api_code, retry=False):
 
     # 读取API设置，拿到数据
     api_setup = Setup.load_api_setup(company_code, api_code)
-    xml_src_path, data = invoiceHeader_obj.load_data(api_setup)
+    xml_src_path, data = invoiceHeader_obj.load_data(api_setup, file_path=file_path)
 
     # 读取输出设置，保存General
     general_node_dict = invoiceHeader_obj.load_api_p_out_nodes(company_code, api_code, node_type="General")
@@ -52,7 +51,12 @@ def main(company_code, api_code, retry=False):
     il_dict = invoiceLine_obj.splice_data_info(data, node_dict=il_node_dict, invoice_no=invoice_no)
     invoiceLine_obj.save_data_to_nav(nav_data=il_dict, entry_no=entry_no, TABLE_CLASS=invoiceLine_obj.TABLE_CLASS)
 
-    # cv_obj.call_web_service()
+    # 读取文件，文件归档
+    invoiceLine_obj.archive_xml(xml_src_path, api_setup.Archived_Path)
+
+    # 访问web service
+    invoiceHeader_obj.call_web_service(entry_no, api_setup=api_setup, user_id=company_info.NAV_WEB_UserID,
+                                     password=company_info.NAV_WEB_Password)
     return entry_no
 
 
