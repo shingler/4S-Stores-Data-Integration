@@ -109,7 +109,7 @@ def test_5_save_InvoiceLine(init_app):
     # 环境不同，归档路径不同
     app, db = init_app
     if app.config["ENV"] == "Development":
-        global_vars["api_setup"] = "/Users/shingler/PycharmProjects/platform20200916/archive/K302ZH"
+        global_vars["api_setup"].Archived_Path = "/Users/shingler/PycharmProjects/platform20200916/archive/K302ZH"
     invoiceLine_obj.archive_xml(global_vars["path"], global_vars["api_setup"].Archived_Path)
     assert os.path.exists(global_vars["path"]) == False
     assert os.path.exists(global_vars["api_setup"].Archived_Path) == True

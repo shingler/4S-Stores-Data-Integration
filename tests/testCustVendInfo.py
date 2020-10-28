@@ -87,6 +87,10 @@ def test_4_save_custVendInfo(init_app):
     assert "No" in custVend_dict[0]
     cv_obj.save_data_to_nav(custVend_dict, entry_no=entry_no, TABLE_CLASS=cv_obj.TABLE_CLASS)
     # 读取文件，文件归档
+    # 环境不同，归档路径不同
+    app, db = init_app
+    if app.config["ENV"] == "Development":
+        global_vars["api_setup"].Archived_Path = "/Users/shingler/PycharmProjects/platform20200916/archive/K302ZH"
     cv_obj.archive_xml(global_vars["path"], global_vars["api_setup"].Archived_Path)
     assert os.path.exists(global_vars["path"]) == False
     assert os.path.exists(global_vars["api_setup"].Archived_Path) == True
