@@ -34,16 +34,21 @@ class Task:
         date_is_valid = True
         # 先验证日期是否正确
         last_run_dt_str = self.api_task_setup.Last_Executed_Time
+        if type(last_run_dt_str) == datetime.time:
+            last_run_dt_str = last_run_dt_str.isoformat()
         if last_run_dt_str != "0000-00-00 00:00:00":
-            last_run_dt = datetime.datetime.strptime(last_run_dt_str, "%Y-%m-%d %H:%M:%S")
-            interval_days = datetime.datetime.now() - last_run_dt
-
+            # 把之前的执行时间的时分秒部分省略，只比较日期部分
+            last_run_dt = datetime.datetime.fromisoformat(last_run_dt_str).strftime("%Y-%m-%d 00:00:00")
+            interval_days = datetime.datetime.now() - datetime.datetime.fromisoformat(last_run_dt)
+            # print(interval_days.days)
             if interval_days.days != self.api_task_setup.Recurrence_Day:
                 return False
 
         # 日期正确的前提下验证开始时间和当前的时间间隔小于5分钟
         if date_is_valid:
-            execute_time_obj = datetime.time.fromisoformat(self.api_task_setup.Execute_Time)
+            execute_time_obj = self.api_task_setup.Execute_Time
+            if type(self.api_task_setup.Execute_Time) == str:
+                execute_time_obj = datetime.time.fromisoformat(self.api_task_setup.Execute_Time)
             execute_dt = datetime.datetime(
                 year=datetime.datetime.now().year,
                 month=datetime.datetime.now().month,
@@ -54,11 +59,12 @@ class Task:
             )
             delta = datetime.datetime.now() - execute_dt
             interval_seconds = math.fabs(delta.seconds)
-            # print(execute_dt, delta)
+            # print(execute_dt, datetime.datetime.now())
+            # print(delta.seconds, interval_seconds)
             if interval_seconds/60 > 5:
                 return False
 
-        return date_is_valid
+        return True
 
     # 更新成功执行时间
     def update_execute_time(self):

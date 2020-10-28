@@ -5,7 +5,7 @@ import datetime
 
 
 # 将iso标准格式时间字符串（含时区）转换成当前iso标准时间字符串
-from sqlalchemy import collate, VARCHAR, cast
+from sqlalchemy import collate, VARCHAR, cast, func, literal_column
 from sqlalchemy.dialects.mssql import VARBINARY
 
 
@@ -33,12 +33,10 @@ def true_or_false_to_tinyint(bool_str):
 
 # 用cast函数进行中文的编码和解码
 def cast_chinese_encode(some_str):
-    exp = collate(some_str.encode("utf-8").decode("gbk"), "Chinese_PRC_CI_AS")
-    # exp = collate(some_str.encode("mbcs").decode("mbcs"), "Chinese_PRC_CI_AS")
-    exp = cast(exp, VARCHAR(250))
+    exp = collate(some_str, "Chinese_PRC_CI_AS")
+    exp = func.convert(literal_column('VARCHAR(500)'), exp)
     exp = cast(exp, VARBINARY())
     return exp
-    # return collate(some_str, "Chinese_PRC_CI_AS").cast(VARCHAR(250)).cast(VARBINARY())
 
 
 def cast_chinese_decode(some_str):

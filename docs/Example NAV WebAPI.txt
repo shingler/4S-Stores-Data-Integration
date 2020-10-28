@@ -1,0 +1,30 @@
+DECLARE	@return_value int
+	DECLARE	@responseText varchar(8000)
+	DECLARE @ServiceUrl as varchar(1000)
+	
+	IF ISNULL(@COMPANYNAME,'') = '' 
+	begin
+		RAISERROR('Company name can not be null',11,1) 
+		return
+	end
+	
+	SET @COMPANYNAME = REPLACE(@COMPANYNAME,' ','%20')
+	
+	SET @ServiceUrl = 'http://62.234.26.35:7047/DynamicsNAV/WS/'+@COMPANYNAME+'/Codeunit/DMSWebAPI'
+	
+	EXEC	@return_value = [dbo].[PH_SP_HTTPRequest]
+		--@URI = N'http://junhong-laptop:7047/DynamicsNAV/WS/K202%20Indigo%20Consolidation/Codeunit/Test',
+		@URI = @ServiceUrl,
+		@methodName = N'post',
+		@requestBody = N'<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+		<soap:Body><HandleOtherWithEntryNo xmlns="urn:microsoft-dynamics-schemas/codeunit/DMSWebAPI"><entryNo>6483</entryNo><_CalledBy>0</_CalledBy></HandleOtherWithEntryNo>
+		</soap:Body>
+		</soap:Envelope>',
+		--@requestBody = N'',
+		@SoapAction = N'HandleOtherWithEntryNo',
+		@UserName = N'.\NAVWebUser',
+		@Password = N'Hytc_1qaz@WSX',
+		@responseText = @responseText OUTPUT
+
+	SELECT	@responseText as N'@responseText'
+	SELECT	'Return Value' = @return_value

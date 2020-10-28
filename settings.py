@@ -29,9 +29,6 @@ class Development(Base):
     DATABASE_PORT = 3306
     DATABASE_SUFFIX = "charset=utf8"
     SQLALCHEMY_DATABASE_URI = "mysql+pymysql://root:123456@127.0.0.1:3306/dms_interface?charset=utf8"
-    SQLALCHEMY_BINDS = {
-        'nav': "mysql+pymysql://root:123456@127.0.0.1:3306/nav?charset=utf8"
-    }
 
 
 # mac下的测试环境

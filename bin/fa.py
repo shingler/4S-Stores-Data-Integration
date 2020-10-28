@@ -7,14 +7,13 @@ curPath = os.path.abspath(os.path.dirname(__file__))
 rootPath = os.path.split(curPath)[0]
 sys.path.append(rootPath)
 
-import requests
 from bin import app, db
 from src.dms.fa import FA
 from src.dms.setup import Setup
 from src.models.dms import Company
 
 
-def main(company_code, api_code, retry=False):
+def main(company_code, api_code, retry=False, file_path=None):
     # 读取公司信息，创建业务对象
     company_info = db.session.query(Company).filter(Company.Code == company_code).first()
     fa_obj = FA(company_info.NAV_Company_Code, force_secondary=retry)
@@ -26,7 +25,7 @@ def main(company_code, api_code, retry=False):
 
     # 读取API设置，拿到数据
     api_setup = Setup.load_api_setup(company_code, api_code)
-    xml_src_path, data = fa_obj.load_data(api_setup)
+    xml_src_path, data = fa_obj.load_data(api_setup, file_path=file_path)
 
     # 读取输出设置，保存General
     general_node_dict = Setup.load_api_p_out_nodes(company_code, api_code, node_type="General")
@@ -44,7 +43,12 @@ def main(company_code, api_code, retry=False):
     fa_dict = fa_obj.splice_data_info(data, node_dict=fa_node_dict)
     fa_obj.save_data_to_nav(nav_data=fa_dict, entry_no=entry_no, TABLE_CLASS=fa_obj.TABLE_CLASS)
 
-    # cv_obj.call_web_service()
+    # 读取文件，文件归档
+    fa_obj.archive_xml(xml_src_path, api_setup.Archived_Path)
+
+    # 读取web service
+    fa_obj.call_web_service(entry_no, api_setup=api_setup, user_id=company_info.NAV_WEB_UserID,
+                                     password=company_info.NAV_WEB_Password)
     return entry_no
 
 

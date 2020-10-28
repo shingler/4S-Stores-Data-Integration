@@ -5,7 +5,6 @@ curPath = os.path.abspath(os.path.dirname(__file__))
 rootPath = os.path.split(curPath)[0]
 sys.path.append(rootPath)
 
-import requests
 from bin import app, db
 from src.dms.custVend import CustVend
 from src.dms.setup import Setup
@@ -15,7 +14,8 @@ from src.models.dms import Company
 # @param string company_code 公司代码
 # @param string api_code 执行代码
 # @param bool retry 是否重试。retry=false将按照地址1执行；为true则按照地址2执行。
-def main(company_code, api_code, retry=False):
+# @param string file_path xml的绝对路径
+def main(company_code, api_code, retry=False, file_path=None):
     # 读取公司信息，创建业务对象
     company_info = db.session.query(Company).filter(Company.Code == company_code).first()
     cv_obj = CustVend(company_info.NAV_Company_Code, force_secondary=retry)
@@ -27,7 +27,7 @@ def main(company_code, api_code, retry=False):
 
     # 读取API设置，拿到数据
     api_setup = Setup.load_api_setup(company_code, api_code)
-    xml_src_path, data = cv_obj.load_data(api_setup)
+    xml_src_path, data = cv_obj.load_data(api_setup, file_path=file_path)
 
     # 读取输出设置，保存General
     general_node_dict = Setup.load_api_p_out_nodes(company_code, api_code, node_type="General")
@@ -44,7 +44,12 @@ def main(company_code, api_code, retry=False):
     custVend_dict = cv_obj.splice_data_info(data, node_dict=custVend_node_dict)
     cv_obj.save_data_to_nav(custVend_dict, entry_no=entry_no, TABLE_CLASS=cv_obj.TABLE_CLASS)
 
-    # cv_obj.call_web_service()
+    # 读取文件，文件归档
+    cv_obj.archive_xml(xml_src_path, api_setup.Archived_Path)
+
+    # 读取web service
+    cv_obj.call_web_service(entry_no, api_setup=api_setup, user_id=company_info.NAV_WEB_UserID,
+                                         password=company_info.NAV_WEB_Password)
     return entry_no
 
 

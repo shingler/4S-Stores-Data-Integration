@@ -5,14 +5,13 @@ curPath = os.path.abspath(os.path.dirname(__file__))
 rootPath = os.path.split(curPath)[0]
 sys.path.append(rootPath)
 
-import requests
 from bin import app, db
 from src.dms.other import Other
 from src.dms.setup import Setup
 from src.models.dms import Company
 
 
-def main(company_code, api_code, retry=False):
+def main(company_code, api_code, retry=False, file_path=None):
     # 读取公司信息，创建业务对象
     company_info = db.session.query(Company).filter(Company.Code == company_code).first()
     other_obj = Other(company_info.NAV_Company_Code, force_secondary=retry)
@@ -24,7 +23,7 @@ def main(company_code, api_code, retry=False):
 
     # 读取API设置，拿到数据
     api_setup = Setup.load_api_setup(company_code, api_code)
-    xml_src_path, data = other_obj.load_data(api_setup)
+    xml_src_path, data = other_obj.load_data(api_setup, file_path=file_path)
 
     # 读取输出设置，保存General
     general_node_dict = other_obj.load_api_p_out_nodes(company_code, api_code, node_type="General")
@@ -43,7 +42,12 @@ def main(company_code, api_code, retry=False):
 
     other_obj.save_data_to_nav(nav_data=fa_dict, entry_no=entry_no, TABLE_CLASS=other_obj.TABLE_CLASS)
 
-    # cv_obj.call_web_service()
+    # 读取文件，文件归档
+    other_obj.archive_xml(xml_src_path, api_setup.Archived_Path)
+
+    # 调用web service
+    other_obj.call_web_service(entry_no, api_setup=api_setup, user_id=company_info.NAV_WEB_UserID,
+                                     password=company_info.NAV_WEB_Password)
     return entry_no
 
 

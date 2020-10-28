@@ -1,3 +1,5 @@
+import os
+
 import pytest
 import requests
 
@@ -82,6 +84,14 @@ def test_4_save_Other(init_app):
     assert "SourceNo" in other_dict[0]
     # with pytest.raises():
     other_obj.save_data_to_nav(nav_data=other_dict, entry_no=entry_no, TABLE_CLASS=other_obj.TABLE_CLASS)
+    # 读取文件，文件归档
+    # 环境不同，归档路径不同
+    app, db = init_app
+    if app.config["ENV"] == "Development":
+        global_vars["api_setup"].Archived_Path = "/Users/shingler/PycharmProjects/platform20200916/archive/K302ZH"
+    other_obj.archive_xml(global_vars["path"], global_vars["api_setup"].Archived_Path)
+    assert os.path.exists(global_vars["path"]) == False
+    assert os.path.exists(global_vars["api_setup"].Archived_Path) == True
 
 
 # 检查数据正确性
@@ -96,7 +106,7 @@ def test_5_valid_data(init_app):
 
     # 检查数据正确性
     assert interfaceInfo.DMSCode == "7000320"
-    assert interfaceInfo.Other_Transaction_Total_Count == 1
+    assert interfaceInfo.Other_Transaction_Total_Count > 0
     assert len(lineList) > 0
     assert lineList[0].DocumentNo_ == "XXXXX"
     assert lineList[0].SourceNo == "C0000001"
@@ -104,9 +114,18 @@ def test_5_valid_data(init_app):
 
 
 # 将entry_no作为参数写入指定的ws
-@pytest.mark.skip("等刘总提供ws再测试")
+# @pytest.mark.skip("等刘总提供ws再测试")
 def test_6_invoke_ws(init_app):
-    other_obj.call_web_service()
+    entry_no = global_vars["entry_no"]
+    company_info = other_obj.get_company(company_code)
+    assert company_info is not None
+    api_setup = Setup.load_api_setup(company_code, api_code)
+    assert api_setup is not None
+
+    # result = await cv_obj.call_web_service(entry_no, url=api_setup.CallBack_Address, user_id=company_info.NAV_WEB_UserID, password=company_info.NAV_WEB_Password)
+    result = other_obj.call_web_service(entry_no, api_setup=api_setup, user_id=company_info.NAV_WEB_UserID,
+                                     password=company_info.NAV_WEB_Password)
+    assert result is not None
 
 
 # 清理测试数据

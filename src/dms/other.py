@@ -8,13 +8,20 @@ from src.models import dms, nav
 
 class Other(DMSBase):
     TABLE_CLASS = None
+    WS_METHOD = "HandleOtherWithEntryNo"
+    WS_ACTION = "urn:microsoft-dynamics-schemas/codeunit/DMSWebAPI:HandleOtherWithEntryNo"
+
+    # 数据一级节点
     BIZ_NODE_LV1 = "Daydook"
+    # 数据二级节点
     BIZ_NODE_LV2 = "Line"
+    # 通用字段
     _COMMON_FILED = "DaydookNo"
 
-    def __init__(self, company_name, force_secondary=False):
-        super(__class__, self).__init__(company_name, force_secondary)
-        self.TABLE_CLASS = nav.otherBuffer(company_name)
+
+    def __init__(self, company_nav_code, force_secondary=False):
+        super(__class__, self).__init__(company_nav_code, force_secondary)
+        self.TABLE_CLASS = nav.otherBuffer(company_nav_code)
 
     # 读取出参配置配置
     def load_api_p_out_nodes(self, company_code, api_code, node_type="general", depth=3):
@@ -30,15 +37,21 @@ class Other(DMSBase):
     # 根据节点名处理二级/三级层级数据
     def _splice_field_by_name(self, data, node_dict, node_lv2):
         data_dict_list = self._splice_field(data, node_dict, node_lv0="Transaction",
-                                            node_lv1=self.BIZ_NODE_LV1, node_type="node")
+                                            node_lv1=self.BIZ_NODE_LV1, node_type="list")
         # print(data_dict_list)
-        # 用node的方式装载出来是字典，还需要再处理成有冗余字段的列表
         data_list = []
-        for one in data_dict_list["Line"]:
-            one_dict = {self._COMMON_FILED: data_dict_list[self._COMMON_FILED]}
-            for key, value in one.items():
-                one_dict[key] = value
-            data_list.append(one_dict)
+        # 多DayDook会变成列表，所以改用列表来处理
+        for day_dook in data_dict_list:
+            # 用node的方式装载出来是字典，还需要再处理成有冗余字段的列表
+            lines = day_dook["Line"]
+            # 单节点会被解析成字典，需要转成列表
+            if type(lines) != list:
+                lines = [lines]
+            for one in lines:
+                one_dict = {self._COMMON_FILED: day_dook[self._COMMON_FILED]}
+                for key, value in one.items():
+                    one_dict[key] = value
+                data_list.append(one_dict)
         # print(data_list)
         return data_list
 
@@ -48,7 +61,3 @@ class Other(DMSBase):
         if type(data_dict_list) == "dict":
             data_dict_list = [data_dict_list]
         return data_dict_list
-
-    # 将entry_no作为参数写入指定的ws
-    def call_web_service(self):
-        pass
