@@ -34,7 +34,8 @@ class Task:
         date_is_valid = True
         # 先验证日期是否正确
         last_run_dt_str = self.api_task_setup.Last_Executed_Time
-        if type(last_run_dt_str) == datetime.time:
+
+        if type(last_run_dt_str) == datetime.datetime:
             last_run_dt_str = last_run_dt_str.isoformat()
         if last_run_dt_str != "0000-00-00 00:00:00":
             # 把之前的执行时间的时分秒部分省略，只比较日期部分

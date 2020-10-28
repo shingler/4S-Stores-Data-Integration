@@ -26,7 +26,7 @@ class Handler:
     notify = False
     entry_no = 0
 
-    def __init__(self, task):
+    def __init__(self, task: ApiTaskSetup):
         self.current_task = Task(task)
 
     # 检查这个任务是否可用
