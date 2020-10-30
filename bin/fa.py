@@ -2,6 +2,9 @@
 # -*- coding:utf-8 -*-
 import os
 import sys
+import threading
+
+from src.dms.base import WebServiceHandler
 
 curPath = os.path.abspath(os.path.dirname(__file__))
 rootPath = os.path.split(curPath)[0]
@@ -13,7 +16,7 @@ from src.dms.setup import Setup
 from src.models.dms import Company
 
 
-def main(company_code, api_code, retry=False, file_path=None):
+def main(company_code, api_code, retry=False, file_path=None, async_ws=False):
     # 读取公司信息，创建业务对象
     company_info = db.session.query(Company).filter(Company.Code == company_code).first()
     fa_obj = FA(company_info.NAV_Company_Code, force_secondary=retry)
@@ -47,8 +50,12 @@ def main(company_code, api_code, retry=False, file_path=None):
     fa_obj.archive_xml(xml_src_path, api_setup.Archived_Path)
 
     # 读取web service
-    fa_obj.call_web_service(entry_no, api_setup=api_setup, user_id=company_info.NAV_WEB_UserID,
-                                     password=company_info.NAV_WEB_Password)
+    wsh = WebServiceHandler(api_setup, soap_username=company_info.NAV_WEB_UserID,
+                            soap_password=company_info.NAV_WEB_Password)
+    ws_url = wsh.soapAddress(company_info.NAV_Company_Code)
+    ws_env = WebServiceHandler.soapEnvelope(method_name=fa_obj.WS_METHOD, entry_no=entry_no)
+    wsh.call_web_service(ws_url, ws_env, direction=fa_obj.DIRECT_NAV, async_invoke=async_ws,
+                         soap_action=fa_obj.WS_ACTION)
     return entry_no
 
 

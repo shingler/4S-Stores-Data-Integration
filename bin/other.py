@@ -1,6 +1,10 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
 import sys, os
+import threading
+
+from src.dms.base import WebServiceHandler
+
 curPath = os.path.abspath(os.path.dirname(__file__))
 rootPath = os.path.split(curPath)[0]
 sys.path.append(rootPath)
@@ -11,7 +15,7 @@ from src.dms.setup import Setup
 from src.models.dms import Company
 
 
-def main(company_code, api_code, retry=False, file_path=None):
+def main(company_code, api_code, retry=False, file_path=None, async_ws=False):
     # 读取公司信息，创建业务对象
     company_info = db.session.query(Company).filter(Company.Code == company_code).first()
     other_obj = Other(company_info.NAV_Company_Code, force_secondary=retry)
@@ -45,9 +49,13 @@ def main(company_code, api_code, retry=False, file_path=None):
     # 读取文件，文件归档
     other_obj.archive_xml(xml_src_path, api_setup.Archived_Path)
 
-    # 调用web service
-    other_obj.call_web_service(entry_no, api_setup=api_setup, user_id=company_info.NAV_WEB_UserID,
-                                     password=company_info.NAV_WEB_Password)
+    # 读取web service
+    wsh = WebServiceHandler(api_setup, soap_username=company_info.NAV_WEB_UserID,
+                            soap_password=company_info.NAV_WEB_Password)
+    ws_url = wsh.soapAddress(company_info.NAV_Company_Code)
+    ws_env = WebServiceHandler.soapEnvelope(method_name=other_obj.WS_METHOD, entry_no=entry_no)
+    wsh.call_web_service(ws_url, ws_env, direction=other_obj.DIRECT_NAV, async_invoke=async_ws,
+                         soap_action=other_obj.WS_ACTION)
     return entry_no
 
 

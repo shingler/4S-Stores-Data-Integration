@@ -8,24 +8,20 @@
 import datetime
 import json
 import os
+import threading
 import time
 import urllib
 from collections import OrderedDict
-from operator import indexOf
 from urllib.parse import urlencode
 
 import requests
 import xmltodict
 from requests_ntlm import HttpNtlmAuth
-from sqlalchemy.sql.elements import and_
 
-from src import db, ApiTaskSetup, Company, ApiSetup, ApiPInSetup
+from src import db, Company, ApiSetup, ApiPInSetup
 from src.dms.logger import Logger
 from src.error import DataFieldEmptyError, DataLoadError, DataLoadTimeOutError
-from src.models import dms, nav, to_local_time
-from src.models.log import APILog
-from asyncsuds.client import Client as aClient
-from suds.client import Client
+from src.models import nav, to_local_time
 
 
 class DMSBase:
@@ -213,7 +209,7 @@ class DMSBase:
             FA_Total_Count=0,
             Invoice_Total_Count=0
         )
-        print(self.company_nav_code, interfaceInfo.__bind_key__)
+        # print(self.company_nav_code, interfaceInfo.__bind_key__)
         # 再补充一些默认值
         interfaceInfo.DateTime_Imported = datetime.datetime.now().isoformat(timespec="seconds")
 
@@ -226,13 +222,22 @@ class DMSBase:
         else:
             interfaceInfo.Other_Transaction_Total_Count = Count
 
+        # interfaceInfo.Entry_No_ = interfaceInfo.getLatestEntryNo()
+        # 加线程锁
+        lock = threading.Lock()
+        lock.acquire()
+        time.sleep(0.5)
+        # print("%s已上锁" % threading.current_thread().name)
         interfaceInfo.Entry_No_ = interfaceInfo.getLatestEntryNo()
+        lock.release()
+        # print("%s的锁已释放" % threading.current_thread().name)
 
         db.session.add(interfaceInfo)
         db.session.commit()
         db.session.flush()
         # db.session.query(interfaceInfo.Entry_No_ == interfaceInfo.Entry_No_).first()
         db.session.expire_all()
+
         return interfaceInfo.Entry_No_
 
     # 从api_p_out获取数据
@@ -292,49 +297,16 @@ class DMSBase:
     def get_company(code) -> Company:
         return db.session.query(Company).filter(Company.Code == code).first()
 
-    # 将entry_no作为参数写入指定的ws
-    async def call_web_service_async(self, entry_no, url, user_id, password):
-        if indexOf(url, '%s'):
-            url = url % self.company_nav_code
-        print(url)
-        client = aClient(url, username=user_id, password=password)
-        await client.connect()
-        method = self.WS_METHOD
-        result = await client.method(entry_no, 0)
-        print(result)
-        return result
 
-    # 将entry_no作为参数写入指定的ws
-    def call_web_service(self, entry_no, api_setup, user_id, password):
-        url = api_setup.CallBack_Address
-        if '%s' in url:
-            url = url % urllib.parse.quote(self.company_nav_code)
-        # url = "http://62.234.26.35:7047/DynamicsNAV/WS/K302%20Zhuhai%20JJ/Codeunit/DMSWebAPI"
-
-        # 新插入一条日志
-        logger = self.add_new_api_log_when_start(api_setup, direction=self.DIRECT_NAV)
-        headers = {
-            "Content-Type": "text/xml",
-            "SOAPAction": self.WS_ACTION
-        }
-        postcontent = '<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"><soap:Body><{0} xmlns="urn:microsoft-dynamics-schemas/codeunit/DMSWebAPI"><entryNo>{1}</entryNo><_CalledBy>0</_CalledBy></{0}></soap:Body></soap:Envelope>'.format(self.WS_METHOD, entry_no)
-        print(url, headers)
-        print(postcontent)
-        req = requests.post(url, headers=headers, auth=HttpNtlmAuth(user_id, password),
-                            data=postcontent.encode('utf-8'))
-        # 更新日志
-        if req.status_code == 200:
-            logger.update_api_log_when_finish(status=self.STATUS_FINISH, data=req.text)
-            return True
-        else:
-            logger.update_api_log_when_finish(status=self.STATUS_ERROR, error_msg=req.text)
-            return False
-
-
+# DMS接口访问结果
 class InterfaceResult:
+    # 状态码，可参考DMSBase里的定义
     status = 0
+    # 错误消息，成功则为空
     error_msg = ""
+    # 消息内容，对应xml或json文本
     content = ""
+    # 消息数据，基本上是字典
     data = None
 
     def __init__(self, status, error_msg="", content="", data=None):
@@ -346,3 +318,77 @@ class InterfaceResult:
     def __repr__(self):
         return "<%s> {status=%d, error_msg=%s, length of content=%d}" \
                % (self.__class__, self.status, self.error_msg, len(self.content))
+
+
+import grequests
+
+
+# 把对web service的操作封装起来吧
+class WebServiceHandler:
+    # 认证器
+    auth = None
+    # 接口设置 @see src.models.dms.ApiSetup
+    api_setup = None
+
+    # 构造认证器
+    def __init__(self, api_setup: ApiSetup, soap_username, soap_password):
+        self.api_setup = api_setup
+        self.auth = HttpNtlmAuth(soap_username, soap_password)
+
+    # 将entry_no作为参数写入指定的ws
+    def call_web_service(self, ws_url, envelope, direction, soap_action, async_invoke=False):
+        # 新插入一条日志
+        logger = DMSBase.add_new_api_log_when_start(self.api_setup, direction=direction)
+
+        if async_invoke:
+            req = self.invoke_async(ws_url, soap_action=soap_action, data=envelope)
+        else:
+            req = self.invoke(ws_url, soap_action=soap_action, data=envelope)
+
+        # 更新日志
+        if req.status_code == 200:
+            logger.update_api_log_when_finish(status=DMSBase.STATUS_FINISH, data=req.text)
+            return True
+        else:
+            logger.update_api_log_when_finish(status=DMSBase.STATUS_ERROR, error_msg=req.text)
+            return False
+
+    # 生成soap报文
+    @staticmethod
+    def soapEnvelope(method_name, entry_no):
+        postcontent = '<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"><soap:Body><{0} xmlns="urn:microsoft-dynamics-schemas/codeunit/DMSWebAPI"><entryNo>{1}</entryNo><_CalledBy>0</_CalledBy></{0}></soap:Body></soap:Envelope>'.format(
+            method_name, entry_no)
+        # postcontent = '<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"><soap:Body><HandleCVInfoWithEntryNo xmlns="urn:microsoft-dynamics-schemas/codeunit/DMSWebAPI"><entryNo>6541</entryNo><_CalledBy>0</_CalledBy></HandleCVInfoWithEntryNo></soap:Body></soap:Envelope>'
+        return postcontent
+
+    # 获取动态ws地址
+    # e.g: "http://62.234.26.35:7047/DynamicsNAV/WS/K302%20Zhuhai%20JJ/Codeunit/DMSWebAPI"
+    def soapAddress(self, company_nav_code):
+        url = self.api_setup.CallBack_Address
+        if '%s' in url:
+            url = url % urllib.parse.quote(company_nav_code)
+        return url
+
+    # 执行请求
+    def invoke(self, url, soap_action, data):
+        headers = {
+            "Content-Type": "text/xml",
+            "SOAPAction": soap_action
+        }
+        req = requests.post(url, headers=headers, auth=self.auth, data=data.encode('utf-8'))
+        print(req)
+        return req
+
+    # 将entry_no作为参数写入指定的ws（异步版本）
+    def invoke_async(self, url, soap_action, data):
+        # print("async ver")
+        headers = {
+            "Content-Type": "text/xml",
+            "SOAPAction": soap_action
+        }
+        rs = [grequests.post(url, headers=headers, auth=self.auth, data=data.encode('utf-8'))]
+        res = grequests.map(rs)
+        print(res)
+        if len(res) > 0:
+            return res[0]
+        return None

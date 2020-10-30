@@ -1,17 +1,10 @@
-import asyncio
 import os
-
 import pytest
-import pytest_asyncio
-import requests
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-
 from src import Company
 from src.dms.setup import Setup
 from src.dms.custVend import CustVend
 from src.models import nav
-from src.error import DataFieldEmptyError
+from src.dms.base import WebServiceHandler
 
 company_code = "K302ZH"
 api_code = "CustVendInfo-xml-correct"
@@ -118,7 +111,6 @@ def test_5_valid_data(init_app):
 
 # 将entry_no作为参数写入指定的ws
 # @pytest.mark.skip("先跑通app上下文")
-# @pytest.mark.asyncio
 def test_6_invoke_ws(init_app):
     entry_no = global_vars["entry_no"]
     company_info = cv_obj.get_company(company_code)
@@ -126,8 +118,11 @@ def test_6_invoke_ws(init_app):
     api_setup = Setup.load_api_setup(company_code, api_code)
     assert api_setup is not None
 
-    # result = await cv_obj.call_web_service(entry_no, url=api_setup.CallBack_Address, user_id=company_info.NAV_WEB_UserID, password=company_info.NAV_WEB_Password)
-    result = cv_obj.call_web_service(entry_no, api_setup=api_setup, user_id=company_info.NAV_WEB_UserID, password=company_info.NAV_WEB_Password)
+    # result = cv_obj.call_web_service(entry_no, api_setup=api_setup, user_id=company_info.NAV_WEB_UserID, password=company_info.NAV_WEB_Password)
+    wsh = WebServiceHandler(api_setup, soap_username=company_info.NAV_WEB_UserID, soap_password=company_info.NAV_WEB_Password)
+    ws_url = wsh.soapAddress(company_info.NAV_Company_Code)
+    ws_env = WebServiceHandler.soapEnvelope(method_name=cv_obj.WS_METHOD, entry_no=entry_no)
+    result = wsh.call_web_service(ws_url, ws_env, direction=cv_obj.DIRECT_NAV, soap_action=cv_obj.WS_ACTION)
     assert result is not None
 
 

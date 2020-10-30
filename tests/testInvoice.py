@@ -4,6 +4,7 @@ import pytest
 import requests
 
 from src import Company
+from src.dms.base import WebServiceHandler
 from src.dms.invoice import InvoiceHeader, InvoiceLine
 from src.models import nav
 from src.dms.setup import Setup
@@ -148,9 +149,12 @@ def test_7_invoke_ws(init_app):
     api_setup = Setup.load_api_setup(company_code, api_code)
     assert api_setup is not None
 
-    # result = await cv_obj.call_web_service(entry_no, url=api_setup.CallBack_Address, user_id=company_info.NAV_WEB_UserID, password=company_info.NAV_WEB_Password)
-    result = invoiceHeader_obj.call_web_service(entry_no, api_setup=api_setup, user_id=company_info.NAV_WEB_UserID,
-                                     password=company_info.NAV_WEB_Password)
+    wsh = WebServiceHandler(api_setup, soap_username=company_info.NAV_WEB_UserID,
+                            soap_password=company_info.NAV_WEB_Password)
+    ws_url = wsh.soapAddress(company_info.NAV_Company_Code)
+    ws_env = WebServiceHandler.soapEnvelope(method_name=invoiceHeader_obj.WS_METHOD, entry_no=entry_no)
+    result = wsh.call_web_service(ws_url, ws_env, direction=invoiceHeader_obj.DIRECT_NAV, soap_action=invoiceHeader_obj.WS_ACTION)
+    print(result)
     assert result is not None
 
 
