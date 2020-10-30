@@ -1,8 +1,6 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
 # 测试任务开始
-import datetime
-
 import pytest
 
 from src import ApiTaskSetup
@@ -46,7 +44,4 @@ def test_task_can_run():
     one_task.Last_Executed_Time = "2020-10-21 14:45:42"
     task = Task(one_task)
     assert task.is_valid() == True
-
-
-
 

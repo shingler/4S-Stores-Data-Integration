@@ -1,9 +1,7 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
 import json
-
 from flask import jsonify, request, Response
-import datetime
 from src import create_app
 from bin import cust_vend, fa, invoice, other
 from src import error

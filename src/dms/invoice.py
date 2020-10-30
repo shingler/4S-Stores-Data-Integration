@@ -1,7 +1,6 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
 from collections import OrderedDict
-
 from src.dms.base import DMSBase
 from src.dms.setup import Setup
 from src.models import nav

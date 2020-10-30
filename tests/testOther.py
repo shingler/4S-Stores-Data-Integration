@@ -1,8 +1,5 @@
 import os
-
 import pytest
-import requests
-
 from src import Company
 from src.dms.base import WebServiceHandler
 from src.dms.other import Other

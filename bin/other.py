@@ -1,8 +1,7 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
-import sys, os
-import threading
-
+import os
+import sys
 from src.dms.base import WebServiceHandler
 
 curPath = os.path.abspath(os.path.dirname(__file__))
@@ -15,6 +14,11 @@ from src.dms.setup import Setup
 from src.models.dms import Company
 
 
+# @param string company_code 公司代码
+# @param string api_code 执行代码
+# @param bool retry 是否重试。retry=false将按照地址1执行；为true则按照地址2执行。
+# @param string file_path xml的绝对路径
+# @param bool async_ws 是否异步调用web service
 def main(company_code, api_code, retry=False, file_path=None, async_ws=False):
     # 读取公司信息，创建业务对象
     company_info = db.session.query(Company).filter(Company.Code == company_code).first()

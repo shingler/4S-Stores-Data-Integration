@@ -1,7 +1,8 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
+import json
+import xmltodict
 from flask import Flask, make_response
-import xmltodict, json
 
 app = Flask(__name__)
 

@@ -1,21 +1,17 @@
-import sys, os
+import os
+import sys
+
 curPath = os.path.abspath(os.path.dirname(__file__))
 rootPath = os.path.split(curPath)[0]
 sys.path.append(rootPath)
 
-import datetime
 import random
-
 from bin import cust_vend, fa, invoice, other
 from src import UserList
-from src.dms.custVend import CustVend
 from src.dms.notification import Notification
 from src.dms.task import Task
-from src.error import DataFieldEmptyError, DataLoadError, DataLoadTimeOutError
-from src.models import nav
-from src.models.dms import ApiTaskSetup, NotificationUser, Company
-from src.models.log import NotificationLog, APILog
-from src.dms.base import DMSBase
+from src.error import DataLoadError, DataLoadTimeOutError
+from src.models.dms import ApiTaskSetup, NotificationUser
 
 
 class Handler:

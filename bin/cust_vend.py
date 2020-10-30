@@ -1,8 +1,7 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
-import sys, os
-import threading
-
+import os
+import sys
 from src.dms.base import WebServiceHandler
 
 curPath = os.path.abspath(os.path.dirname(__file__))

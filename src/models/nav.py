@@ -1,9 +1,7 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
 import datetime
-
 from sqlalchemy import func
-from sqlalchemy.orm import foreign, remote
 
 from src import db
 from src.models import true_or_false_to_tinyint, to_local_time, cast_chinese_decode, cast_chinese_encode
@@ -12,13 +10,13 @@ from src.models import true_or_false_to_tinyint, to_local_time, cast_chinese_dec
 ENV = "production"
 
 
+# 设置环境变量
 def set_Env(env):
     globals()["ENV"] = env
 
 
 # 根据公司名动态生成“NAV公司代码$InterfaceInfo”类
 def dmsInterfaceInfo(nav_company_code):
-    print("dmsInterfaceInfo:%s" % nav_company_code)
     __tablename__ = "{0}${1}".format(nav_company_code, "DMSInterfaceInfo")
     __bind_key__ = "{0}-nav".format(nav_company_code)
     __table_args__ = {'extend_existing': True}

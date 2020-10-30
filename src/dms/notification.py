@@ -1,7 +1,6 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
 from sqlalchemy.sql.elements import and_
-
 from src import db
 from src.models.dms import NotificationUser
 from src.models.log import NotificationLog

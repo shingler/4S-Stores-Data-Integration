@@ -2,7 +2,6 @@
 # -*- coding:utf-8 -*-
 from .base import DMSBase
 from src.models import nav
-from src import db
 
 
 class CustVend(DMSBase):

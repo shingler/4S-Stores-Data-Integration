@@ -1,6 +1,5 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
-from src import db
 from src.dms.base import DMSBase
 from src.models import nav
 

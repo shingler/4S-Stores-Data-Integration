@@ -2,8 +2,6 @@
 # -*- coding:utf-8 -*-
 
 import datetime
-
-
 # 将iso标准格式时间字符串（含时区）转换成当前iso标准时间字符串
 from sqlalchemy import collate, VARCHAR, cast, func, literal_column
 from sqlalchemy.dialects.mssql import VARBINARY

@@ -1,19 +1,15 @@
-import datetime
+# 任务运行的测试用例
 import random
-
 import pytest
 
-import bin
 from bin import cust_vend, fa, invoice, other
 from src import UserList
-from src.dms.custVend import CustVend
 from src.dms.notification import Notification
 from src.dms.task import Task
-from src.error import DataFieldEmptyError, DataLoadError, DataLoadTimeOutError
+from src.error import DataLoadError, DataLoadTimeOutError
 from src.models import nav
-from src.models.dms import ApiTaskSetup, NotificationUser, Company
-from src.models.log import NotificationLog, APILog
-from src.dms.base import DMSBase
+from src.models.dms import NotificationUser, Company
+from src.models.log import NotificationLog
 
 
 runner = None

@@ -1,12 +1,10 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
-import base64
 import pytest
 import requests
-from suds.client import Client
 from requests_ntlm import HttpNtlmAuth
 from src import ApiSetup
-from src.dms.base import WebServiceHandler, DMSBase
+from src.dms.base import WebServiceHandler
 
 
 @pytest.mark.skip("同步好使，测测异步")
@@ -25,16 +23,6 @@ def test_InvokeWebservice_via_request():
     print(req, req.text)
 
 
-@pytest.mark.skip("不测suds了")
-def test_sudspy3_via_qq():
-    url = 'http://www.webxml.com.cn/webservices/qqOnlineWebService.asmx?wsdl'
-    client = Client(url)
-    print(client)
-    result = client.service.qqCheckOnline("49273395")
-
-    print("QQ在线结果为：" + result)
-
-
 def test_ws_via_request(init_app):
     username = "NAVWebUser"
     password = "Hytc_1qaz@WSX"
@@ -43,7 +31,7 @@ def test_ws_via_request(init_app):
     wsh = WebServiceHandler(api_setup, soap_username=username, soap_password=password)
     ws_url = wsh.soapAddress("K302%20Zhuhai%20JJ")
     ws_env = WebServiceHandler.soapEnvelope(method_name="HandleOtherWithEntryNo", entry_no=6594)
-    # result = wsh.call_web_service(ws_url, ws_env, direction=DMSBase.DIRECT_NAV, soap_action="urn:microsoft-dynamics-schemas/codeunit/DMSWebAPI:HandleCVInfoWithEntryNo", need_async=True)
+
     result = wsh.invoke_async(ws_url, soap_action, data=ws_env)
     print(result, result.status_code)
     assert result is not None
