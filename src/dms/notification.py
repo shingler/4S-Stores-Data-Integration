@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
+from sqlalchemy.exc import InvalidRequestError
 from sqlalchemy.sql.elements import and_
 from src import db
 from src.models.dms import NotificationUser
@@ -40,7 +41,12 @@ class Notification:
 
     # 获取smtp设置
     def _get_smtp_setup(self):
-        conf = db.session.query(SystemSetup).first()
+        conf = None
+        try:
+            conf = db.session.query(SystemSetup).first()
+            db.session.commit()
+        except InvalidRequestError:
+            db.session.rollback()
         return conf
 
     # 发送邮件
@@ -57,14 +63,19 @@ class Notification:
 
     # 写入发送日志
     def save_notification_log(self, to_address, email_title, email_content):
-        log = NotificationLog(
-            Company_Code=self.company_code,
-            API_Code=self.api_code,
-            Recipients=to_address,
-            Email_Title=email_title,
-            Email_Content=email_content
-        )
-        db.session.add(log)
-        db.session.flush()
-        db.session.commit()
-        return log.ID
+        log_id = 0
+        try:
+            log = NotificationLog(
+                Company_Code=self.company_code,
+                API_Code=self.api_code,
+                Recipients=to_address,
+                Email_Title=email_title,
+                Email_Content=email_content
+            )
+            db.session.add(log)
+            db.session.flush()
+            db.session.commit()
+            log_id = log.ID
+        except InvalidRequestError:
+            db.session.rollback()
+        return log_id

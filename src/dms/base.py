@@ -17,6 +17,7 @@ from urllib.parse import urlencode
 import requests
 import xmltodict
 from requests_ntlm import HttpNtlmAuth
+from sqlalchemy.exc import InvalidRequestError
 
 from src import db, Company, ApiSetup, ApiPInSetup
 from src.dms.logger import Logger
@@ -250,15 +251,16 @@ class DMSBase:
             nav_data = [nav_data]
 
         for row in nav_data:
-            other_obj = TABLE_CLASS(Entry_No_=entry_no)
-            other_obj.Record_ID = other_obj.getLatestRecordId()
-            for key, value in row.items():
-                # 自动赋值
-                other_obj.__setattr__(key, value)
-            db.session.add(other_obj)
-        # 更新一下中文
-
-        db.session.commit()
+            try:
+                other_obj = TABLE_CLASS(Entry_No_=entry_no)
+                other_obj.Record_ID = other_obj.getLatestRecordId()
+                for key, value in row.items():
+                    # 自动赋值
+                    other_obj.__setattr__(key, value)
+                db.session.add(other_obj)
+                db.session.commit()
+            except InvalidRequestError:
+                db.session.rollback()
 
     # xml文件归档
     # @param string xml_path xml源文件路径（完整路径）
