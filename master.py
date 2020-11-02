@@ -1,6 +1,9 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
 # 定时任务调度器
+from gevent import monkey
+monkey.patch_all()
+
 import threading
 import time
 
@@ -31,9 +34,6 @@ def do(one_task: ApiTaskSetup):
 
 
 if __name__ == '__main__':
-    from gevent import monkey
-    monkey.patch_all()
-
     task_list = Task.load_tasks()
     for one_task in task_list:
         threading_name = "%s-%s(%s)" % (one_task.Company_Code, one_task.API_Code, one_task.Sequence)
