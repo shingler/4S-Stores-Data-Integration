@@ -60,11 +60,21 @@ class Handler:
             if not self.retry and self.current_task.api_task_setup.Fail_Handle == 1:
                 # 第一次执行失败了，且不重试
                 print("Fail Handle设置为1，不继续执行")
+                self.retry = False
+                self.notify = False
+                return False
+            elif not self.retry and self.current_task.api_task_setup.Fail_Handle == 4:
+                # 第一次执行失败了，且不重试
+                print("Fail Handle设置为4，将发送提醒但不继续执行")
+                self.notify = True
+                self.retry = False
+                self.load_error = ex
                 return False
             elif not self.retry:
                 # 仍然是第一次执行，失败将重试
                 print("Fail Handle设置不为1，将重试")
                 self.retry = True
+                self.notify = False
                 self.run_task()
 
             # retry=True，表示这是第二次执行了
@@ -109,7 +119,8 @@ class Handler:
 
 if __name__ == '__main__':
     task_list = Task.load_tasks()
-    one_task = random.choice(task_list)
+    # one_task = random.choice(task_list)
+    one_task = task_list[9]
     handler = Handler(one_task)
     # if not handler.check_task():
     if handler.check_task():

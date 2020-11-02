@@ -23,7 +23,7 @@ def do(one_task: ApiTaskSetup):
         print("任务<%s, %s>开始执行" % (one_task.Company_Code, one_task.API_Code))
         res = handler.run_task()
         if not res and handler.notify:
-            print("任务重试后依然失败，根据设置将发送电子邮件")
+            print("任务执行失败，根据设置将发送电子邮件")
             handler.send_notification()
         elif not res and handler.retry:
             print("任务执行失败，重试后依然失败")
