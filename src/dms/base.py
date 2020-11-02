@@ -21,7 +21,7 @@ from sqlalchemy.exc import InvalidRequestError
 
 from src import db, Company, ApiSetup, ApiPInSetup
 from src.dms.logger import Logger
-from src.error import DataFieldEmptyError, DataLoadError, DataLoadTimeOutError
+from src.error import DataFieldEmptyError, DataLoadError, DataLoadTimeOutError, DataImportRepeatError
 from src.models import nav, to_local_time
 
 
@@ -32,6 +32,9 @@ class DMSBase:
     GENERAL_CLASS = None
     # 强制启用备用地址
     force_secondary = False
+    # 是否检查重复导入
+    check_repeat = True
+
     # NAV的WebService方法名
     WS_METHOD = ""
     # NAV的WebService的SOAPAction
@@ -47,6 +50,8 @@ class DMSBase:
     STATUS_PENDING = 1
     # 状态：完成
     STATUS_FINISH = 2
+    # 状态：重复导入
+    STATUS_REPEAT = 7
     # 状态：超时
     STATUS_TIMEOUT = 8
     # 状态：错误
@@ -62,9 +67,10 @@ class DMSBase:
     # 接口类型：文件
     TYPE_FILE = 2
 
-    def __init__(self, company_nav_code, force_secondary=False):
+    def __init__(self, company_nav_code, force_secondary=False, check_repeat=True):
         self.company_nav_code = company_nav_code
         self.force_secondary = force_secondary
+        self.check_repeat = check_repeat
         self.GENERAL_CLASS = nav.dmsInterfaceInfo(company_nav_code)
 
     # 拼接xml文件路径
@@ -98,6 +104,11 @@ class DMSBase:
     # @param string format 数据解析格式（JSON | XML）
     # @param int time_out 超时时间，单位为秒。为0表示不判断超时
     def _load_data_from_file(self, path, format="xml", time_out=0):
+        # 重复性检查
+        repeated = db.session.query(self.GENERAL_CLASS).filter(self.GENERAL_CLASS.XMLFileName == path).all()
+        if self.check_repeat and len(repeated) > 0:
+            error_msg = "请不要重复导入xml文件: %s" % path
+            return InterfaceResult(status=self.STATUS_REPEAT, error_msg=error_msg)
         if not os.path.exists(path):
             error_msg = "找不到xml文件：%s" % path
             return InterfaceResult(status=self.STATUS_ERROR, error_msg=error_msg)
@@ -144,6 +155,10 @@ class DMSBase:
             # 记录错误日志并抛出异常
             logger.update_api_log_when_finish(status=self.STATUS_ERROR, error_msg=res.error_msg)
             raise DataLoadTimeOutError(res.error_msg)
+        elif res.status == self.STATUS_REPEAT:
+            # 记录错误日志并抛出异常
+            logger.update_api_log_when_finish(status=self.STATUS_ERROR, error_msg=res.error_msg)
+            raise DataImportRepeatError(res.error_msg)
         else:
             # 处理成功，更新日志
             logger.update_api_log_when_finish(data=str(res.content), status=self.STATUS_FINISH)

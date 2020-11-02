@@ -16,3 +16,7 @@ class DataLoadError(Exception):
 
 class DataLoadTimeOutError(Exception):
     pass
+
+
+class DataImportRepeatError(Exception):
+    pass

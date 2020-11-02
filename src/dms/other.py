@@ -17,8 +17,8 @@ class Other(DMSBase):
     # 通用字段
     _COMMON_FILED = "DaydookNo"
 
-    def __init__(self, company_nav_code, force_secondary=False):
-        super(__class__, self).__init__(company_nav_code, force_secondary)
+    def __init__(self, company_nav_code, force_secondary=False, check_repeat=True):
+        super(__class__, self).__init__(company_nav_code, force_secondary, check_repeat)
         self.TABLE_CLASS = nav.otherBuffer(company_nav_code)
 
     # 读取出参配置配置

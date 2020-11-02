@@ -10,8 +10,8 @@ class FA(DMSBase):
     WS_METHOD = "HandleFAWithEntryNo"
     WS_ACTION = "urn:microsoft-dynamics-schemas/codeunit/DMSWebAPI:HandleFAWithEntryNo"
 
-    def __init__(self, company_nav_code, force_secondary=False):
-        super(__class__, self).__init__(company_nav_code, force_secondary)
+    def __init__(self, company_nav_code, force_secondary=False, check_repeat=True):
+        super(__class__, self).__init__(company_nav_code, force_secondary, check_repeat)
         self.TABLE_CLASS = nav.faBuffer(company_nav_code)
 
     # 从api_p_out获取数据

@@ -8,6 +8,7 @@ from src.dms.setup import Setup
 
 company_code = "K302ZH"
 api_code = "Invoice-xml-correct"
+check_repeat = False
 global_vars = {}
 invoiceHeader_obj = None
 invoiceLine_obj = None
@@ -19,8 +20,8 @@ def test_1_dms_source(init_app):
     app, db = init_app
     company_info = db.session.query(Company).filter(Company.Code == company_code).first()
     assert company_info is not None
-    globals()["invoiceHeader_obj"] = InvoiceHeader(company_info.NAV_Company_Code)
-    globals()["invoiceLine_obj"] = InvoiceLine(company_info.NAV_Company_Code)
+    globals()["invoiceHeader_obj"] = InvoiceHeader(company_info.NAV_Company_Code, check_repeat=check_repeat)
+    globals()["invoiceLine_obj"] = InvoiceLine(company_info.NAV_Company_Code, check_repeat=check_repeat)
 
     # 修改bind
     conn_str = company_info.get_nav_connection_string(app.config)
