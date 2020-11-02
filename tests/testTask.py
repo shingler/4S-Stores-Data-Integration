@@ -6,7 +6,7 @@ from bin import cust_vend, fa, invoice, other
 from src import UserList
 from src.dms.notification import Notification
 from src.dms.task import Task
-from src.error import DataLoadError, DataLoadTimeOutError
+from src.error import DataLoadError, DataLoadTimeOutError, DataImportRepeatError
 from src.models import nav
 from src.models.dms import NotificationUser, Company
 from src.models.log import NotificationLog
@@ -24,7 +24,7 @@ global_vars = {
 def test_1_load_task(init_app):
     task_list = Task.load_tasks()
     # one_task = random.choice(task_list)
-    one_task = task_list[9]
+    one_task = task_list[3]
     assert one_task.Company_Code != ""
     assert one_task.API_Code != ""
     assert type(one_task.Fail_Handle) == int
@@ -138,6 +138,14 @@ def test_4_send_notification(init_app):
                 elif isinstance(load_error, DataLoadTimeOutError):
                     email_title, email_content = notify_obj.get_notification_content(
                         type=notify_obj.TYPE_TIMEOUT, error_msg=str(load_error)
+                    )
+                elif isinstance(load_error, DataImportRepeatError):
+                    email_title, email_content = notify_obj.get_notification_content(
+                        type=notify_obj.TYPE_REPEAT, error_msg=str(load_error)
+                    )
+                elif isinstance(load_error, Exception):
+                    email_title, email_content = notify_obj.get_notification_content(
+                        type=notify_obj.TYPE_OTHER, error_msg=str(load_error)
                     )
                 assert email_content != ""
                 result = notify_obj.send_mail(r.Email_Address, email_title, email_content)

@@ -10,7 +10,7 @@ from bin import cust_vend, fa, invoice, other
 from src import UserList
 from src.dms.notification import Notification
 from src.dms.task import Task
-from src.error import DataLoadError, DataLoadTimeOutError
+from src.error import DataLoadError, DataLoadTimeOutError, DataImportRepeatError
 from src.models.dms import ApiTaskSetup, NotificationUser
 
 
@@ -106,6 +106,14 @@ class Handler:
                     elif isinstance(self.load_error, DataLoadTimeOutError):
                         email_title, email_content = notify_obj.get_notification_content(
                             type=notify_obj.TYPE_TIMEOUT, error_msg=str(self.load_error)
+                        )
+                    elif isinstance(self.load_error, DataImportRepeatError):
+                        email_title, email_content = notify_obj.get_notification_content(
+                            type=notify_obj.TYPE_REPEAT, error_msg=str(self.load_error)
+                        )
+                    elif isinstance(self.load_error, Exception):
+                        email_title, email_content = notify_obj.get_notification_content(
+                            type=notify_obj.TYPE_OTHER, error_msg=str(self.load_error)
                         )
                     assert email_content != ""
                     result = notify_obj.send_mail(r.Email_Address, email_title, email_content)

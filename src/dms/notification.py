@@ -16,6 +16,8 @@ class Notification:
 
     TYPE_ERROR = 1
     TYPE_TIMEOUT = 2
+    TYPE_REPEAT = 3
+    TYPE_OTHER = 9
 
     def __init__(self, company_code, api_code):
         self.company_code = company_code
@@ -32,11 +34,14 @@ class Notification:
 
     # 获取提醒邮件内容
     def get_notification_content(self, type=TYPE_ERROR, error_msg=None):
-        type_label = ""
+        type_label = "报错"
         if type == self.TYPE_ERROR:
-            type_label = "报错"
+            type_label = "读取错误"
         elif type == self.TYPE_TIMEOUT:
-            type_label = "超时"
+            type_label = "读取超时"
+        elif type == self.TYPE_REPEAT:
+            type_label = "重复导入"
+
         return "一封{0}邮件".format(type_label), "这是一封{0}邮件，错误信息为：{1}".format(type_label, error_msg)
 
     # 获取smtp设置
