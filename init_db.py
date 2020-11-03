@@ -74,7 +74,7 @@ def test_data_for_task():
             Task_Name="Other-xml-correct",
             API_Code="Other-xml-correct",
             Execute_Time=datetime.time.fromisoformat("10:00:00.000"),
-            Fail_Handle=3,
+            Fail_Handle=4,
             Last_Modified_DT=datetime.datetime.now().isoformat(timespec="milliseconds"),
             Last_Modified_By="",
             Recurrence_Day=1,
