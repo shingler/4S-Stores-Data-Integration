@@ -8,7 +8,7 @@ from src.dms.setup import Setup
 
 company_code = "K302ZH"
 api_code = "Other-xml-correct"
-check_repeat = True
+check_repeat = False
 global_vars = {}
 other_obj = None
 
@@ -58,10 +58,11 @@ def test_3_save_interface(init_app):
     assert len(general_dict) > 0
     assert "DMSCode" in general_dict
 
+    count = other_obj.get_count_from_data(data["Transaction"], "Daydook")
+    global_vars["count"] = count
+
     entry_no = other_obj.save_data_to_interfaceinfo(
-        general_data=general_dict,
-        Type=3,
-        Count=other_obj.get_count_from_data(data["Transaction"], "Daydook"),
+        general_data=general_dict, Type=3, Count=count,
         XMLFile=global_vars["path"] if global_vars["path"] else "")
     assert entry_no != 0
 
@@ -105,8 +106,8 @@ def test_5_valid_data(init_app):
 
     # 检查数据正确性
     assert interfaceInfo.DMSCode == "7000320"
-    assert interfaceInfo.Other_Transaction_Total_Count > 0
-    assert len(lineList) > 0
+    assert interfaceInfo.Other_Transaction_Total_Count == global_vars["count"]
+    assert len(lineList) == global_vars["count"]
     assert lineList[0].DocumentNo_ == "XXXXX"
     assert lineList[0].SourceNo == "C0000001"
     assert lineList[1].SourceNo == "BNK_320_11_00003"

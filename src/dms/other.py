@@ -1,5 +1,7 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
+from collections import OrderedDict
+
 from src.dms.base import DMSBase
 from src.dms.setup import Setup
 from src.models import nav
@@ -59,3 +61,18 @@ class Other(DMSBase):
         if type(data_dict_list) == "dict":
             data_dict_list = [data_dict_list]
         return data_dict_list
+
+    # 获取指定节点的数量（xml可以节点同名。在json这里，则判断节点是否是数组。是，则返回长度；非，则返回1。
+    def get_count_from_data(self, data, node_name="Daydook") -> int:
+        if node_name not in data:
+            return 0
+        if type(data[node_name]) == OrderedDict:
+            return 1
+        count = 0
+        # other不看daydook
+        for dd in data[node_name]:
+            if type(dd["Line"]) == list:
+                count += len(dd)
+            else:
+                count += 1
+        return count

@@ -59,10 +59,10 @@ def test_3_save_interface(init_app):
     assert len(general_dict) > 0
     assert "DMSCode" in general_dict
 
+    count = fa_obj.get_count_from_data(data["Transaction"], "FA")
+    global_vars["count"] = count
     entry_no = fa_obj.save_data_to_interfaceinfo(
-        general_data=general_dict,
-        Type=1,
-        Count=fa_obj.get_count_from_data(data["Transaction"], "FA"),
+        general_data=general_dict, Type=1, Count=count,
         XMLFile=global_vars["path"] if global_vars["path"] else "")
     assert entry_no != 0
 
@@ -104,8 +104,8 @@ def test_5_valid_data(init_app):
 
     # 检查数据正确性
     assert interfaceInfo.DMSCode == "28976"
-    assert interfaceInfo.FA_Total_Count > 0
-    assert len(faList) > 0
+    assert interfaceInfo.FA_Total_Count == global_vars["count"]
+    assert len(faList) == global_vars["count"]
     assert faList[0].FANo_ == "FA0001"
 
 

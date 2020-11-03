@@ -60,10 +60,10 @@ def test_3_save_interface(init_app):
     assert len(general_dict) > 0
     assert "DMSCode" in general_dict
 
+    count = invoiceHeader_obj.get_count_from_data(data["Transaction"], "Invoice")
+    global_vars["count"] = count
     entry_no = invoiceHeader_obj.save_data_to_interfaceinfo(
-        general_data=general_dict,
-        Type=2,
-        Count=invoiceHeader_obj.get_count_from_data(data["Transaction"], "Invoice"),
+        general_data=general_dict, Type=2, Count=count,
         XMLFile=global_vars["path"] if global_vars["path"] else "")
     assert entry_no != 0
 
@@ -122,20 +122,20 @@ def test_6_valid_data(init_app):
 
     interfaceInfoClass = invoiceHeader_obj.GENERAL_CLASS
     interfaceInfo = db.session.query(interfaceInfoClass).filter(interfaceInfoClass.Entry_No_ == entry_no).first()
-    headerInfo = db.session.query(invoiceHeader_obj.TABLE_CLASS).filter(invoiceHeader_obj.TABLE_CLASS.Entry_No_ == entry_no).first()
+    headerList = db.session.query(invoiceHeader_obj.TABLE_CLASS).filter(invoiceHeader_obj.TABLE_CLASS.Entry_No_ == entry_no).all()
     lineList = db.session.query(invoiceLine_obj.TABLE_CLASS).filter(invoiceLine_obj.TABLE_CLASS.Entry_No_ == entry_no).all()
 
     # 检查数据正确性
     assert interfaceInfo.DMSCode == "7000320"
-    assert interfaceInfo.Invoice_Total_Count > 0
-    assert headerInfo.InvoiceNo == "1183569670"
-    assert len(lineList) > 0
+    assert interfaceInfo.Invoice_Total_Count == global_vars["count"]
+    assert headerList[0].InvoiceNo == "1183569670"
+    assert len(headerList) == global_vars["count"]
     assert lineList[0].GLAccount == "6001040101"
     assert lineList[0].VIN == "WP1AB2920FLA58047"
-    assert lineList[0].InvoiceNo == headerInfo.InvoiceNo
+    assert lineList[0].InvoiceNo == headerList[0].InvoiceNo
     assert lineList[1].GLAccount == "6001030104"
     assert lineList[1].VIN == "WP1AB2920FLA58047"
-    assert lineList[1].InvoiceNo == headerInfo.InvoiceNo
+    assert lineList[1].InvoiceNo == headerList[0].InvoiceNo
 
 
 # 将entry_no作为参数写入指定的ws
