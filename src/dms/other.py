@@ -66,13 +66,26 @@ class Other(DMSBase):
     def get_count_from_data(self, data, node_name="Daydook") -> int:
         if node_name not in data:
             return 0
-        if type(data[node_name]) == OrderedDict:
-            return 1
+        # if type(data[node_name]) == OrderedDict:
+        #     return 1
         count = 0
         # other不看daydook
-        for dd in data[node_name]:
-            if type(dd["Line"]) == list:
+        if type(data[node_name]) == list:
+            # daydook有多个
+            for dd in data[node_name]:
+                # daydook里有多行
+                if type(dd["Line"]) == list:
+                    count += len(dd)
+                else:
+                    # daydook只有一行
+                    count += 1
+        else:
+            # 只有一个daydook
+            dd = data[node_name]["Line"]
+            # daydook里有多行
+            if type(dd) == list:
                 count += len(dd)
             else:
+                # daydook只有一行
                 count += 1
         return count

@@ -58,15 +58,16 @@ def dmsInterfaceInfo(nav_company_code):
     # FA记录数, 对应FA文件或接口
     FA_Total_Count = db.Column("FA Total Count", db.Integer, nullable=False, comment="FA记录数, 对应FA文件或接口")
 
+    # 需要转换中文编码的字段
+    convert_chn_fields = ["DMSTitle", "CompanyTitle", "Creator"]
+
     def __repr__(self):
         return "EntryNo = %s: <DMSCode: %s, CompanyCode: %s>" % \
                (self.Entry_No_, self.DMSCode, self.CompanyCode)
 
     def __setattr__(self, key, value):
-        if key == "DMSTitle" and globals()["ENV"] != "Development":
-            self.__dict__["DMSTitle"] = cast_chinese_encode(value)
-        elif key == "CompanyTitle" and globals()["ENV"] != "Development":
-            self.__dict__["CompanyTitle"] = cast_chinese_encode(value)
+        if key in convert_chn_fields and globals()["ENV"] != "Development":
+            self.__dict__[key] = cast_chinese_encode(value)
         else:
             self.__dict__[key] = value
 
@@ -99,6 +100,7 @@ def dmsInterfaceInfo(nav_company_code):
         "Type": Type,
         "Other_Transaction_Total_Count": Other_Transaction_Total_Count,
         "FA_Total_Count": FA_Total_Count,
+        "convert_chn_fields": convert_chn_fields,
         "__repr__": __repr__,
         "__setattr__": __setattr__,
         "getLatestEntryNo": getLatestEntryNo
@@ -116,6 +118,19 @@ def custVendBuffer(nav_company_code):
     # 因为Entry_No_是外键，需要引用，所以提前定义好
     Entry_No_ = db.Column("Entry No_", db.Integer, nullable=False)
 
+    # 需要转换名称的字段
+    convert_name_fields = {
+        "No": "No_",
+        "Postcode": "Post_Code",
+        "ApplicationMethod": "Application_Method",
+        "Address2": "Address_2",
+        "CostCenterCode": "Cost_Center_Code",
+
+    }
+    # 需要转中文编码的字段
+    convert_chn_fields = ["Name", "Address", "City", "Country", "Application_Method",
+                          "PaymentTermsCode", "Address_2", "Email", "Cost_Center_Code", "ICPartnerCode"]
+
     # 字符串方法
     def __repr__(self):
         return "[Record ID]=%d: <'Type': '%s', 'No': '%s', 'Name': '%s', [Entry No_]: '%s'>" \
@@ -123,16 +138,13 @@ def custVendBuffer(nav_company_code):
 
     # 来源字段和对象字段不一致的特殊情况
     def __setattr__(self, key, value):
-        if key == "No":
-            self.__dict__["No_"] = value
-        elif key == "Postcode":
-            self.__dict__["Post_Code"] = value
-        elif key == "ApplicationMethod":
-            self.__dict__["Application_Method"] = value
-        elif key == "Address2":
-            self.__dict__["Address_2"] = value
-        elif key == "CostCenterCode":
-            self.__dict__["Cost_Center_Code"] = value
+        if key in convert_name_fields:
+            # 先转换字段名
+            key = convert_name_fields[key]
+
+        if key in convert_chn_fields and globals()["ENV"] != "Development":
+            # 字段名是否需要转码
+            self.__dict__[key] = cast_chinese_encode(value)
         elif key == "Type" and value == "Customer":
             self.__dict__["Type"] = 0
         elif key == "Type" and value == "Vendor":
@@ -141,10 +153,6 @@ def custVendBuffer(nav_company_code):
             self.__dict__["Type"] = 2
         elif key == "PricesIncludingVAT":
             self.__dict__["PricesIncludingVAT"] = true_or_false_to_tinyint(value)
-        elif key == "Name" and globals()["ENV"] != "Development":
-            self.__dict__["Name"] = cast_chinese_encode(value)
-        elif key == "City" and globals()["ENV"] != "Development":
-            self.__dict__["City"] = cast_chinese_encode(value)
         else:
             self.__dict__[key] = value
 
@@ -189,6 +197,8 @@ def custVendBuffer(nav_company_code):
         "Cost_Center_Code": db.Column("Cost Center Code", db.String(20), nullable=False, default=''),
         "ICPartnerCode": db.Column(db.String(50), nullable=False, default=''),
         # "entry": db.relationship("InterfaceInfo", primaryjoin=foreign(Entry_No_) == remote(InterfaceInfo.Entry_No_)),
+        "convert_chn_fields": convert_chn_fields,
+        "convert_name_fields": convert_name_fields,
         "__repr__": __repr__,
         "__setattr__": __setattr__,
         "getLatestRecordId": getLatestRecordId
@@ -240,14 +250,27 @@ def faBuffer(nav_company_code):
                                          nullable=False)
     CostCenterCode = db.Column(db.String(20), default='', nullable=False)
 
+    # 需要转换名称的字段
+    convert_name_fields = {
+        "FANo": "FANo_",
+    }
+    # 需要转中文编码的字段
+    convert_chn_fields = ["Description", "SerialNo", "FAClassCode", "FASubclassCode", "FALocationCode",
+                          "CostCenterCode"]
+
     # entry = db.relationship("InterfaceInfo",
     #                         primaryjoin=foreign(Entry_No_) == remote(InterfaceInfo.Entry_No_))
 
     # 来源字段和对象字段不一致的特殊情况
     def __setattr__(self, key, value):
         # print(globals()["ENV"])
-        if key == "FANo":
-            self.__dict__["FANo_"] = value
+        if key in convert_name_fields:
+            # 需要先转成数据库的字段
+            key = convert_name_fields[key]
+
+        if key in convert_chn_fields and globals()["ENV"] != "Development":
+            # 检查字段是否转码
+            self.__dict__[key] = cast_chinese_encode(value)
         elif key == "Inactive":
             self.__dict__["Inactive"] = true_or_false_to_tinyint(value)
         elif key == "Blocked":
@@ -256,8 +279,6 @@ def faBuffer(nav_company_code):
             self.__dict__["BudgetedAsset"] = true_or_false_to_tinyint(value)
         elif key == "UnderMaintenance":
             self.__dict__["UnderMaintenance"] = true_or_false_to_tinyint(value)
-        elif key == "Description" and globals()["ENV"] != "Development":
-            self.__dict__["Description"] = cast_chinese_encode(value)
         else:
             self.__dict__[key] = value
 
@@ -302,6 +323,8 @@ def faBuffer(nav_company_code):
         "DepreciationPeriod": DepreciationPeriod,
         "DepreciationStartingDate": DepreciationStartingDate,
         "CostCenterCode": CostCenterCode,
+        "convert_chn_fields": convert_chn_fields,
+        "convert_name_fields": convert_name_fields,
         # "entry": entry,
         "__setattr__": __setattr__,
         "get_chinese_data": get_chinese_data,
@@ -352,16 +375,25 @@ def invoiceHeaderBuffer(nav_company_code):
     # entry = db.relationship("InterfaceInfo",
     #                         primaryjoin=foreign(Entry_No_) == remote(InterfaceInfo.Entry_No_))
 
+    # 需要把xml属性名改成数据库字段名
+    convert_name_fields = {
+        "No": "No_",
+        "PostingDate": "Posting_Date",
+        "DocumentDate": "Document_Date",
+        "DueDate": "Due_Date"
+    }
+    # 需要中文转码的字段名
+    convert_chn_fields = ["CostCenterCode", "VehicleSeries", "ExtDocumentNo", "Description"]
+
     # 来源字段和对象字段不一致的特殊情况
     def __setattr__(self, key, value):
-        if key == "No":
-            self.__dict__["No_"] = value
-        elif key == "PostingDate":
-            self.__dict__["Posting_Date"] = value
-        elif key == "DocumentDate":
-            self.__dict__["Document_Date"] = value
-        elif key == "DueDate":
-            self.__dict__["Due_Date"] = value
+        # 把xml属性名改成数据库字段名
+        if key in convert_name_fields:
+            key = convert_name_fields[key]
+
+        if key in convert_chn_fields and globals()["ENV"] != "Development":
+            # 中文转码的字段
+            self.__dict__[key] = cast_chinese_encode(value)
         elif key == "PriceIncludeVAT":
             self.__dict__["PriceIncludeVAT"] = true_or_false_to_tinyint(value)
         else:
@@ -397,6 +429,8 @@ def invoiceHeaderBuffer(nav_company_code):
         "PriceIncludeVAT": PriceIncludeVAT,
         "Description": Description,
         "Location": Location,
+        "convert_chn_fields": convert_chn_fields,
+        "convert_name_fields": convert_name_fields,
         # "entry": entry,
         "__setattr__": __setattr__,
         "getLatestRecordId": getLatestRecordId
@@ -454,26 +488,29 @@ def invoiceLineBuffer(nav_company_code):
     # invoiceHeader = db.relationship("InvoiceHeaderBuffer",
     #                                 primaryjoin=foreign(InvoiceNo) == remote(invoiceHeaderModelClass.InvoiceNo))
 
+    # xml属性改名转成数据库表字段
+    convert_name_fields = {
+        "LineNo": "Line_No_",
+        "VINNo": "VIN",
+        "QTY": "Quantity",
+        "LineAmount": "Line_Amount",
+        "LineDiscountAmount": "Line_Discount_Amount",
+        "WIPNo": "WIP_No_",
+        "LineVATAmount": "Line_VAT_Amount",
+        "LineVATRate": "Line_VAT_Rate"
+    }
+    # 需要转码的字段
+    convert_chn_fields = ["Description", "CostCenterCode", "VehicleSeries", "VIN", "WIP_No_",
+                          "FromCompanyName", "ToCompanyName"]
+
     # 来源字段和对象字段不一致的特殊情况
     def __setattr__(self, key, value):
-        if key == "LineNo":
-            self.__dict__["Line_No_"] = value
-        elif key == "VINNo":
-            self.__dict__["VIN"] = value
-        elif key == "QTY":
-            self.__dict__["Quantity"] = value
-        elif key == "LineAmount":
-            self.__dict__["Line_Amount"] = value
-        elif key == "LineDiscountAmount":
-            self.__dict__["Line_Discount_Amount"] = value
-        elif key == "WIPNo":
-            self.__dict__["WIP_No_"] = value
-        elif key == "LineVATAmount":
-            self.__dict__["Line_VAT_Amount"] = value
-        elif key == "LineVATRate":
-            self.__dict__["Line_VAT_Rate"] = value
-        elif key == "Description" and globals()["ENV"] != "Development":
-            self.__dict__["Description"] = cast_chinese_encode(value)
+        # 处理xml和数据库字段名字不一致
+        if key in convert_name_fields:
+            key = convert_name_fields[key]
+        # 中文字段转码
+        if key in convert_chn_fields and globals()["ENV"] != "Development":
+            self.__dict__[key] = cast_chinese_encode(value)
         else:
             self.__dict__[key] = value
 
@@ -516,6 +553,8 @@ def invoiceLineBuffer(nav_company_code):
         "OEMCode": OEMCode,
         # "entry": entry,
         # "invoiceHeader": invoiceHeader,
+        "convert_chn_fields": convert_chn_fields,
+        "convert_name_fields": convert_name_fields,
         "__setattr__": __setattr__,
         "getLatestRecordId": getLatestRecordId
     }
@@ -578,32 +617,37 @@ def otherBuffer(nav_company_code):
     # entry = db.relationship("InterfaceInfo",
     #                         primaryjoin=foreign(Entry_No_) == remote(InterfaceInfo.Entry_No_))
 
+    # 需要转换名字的字段
+    convert_name_fields = {
+        "DaydookNo": "DocumentNo_",
+        "LineNo": "Line_No_",
+        "PostingDate": "Posting_Date",
+        "DocumentDate": "Document_Date",
+        "ExtDocumentNo": "ExtDocumentNo_",
+        "AccountNo": "Account_No_",
+        "DebitValue": "Debit_Value",
+        "CreditValue": "Credit_Value",
+        "WIPNo": "WIP_No_",
+        "FAPostingType": "FA_Posting_Type",
+        "VINNo": "VIN"
+    }
+    # 需要处理中文转码的字段
+    convert_chn_fields = []
+    # 需要转换时间格式的字段
+    convert_local_time_fields = ["Posting_Date", "Document_Date"]
+
     # 来源字段和对象字段不一致的特殊情况
     def __setattr__(self, key, value):
-        if key == "DaydookNo":
-            self.__dict__["DocumentNo_"] = value
-        elif key == "LineNo":
-            self.__dict__["Line_No_"] = value
-        elif key == "PostingDate":
-            self.__dict__["Posting_Date"] = to_local_time(value)
-        elif key == "DocumentDate":
-            self.__dict__["Document_Date"] = to_local_time(value)
-        elif key == "ExtDocumentNo":
-            self.__dict__["ExtDocumentNo_"] = value
-        elif key == "AccountNo":
-            self.__dict__["Account_No_"] = value
-        elif key == "DebitValue":
-            self.__dict__["Debit_Value"] = value
-        elif key == "CreditValue":
-            self.__dict__["Credit_Value"] = value
-        elif key == "WIPNo":
-            self.__dict__["WIP_No_"] = value
-        elif key == "FAPostingType":
-            self.__dict__["FA_Posting_Type"] = value
-        elif key == "VINNo":
-            self.__dict__["VIN"] = value
-        elif key == "Description" and globals()["ENV"] != "Development":
-            self.__dict__["Description"] = cast_chinese_encode(value)
+        if key in convert_name_fields:
+            # 需要转换名字的字段
+            key = convert_name_fields[key]
+
+        if key in convert_chn_fields and globals()["ENV"] != "Development":
+            # 需要处理中文转码
+            self.__dict__[key] = cast_chinese_encode(value)
+        elif key in convert_local_time_fields:
+            # 处理时间格式
+            self.__dict__[key] = to_local_time(value)
         else:
             self.__dict__[key] = value
 
@@ -651,6 +695,9 @@ def otherBuffer(nav_company_code):
         "Location": Location,
         "MovementType": MovementType,
         # "entry": entry,
+        "convert_chn_fields": convert_chn_fields,
+        "convert_name_fields": convert_name_fields,
+        "convert_local_time_fields": convert_local_time_fields,
         "__setattr__": __setattr__,
         "getLatestRecordId": getLatestRecordId
     }
