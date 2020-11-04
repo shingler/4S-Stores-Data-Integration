@@ -1,6 +1,8 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
 # 定时任务调度器
+import argparse
+
 from gevent import monkey
 monkey.patch_all()
 
@@ -13,11 +15,14 @@ from src import ApiTaskSetup
 from src.dms.task import Task
 
 
-def do(one_task: ApiTaskSetup):
+# 处理任务的线程
+# @param ApiTaskSetup one_task 一个任务设置
+# @param bool time_check 是否检查时间
+def do(one_task: ApiTaskSetup, time_check=False):
     app.app_context().push()
     handler = Handler(one_task)
 
-    if handler.check_task():
+    if time_check and not handler.check_task():
         print("任务<%s, %s>还没到执行时间" % (one_task.Company_Code, one_task.API_Code))
     else:
         print("任务<%s, %s>开始执行" % (one_task.Company_Code, one_task.API_Code))
@@ -34,9 +39,17 @@ def do(one_task: ApiTaskSetup):
 
 
 if __name__ == '__main__':
+    # 参数处理
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-t', '--time_check', dest='time_check', type=bool, nargs="?", default=False, const=True,
+                        help="是否检查时间")
+    # print(parser.parse_args())  ## 字典的方式接收参数
+    # exit(1)
+    args = parser.parse_args()
+
     task_list = Task.load_tasks()
     for one_task in task_list:
         threading_name = "%s-%s(%s)" % (one_task.Company_Code, one_task.API_Code, one_task.Sequence)
-        sub = threading.Thread(target=do, name=threading_name, kwargs={"one_task": one_task})
+        sub = threading.Thread(target=do, name=threading_name, kwargs={"one_task": one_task, "time_check": args.time_check})
         sub.start()
         time.sleep(0.1)

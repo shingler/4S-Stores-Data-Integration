@@ -127,9 +127,12 @@ class Handler:
 if __name__ == '__main__':
     # 参数处理
     parser = argparse.ArgumentParser()
-    parser.add_argument('-c', '--company_code', dest='company_code', type=str, help='公司代码')
-    parser.add_argument('-s', '--sequence', dest='sequence', type=str, help='任务的序号')
+    parser.add_argument('-c', '--company_code', dest='company_code', type=str, required=True, help='公司代码')
+    parser.add_argument('-s', '--sequence', dest='sequence', type=str, required=True, help='任务的序号')
+    parser.add_argument('-t', '--time_check', dest='time_check', type=bool, nargs="?", default=False, const=True, help="是否检查时间")
     # print(parser.parse_args())  ## 字典的方式接收参数
+    # exit(1)
+    
     args = parser.parse_args()
     if args.company_code is None or args.sequence is None:
         print("命令行参数错误，请输入-h 查看帮助")
@@ -141,8 +144,8 @@ if __name__ == '__main__':
     # one_task = task_list[9]
     one_task = Task.get_task(args.company_code, args.sequence)
     handler = Handler(one_task)
-    # if not handler.check_task():  # 检查任务的开始时间是否符合
-    if False:
+    time_check = args.time_check
+    if time_check and not handler.check_task():  # 检查任务的开始时间是否符合
         print("任务<%s, %s>还没到执行时间" % (one_task.Company_Code, one_task.API_Code))
     else:
         print("任务<%s, %s>开始执行" % (one_task.Company_Code, one_task.API_Code))
