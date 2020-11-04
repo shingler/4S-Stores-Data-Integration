@@ -349,7 +349,7 @@ class WebServiceHandler:
     api_setup = None
 
     # 构造认证器
-    def __init__(self, api_setup: ApiSetup, soap_username, soap_password):
+    def __init__(self, api_setup: ApiSetup, soap_username: str, soap_password: str):
         self.api_setup = api_setup
         self.auth = HttpNtlmAuth(soap_username, soap_password)
 
@@ -363,12 +363,12 @@ class WebServiceHandler:
         else:
             req = self.invoke(ws_url, soap_action=soap_action, data=envelope)
 
-        # 更新日志
-        if req.status_code == 200:
-            logger.update_api_log_when_finish(status=DMSBase.STATUS_FINISH, data=req.text)
+        # 更新日志（只有当状态码为40x，才认为发生错误）
+        if 400 <= req.status_code <= 500:
+            logger.update_api_log_when_finish(status=DMSBase.STATUS_ERROR, error_msg=req.text)
             return True
         else:
-            logger.update_api_log_when_finish(status=DMSBase.STATUS_ERROR, error_msg=req.text)
+            logger.update_api_log_when_finish(status=DMSBase.STATUS_FINISH, data=req.text)
             return False
 
     # 生成soap报文
