@@ -29,6 +29,8 @@ def true_or_false_to_tinyint(bool_str):
 
 # 用cast函数进行中文的编码和解码
 def cast_chinese_encode(some_str):
+    if some_str == "" or some_str is None:
+        return some_str
     exp = collate(some_str, "Chinese_PRC_CI_AS")
     exp = func.convert(literal_column('VARCHAR(500)'), exp)
     exp = cast(exp, VARBINARY())
