@@ -24,7 +24,7 @@ IF EXISTS (SELECT * FROM sys.all_objects WHERE object_id = OBJECT_ID(N'[dbo].[K3
 GO
 
 CREATE TABLE [dbo].[K302 Zhuhai JJ$CustVendBuffer] (
-  [Record ID] int  IDENTITY(1,1) NOT NULL,
+  [Record ID] int  NOT NULL,
   [No_] varchar(20) COLLATE SQL_Latin1_General_CP1_CI_AS  NOT NULL,
   [Name] varchar(50) COLLATE SQL_Latin1_General_CP1_CI_AS  NOT NULL,
   [Address] varchar(50) COLLATE SQL_Latin1_General_CP1_CI_AS  NOT NULL,

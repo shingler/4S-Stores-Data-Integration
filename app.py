@@ -1,9 +1,9 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
+from gevent import monkey
+monkey.patch_all()
 import json
-
 from flask import jsonify, request, Response
-import datetime
 from src import create_app
 from bin import cust_vend, fa, invoice, other
 from src import error
@@ -57,6 +57,8 @@ def cust_vend_api():
             res = {"status": 10003, "error_message": str(ex)}
         except error.DataLoadTimeOutError as ex:
             res = {"status": 10004, "error_message": str(ex)}
+        except error.DataImportRepeatError as ex:
+            res = {"status": 10007, "error_message": str(ex)}
         except Exception as ex:
             res = {"status": 10000, "error_message": str(ex)}
     else:
@@ -104,6 +106,8 @@ def fa_api():
             res = {"status": 20003, "error_message": str(ex)}
         except error.DataLoadTimeOutError as ex:
             res = {"status": 20004, "error_message": str(ex)}
+        except error.DataImportRepeatError as ex:
+            res = {"status": 20007, "error_message": str(ex)}
         except Exception as ex:
             res = {"status": 20000, "error_message": str(ex)}
     else:
@@ -151,6 +155,8 @@ def invoice_api():
             res = {"status": 30003, "error_message": str(ex)}
         except error.DataLoadTimeOutError as ex:
             res = {"status": 30004, "error_message": str(ex)}
+        except error.DataImportRepeatError as ex:
+            res = {"status": 30007, "error_message": str(ex)}
         except Exception as ex:
             res = {"status": 30000, "error_message": str(ex)}
     else:
@@ -198,6 +204,8 @@ def other_api():
             res = {"status": 40003, "error_message": str(ex)}
         except error.DataLoadTimeOutError as ex:
             res = {"status": 40004, "error_message": str(ex)}
+        except error.DataImportRepeatError as ex:
+            res = {"status": 40007, "error_message": str(ex)}
         except Exception as ex:
             res = {"status": 40000, "error_message": str(ex)}
     else:
@@ -206,4 +214,4 @@ def other_api():
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(threaded=True)

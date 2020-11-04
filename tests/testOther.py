@@ -1,15 +1,14 @@
 import os
-
 import pytest
-import requests
-
 from src import Company
+from src.dms.base import WebServiceHandler
 from src.dms.other import Other
 from src.models import nav
 from src.dms.setup import Setup
 
 company_code = "K302ZH"
 api_code = "Other-xml-correct"
+check_repeat = False
 global_vars = {}
 other_obj = None
 
@@ -20,7 +19,7 @@ def test_1_dms_source(init_app):
     app, db = init_app
     company_info = db.session.query(Company).filter(Company.Code == company_code).first()
     assert company_info is not None
-    globals()["other_obj"] = Other(company_info.NAV_Company_Code)
+    globals()["other_obj"] = Other(company_info.NAV_Company_Code, check_repeat=check_repeat)
 
     # 修改bind
     conn_str = company_info.get_nav_connection_string(app.config)
@@ -59,10 +58,11 @@ def test_3_save_interface(init_app):
     assert len(general_dict) > 0
     assert "DMSCode" in general_dict
 
+    count = other_obj.get_count_from_data(data["Transaction"], "Daydook")
+    global_vars["count"] = count
+
     entry_no = other_obj.save_data_to_interfaceinfo(
-        general_data=general_dict,
-        Type=3,
-        Count=other_obj.get_count_from_data(data["Transaction"], "Daydook"),
+        general_data=general_dict, Type=3, Count=count,
         XMLFile=global_vars["path"] if global_vars["path"] else "")
     assert entry_no != 0
 
@@ -79,11 +79,13 @@ def test_4_save_Other(init_app):
     other_node_dict = other_obj.load_api_p_out_nodes(company_code, api_code, node_type="Daydook")
     # 拼接fa数据
     other_dict = other_obj.splice_data_info(data, node_dict=other_node_dict)
-    assert len(other_dict) > 0
-    assert "DaydookNo" in other_dict[0]
-    assert "SourceNo" in other_dict[0]
-    # with pytest.raises():
-    other_obj.save_data_to_nav(nav_data=other_dict, entry_no=entry_no, TABLE_CLASS=other_obj.TABLE_CLASS)
+    # assert len(other_dict) == global_vars["count"]
+
+    if global_vars["count"] > 0:
+        assert "DaydookNo" in other_dict[0]
+        assert "SourceNo" in other_dict[0]
+        # with pytest.raises():
+        other_obj.save_data_to_nav(nav_data=other_dict, entry_no=entry_no, TABLE_CLASS=other_obj.TABLE_CLASS)
     # 读取文件，文件归档
     # 环境不同，归档路径不同
     app, db = init_app
@@ -106,11 +108,13 @@ def test_5_valid_data(init_app):
 
     # 检查数据正确性
     assert interfaceInfo.DMSCode == "7000320"
-    assert interfaceInfo.Other_Transaction_Total_Count > 0
-    assert len(lineList) > 0
-    assert lineList[0].DocumentNo_ == "XXXXX"
-    assert lineList[0].SourceNo == "C0000001"
-    assert lineList[1].SourceNo == "BNK_320_11_00003"
+    assert interfaceInfo.Other_Transaction_Total_Count == global_vars["count"]
+    assert len(lineList) == global_vars["count"]
+
+    if global_vars["count"] > 0:
+        assert lineList[0].DocumentNo_ == "XXXXX"
+        assert lineList[0].SourceNo == "C0000001"
+        assert lineList[1].SourceNo == "BNK_320_11_00003"
 
 
 # 将entry_no作为参数写入指定的ws
@@ -122,9 +126,13 @@ def test_6_invoke_ws(init_app):
     api_setup = Setup.load_api_setup(company_code, api_code)
     assert api_setup is not None
 
-    # result = await cv_obj.call_web_service(entry_no, url=api_setup.CallBack_Address, user_id=company_info.NAV_WEB_UserID, password=company_info.NAV_WEB_Password)
-    result = other_obj.call_web_service(entry_no, api_setup=api_setup, user_id=company_info.NAV_WEB_UserID,
-                                     password=company_info.NAV_WEB_Password)
+    wsh = WebServiceHandler(api_setup, soap_username=company_info.NAV_WEB_UserID,
+                            soap_password=company_info.NAV_WEB_Password)
+    ws_url = wsh.soapAddress(company_info.NAV_Company_Code)
+    ws_env = WebServiceHandler.soapEnvelope(method_name=other_obj.WS_METHOD, entry_no=entry_no)
+    result = wsh.call_web_service(ws_url, ws_env, direction=other_obj.DIRECT_NAV,
+                                  soap_action=other_obj.WS_ACTION)
+    print(result)
     assert result is not None
 
 

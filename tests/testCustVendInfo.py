@@ -1,20 +1,14 @@
-import asyncio
 import os
-
 import pytest
-import pytest_asyncio
-import requests
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-
 from src import Company
 from src.dms.setup import Setup
 from src.dms.custVend import CustVend
 from src.models import nav
-from src.error import DataFieldEmptyError
+from src.dms.base import WebServiceHandler
 
 company_code = "K302ZH"
 api_code = "CustVendInfo-xml-correct"
+check_repeat = False
 global_vars = {}
 cv_obj = None
 
@@ -26,7 +20,7 @@ def test_1_dms_source(init_app):
     company_info = db.session.query(Company).filter(Company.Code == company_code).first()
     assert company_info is not None
     assert company_info.NAV_Company_Code != ""
-    globals()["cv_obj"] = CustVend(company_info.NAV_Company_Code)
+    globals()["cv_obj"] = CustVend(company_info.NAV_Company_Code, check_repeat=check_repeat)
 
     # 修改bind
     conn_str = company_info.get_nav_connection_string(app.config)
@@ -63,10 +57,10 @@ def test_3_save_interface(init_app):
     assert len(general_dict) > 0
     assert "DMSCode" in general_dict
 
+    count = cv_obj.get_count_from_data(data["Transaction"], "CustVendInfo")
+    global_vars["count"] = count
     entry_no = cv_obj.save_data_to_interfaceinfo(
-        general_data=general_dict,
-        Type=0,
-        Count=cv_obj.get_count_from_data(data["Transaction"], "CustVendInfo"),
+        general_data=general_dict, Type=0, Count=count,
         XMLFile=global_vars["path"] if global_vars["path"] else "")
     assert entry_no != 0
 
@@ -83,10 +77,11 @@ def test_4_save_custVendInfo(init_app):
     custVend_node_dict = Setup.load_api_p_out_nodes(company_code, api_code, node_type="CustVendInfo")
     # 拼接custVend数据
     custVend_dict = cv_obj.splice_data_info(data, node_dict=custVend_node_dict)
-    assert len(custVend_dict) > 0
-    assert "No" in custVend_dict[0]
-    cv_obj.save_data_to_nav(custVend_dict, entry_no=entry_no, TABLE_CLASS=cv_obj.TABLE_CLASS)
-    # 读取文件，文件归档
+    assert len(custVend_dict) == global_vars["count"]
+    if global_vars["count"] > 0:
+        assert "No" in custVend_dict[0]
+        cv_obj.save_data_to_nav(custVend_dict, entry_no=entry_no, TABLE_CLASS=cv_obj.TABLE_CLASS)
+        # 读取文件，文件归档
     # 环境不同，归档路径不同
     app, db = init_app
     if app.config["ENV"] == "Development":
@@ -108,17 +103,17 @@ def test_5_valid_data(init_app):
 
     # 检查数据正确性
     assert interfaceInfo.DMSCode == "7000320"
-    assert interfaceInfo.Customer_Vendor_Total_Count > 0
-    assert len(custVendList) > 0
-    assert custVendList[0].No_ == "835194"
-    assert custVendList[0].Type == 0
-    assert custVendList[1].No_ == "V00000002"
-    assert custVendList[1].Type == 1
+    assert interfaceInfo.Customer_Vendor_Total_Count == global_vars["count"]
+    assert len(custVendList) == global_vars["count"]
+    if global_vars["count"] > 0:
+        assert custVendList[0].No_ == "835194"
+        assert custVendList[0].Type == 0
+        assert custVendList[1].No_ == "V00000002"
+        assert custVendList[1].Type == 1
 
 
 # 将entry_no作为参数写入指定的ws
 # @pytest.mark.skip("先跑通app上下文")
-# @pytest.mark.asyncio
 def test_6_invoke_ws(init_app):
     entry_no = global_vars["entry_no"]
     company_info = cv_obj.get_company(company_code)
@@ -126,8 +121,11 @@ def test_6_invoke_ws(init_app):
     api_setup = Setup.load_api_setup(company_code, api_code)
     assert api_setup is not None
 
-    # result = await cv_obj.call_web_service(entry_no, url=api_setup.CallBack_Address, user_id=company_info.NAV_WEB_UserID, password=company_info.NAV_WEB_Password)
-    result = cv_obj.call_web_service(entry_no, api_setup=api_setup, user_id=company_info.NAV_WEB_UserID, password=company_info.NAV_WEB_Password)
+    # result = cv_obj.call_web_service(entry_no, api_setup=api_setup, user_id=company_info.NAV_WEB_UserID, password=company_info.NAV_WEB_Password)
+    wsh = WebServiceHandler(api_setup, soap_username=company_info.NAV_WEB_UserID, soap_password=company_info.NAV_WEB_Password)
+    ws_url = wsh.soapAddress(company_info.NAV_Company_Code)
+    ws_env = WebServiceHandler.soapEnvelope(method_name=cv_obj.WS_METHOD, entry_no=entry_no)
+    result = wsh.call_web_service(ws_url, ws_env, direction=cv_obj.DIRECT_NAV, soap_action=cv_obj.WS_ACTION)
     assert result is not None
 
 

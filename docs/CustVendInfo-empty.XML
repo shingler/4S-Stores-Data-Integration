@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<Transaction>
+	<General>
+		<DMSCode>7000320</DMSCode>
+		<DMSTitle>XXXX汽车销售服务有限公司</DMSTitle>
+		<CompanyCode>7000320</CompanyCode>
+		<CompanyTitle>XXXX汽车销售服务有限公司</CompanyTitle>
+		<CreateDateTime>2012-07-03T14:48:36.927Z</CreateDateTime>
+		<Creator>sa</Creator>
+	</General>
+</Transaction>

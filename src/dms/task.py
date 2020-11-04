@@ -29,12 +29,19 @@ class Task:
     def load_tasks() -> list:
         return db.session.query(ApiTaskSetup).all()
 
+    # 获取特定任务
+    @staticmethod
+    def get_task(company_code, sequence) -> ApiTaskSetup:
+        return db.session.query(ApiTaskSetup).filter(
+            and_(ApiTaskSetup.Company_Code == company_code, ApiTaskSetup.Sequence == sequence)).first()
+
     # 根据间隔天数和开始时间，判断内嵌的任务是否该被执行
     def is_valid(self):
         date_is_valid = True
         # 先验证日期是否正确
         last_run_dt_str = self.api_task_setup.Last_Executed_Time
-        if type(last_run_dt_str) == datetime.time:
+
+        if type(last_run_dt_str) == datetime.datetime:
             last_run_dt_str = last_run_dt_str.isoformat()
         if last_run_dt_str != "0000-00-00 00:00:00":
             # 把之前的执行时间的时分秒部分省略，只比较日期部分

@@ -1,19 +1,15 @@
-import datetime
+# 任务运行的测试用例
 import random
-
 import pytest
 
-import bin
 from bin import cust_vend, fa, invoice, other
 from src import UserList
-from src.dms.custVend import CustVend
 from src.dms.notification import Notification
 from src.dms.task import Task
-from src.error import DataFieldEmptyError, DataLoadError, DataLoadTimeOutError
+from src.error import DataLoadError, DataLoadTimeOutError, DataImportRepeatError
 from src.models import nav
-from src.models.dms import ApiTaskSetup, NotificationUser, Company
-from src.models.log import NotificationLog, APILog
-from src.dms.base import DMSBase
+from src.models.dms import NotificationUser, Company
+from src.models.log import NotificationLog
 
 
 runner = None
@@ -27,8 +23,8 @@ global_vars = {
 # 从数据库随机读取一个任务
 def test_1_load_task(init_app):
     task_list = Task.load_tasks()
-    one_task = random.choice(task_list)
-    # one_task = task_list[0]
+    # one_task = random.choice(task_list)
+    one_task = task_list[3]
     assert one_task.Company_Code != ""
     assert one_task.API_Code != ""
     assert type(one_task.Fail_Handle) == int
@@ -68,6 +64,10 @@ def test_2_run_task(init_app):
         # 失败处理，主要读取task里的Fail_Handle字段
         if one_task.api_task_setup.Fail_Handle == 1:
             print("Fail Handle设置为1，不继续执行")
+        elif one_task.api_task_setup.Fail_Handle == 4:
+            print("Fail Handle设置为4，将发送提醒但不继续执行")
+            globals()["load_error"] = ex
+            global_vars["notify"] = True
         else:
             print("Fail Handle设置不为1，将重试")
             global_vars["retry"] = True
@@ -138,6 +138,14 @@ def test_4_send_notification(init_app):
                 elif isinstance(load_error, DataLoadTimeOutError):
                     email_title, email_content = notify_obj.get_notification_content(
                         type=notify_obj.TYPE_TIMEOUT, error_msg=str(load_error)
+                    )
+                elif isinstance(load_error, DataImportRepeatError):
+                    email_title, email_content = notify_obj.get_notification_content(
+                        type=notify_obj.TYPE_REPEAT, error_msg=str(load_error)
+                    )
+                elif isinstance(load_error, Exception):
+                    email_title, email_content = notify_obj.get_notification_content(
+                        type=notify_obj.TYPE_OTHER, error_msg=str(load_error)
                     )
                 assert email_content != ""
                 result = notify_obj.send_mail(r.Email_Address, email_title, email_content)

@@ -1,7 +1,6 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
 from collections import OrderedDict
-
 from src.dms.base import DMSBase
 from src.dms.setup import Setup
 from src.models import nav
@@ -47,8 +46,8 @@ class InvoiceHeader(Invoice):
     BIZ_NODE_LV2 = "INVHeader"
     TABLE_CLASS = None
 
-    def __init__(self, company_name, force_secondary=False):
-        super(__class__, self).__init__(company_name, force_secondary)
+    def __init__(self, company_name, force_secondary=False, check_repeat=True):
+        super(__class__, self).__init__(company_name, force_secondary, check_repeat)
         self.TABLE_CLASS = nav.invoiceHeaderBuffer(company_name)
 
     # 根据节点名处理二级/三级层级数据（假设一个xml文件里只有1个发票抬头）
@@ -72,8 +71,8 @@ class InvoiceLine(Invoice):
     BIZ_NODE_LV2 = "INVLine"
     TABLE_CLASS = None
 
-    def __init__(self, company_nav_code, force_secondary=False):
-        super(__class__, self).__init__(company_nav_code, force_secondary)
+    def __init__(self, company_nav_code, force_secondary=False, check_repeat=True):
+        super(__class__, self).__init__(company_nav_code, force_secondary, check_repeat)
         self.TABLE_CLASS = nav.invoiceLineBuffer(company_nav_code)
 
     # 根据节点名处理二级/三级层级数据

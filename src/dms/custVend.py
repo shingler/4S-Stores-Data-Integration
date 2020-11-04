@@ -2,7 +2,6 @@
 # -*- coding:utf-8 -*-
 from .base import DMSBase
 from src.models import nav
-from src import db
 
 
 class CustVend(DMSBase):
@@ -13,8 +12,8 @@ class CustVend(DMSBase):
     # NAV的WebService的SOAPAction
     WS_ACTION = "urn:microsoft-dynamics-schemas/codeunit/DMSWebAPI:HandleCVInfoWithEntryNo"
 
-    def __init__(self, company_nav_code, force_secondary=False):
-        super(__class__, self).__init__(company_nav_code, force_secondary)
+    def __init__(self, company_nav_code, force_secondary=False, check_repeat=True):
+        super(__class__, self).__init__(company_nav_code, force_secondary, check_repeat)
         # 根据公司名动态获得nav表名
         self.TABLE_CLASS = nav.custVendBuffer(company_nav_code)
 

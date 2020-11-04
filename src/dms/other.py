@@ -1,9 +1,10 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
+from collections import OrderedDict
+
 from src.dms.base import DMSBase
-from src import db
 from src.dms.setup import Setup
-from src.models import dms, nav
+from src.models import nav
 
 
 class Other(DMSBase):
@@ -18,19 +19,18 @@ class Other(DMSBase):
     # 通用字段
     _COMMON_FILED = "DaydookNo"
 
-
-    def __init__(self, company_nav_code, force_secondary=False):
-        super(__class__, self).__init__(company_nav_code, force_secondary)
+    def __init__(self, company_nav_code, force_secondary=False, check_repeat=True):
+        super(__class__, self).__init__(company_nav_code, force_secondary, check_repeat)
         self.TABLE_CLASS = nav.otherBuffer(company_nav_code)
 
     # 读取出参配置配置
     def load_api_p_out_nodes(self, company_code, api_code, node_type="general", depth=3):
-        node_dict = Setup.load_api_p_out_nodes(company_code, api_code, node_type, depth-1)
+        node_dict = Setup.load_api_p_out_nodes(company_code, api_code, node_type, depth - 1)
         if node_type == "general":
             return node_dict
 
         node_dict["Line"] = Setup.load_api_p_out_nodes(company_code, api_code,
-                                                         node_type=self.BIZ_NODE_LV2, depth=depth)
+                                                       node_type=self.BIZ_NODE_LV2, depth=depth)
         # print(node_dict)
         return node_dict
 
@@ -61,3 +61,31 @@ class Other(DMSBase):
         if type(data_dict_list) == "dict":
             data_dict_list = [data_dict_list]
         return data_dict_list
+
+    # 获取指定节点的数量（xml可以节点同名。在json这里，则判断节点是否是数组。是，则返回长度；非，则返回1。
+    def get_count_from_data(self, data, node_name="Daydook") -> int:
+        if node_name not in data:
+            return 0
+        # if type(data[node_name]) == OrderedDict:
+        #     return 1
+        count = 0
+        # other不看daydook
+        if type(data[node_name]) == list:
+            # daydook有多个
+            for dd in data[node_name]:
+                # daydook里有多行
+                if type(dd["Line"]) == list:
+                    count += len(dd)
+                else:
+                    # daydook只有一行
+                    count += 1
+        else:
+            # 只有一个daydook
+            dd = data[node_name]["Line"]
+            # daydook里有多行
+            if type(dd) == list:
+                count += len(dd)
+            else:
+                # daydook只有一行
+                count += 1
+        return count
