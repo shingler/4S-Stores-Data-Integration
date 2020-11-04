@@ -46,7 +46,9 @@ def main(company_code, api_code, retry=False, file_path=None, async_ws=False):
     fa_node_dict = Setup.load_api_p_out_nodes(company_code, api_code, node_type=fa_obj.BIZ_NODE_LV1)
     # 拼接fa数据
     fa_dict = fa_obj.splice_data_info(data, node_dict=fa_node_dict)
-    fa_obj.save_data_to_nav(nav_data=fa_dict, entry_no=entry_no, TABLE_CLASS=fa_obj.TABLE_CLASS)
+
+    if len(fa_dict) > 0:
+        fa_obj.save_data_to_nav(nav_data=fa_dict, entry_no=entry_no, TABLE_CLASS=fa_obj.TABLE_CLASS)
 
     # 读取文件，文件归档
     fa_obj.archive_xml(xml_src_path, api_setup.Archived_Path)
@@ -65,4 +67,5 @@ if __name__ == '__main__':
     # 应由task提供
     company_code = "K302ZH"
     api_code = "FA-xml-correct"
-    main(company_code, api_code, retry=False)
+    entry_no = main(company_code, api_code, retry=False)
+    print("脚本运行成功，EntryNo=%s" % entry_no)

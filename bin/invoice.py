@@ -48,16 +48,18 @@ def main(company_code, api_code, retry=False, file_path=None, async_ws=False):
                                                           node_type=invoiceHeader_obj.BIZ_NODE_LV1)
     # 拼接发票抬头数据
     ih_dict = invoiceHeader_obj.splice_data_info(data, node_dict=ih_node_dict)
-    invoiceHeader_obj.save_data_to_nav(nav_data=ih_dict, entry_no=entry_no, TABLE_CLASS=invoiceHeader_obj.TABLE_CLASS)
 
-    # 发票号
-    invoice_no = ih_dict[0]["InvoiceNo"]
+    if len(ih_dict) > 0:
+        invoiceHeader_obj.save_data_to_nav(nav_data=ih_dict, entry_no=entry_no, TABLE_CLASS=invoiceHeader_obj.TABLE_CLASS)
 
-    # 发票明细节点配置
-    il_node_dict = invoiceLine_obj.load_api_p_out_nodes(company_code, api_code, node_type=invoiceLine_obj.BIZ_NODE_LV1)
-    # 拼接发票明细数据
-    il_dict = invoiceLine_obj.splice_data_info(data, node_dict=il_node_dict, invoice_no=invoice_no)
-    invoiceLine_obj.save_data_to_nav(nav_data=il_dict, entry_no=entry_no, TABLE_CLASS=invoiceLine_obj.TABLE_CLASS)
+        # 发票号
+        invoice_no = ih_dict[0]["InvoiceNo"]
+
+        # 发票明细节点配置
+        il_node_dict = invoiceLine_obj.load_api_p_out_nodes(company_code, api_code, node_type=invoiceLine_obj.BIZ_NODE_LV1)
+        # 拼接发票明细数据
+        il_dict = invoiceLine_obj.splice_data_info(data, node_dict=il_node_dict, invoice_no=invoice_no)
+        invoiceLine_obj.save_data_to_nav(nav_data=il_dict, entry_no=entry_no, TABLE_CLASS=invoiceLine_obj.TABLE_CLASS)
 
     # 读取文件，文件归档
     invoiceLine_obj.archive_xml(xml_src_path, api_setup.Archived_Path)
@@ -76,4 +78,5 @@ if __name__ == '__main__':
     # 应由task提供
     company_code = "K302ZH"
     api_code = "Invoice-xml-correct"
-    main(company_code, api_code, retry=False)
+    entry_no = main(company_code, api_code, retry=False)
+    print("脚本运行成功，EntryNo=%s" % entry_no)

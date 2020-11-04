@@ -42,12 +42,13 @@ def main(company_code, api_code, retry=False, file_path=None, async_ws=False):
         Count=other_obj.get_count_from_data(data["Transaction"], other_obj.BIZ_NODE_LV1),
         XMLFile=xml_src_path if xml_src_path else "")
 
-    # FA节点配置
-    fa_node_dict = other_obj.load_api_p_out_nodes(company_code, api_code, node_type=other_obj.BIZ_NODE_LV1)
+    # Other节点配置
+    other_node_dict = other_obj.load_api_p_out_nodes(company_code, api_code, node_type=other_obj.BIZ_NODE_LV1)
     # 拼接fa数据
-    fa_dict = other_obj.splice_data_info(data, node_dict=fa_node_dict)
+    other_dict = other_obj.splice_data_info(data, node_dict=other_node_dict)
 
-    other_obj.save_data_to_nav(nav_data=fa_dict, entry_no=entry_no, TABLE_CLASS=other_obj.TABLE_CLASS)
+    if len(other_dict) > 0:
+        other_obj.save_data_to_nav(nav_data=other_dict, entry_no=entry_no, TABLE_CLASS=other_obj.TABLE_CLASS)
 
     # 读取文件，文件归档
     other_obj.archive_xml(xml_src_path, api_setup.Archived_Path)
@@ -66,4 +67,5 @@ if __name__ == '__main__':
     # 应由task提供
     company_code = "K302ZH"
     api_code = "Other-xml-correct"
-    main(company_code, api_code, retry=False)
+    entry_no = main(company_code, api_code, retry=False)
+    print("脚本运行成功，EntryNo=%s" % entry_no)

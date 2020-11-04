@@ -46,7 +46,8 @@ def main(company_code, api_code, retry=False, file_path=None, async_ws=False):
     custVend_node_dict = Setup.load_api_p_out_nodes(company_code, api_code, node_type=cv_obj.BIZ_NODE_LV1)
     # 拼接custVend数据
     custVend_dict = cv_obj.splice_data_info(data, node_dict=custVend_node_dict)
-    cv_obj.save_data_to_nav(custVend_dict, entry_no=entry_no, TABLE_CLASS=cv_obj.TABLE_CLASS)
+    if len(custVend_dict) > 0:
+        cv_obj.save_data_to_nav(custVend_dict, entry_no=entry_no, TABLE_CLASS=cv_obj.TABLE_CLASS)
 
     # 读取文件，文件归档
     cv_obj.archive_xml(xml_src_path, api_setup.Archived_Path)
@@ -64,4 +65,4 @@ if __name__ == '__main__':
     company_code = "K302ZH"
     api_code = "CustVendInfo-xml-correct"
     entry_no = main(company_code, api_code, retry=False)
-    print(entry_no)
+    print("脚本运行成功，EntryNo=%s" % entry_no)
