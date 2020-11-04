@@ -29,6 +29,12 @@ class Task:
     def load_tasks() -> list:
         return db.session.query(ApiTaskSetup).all()
 
+    # 获取特定任务
+    @staticmethod
+    def get_task(company_code, sequence) -> ApiTaskSetup:
+        return db.session.query(ApiTaskSetup).filter(
+            and_(ApiTaskSetup.Company_Code == company_code, ApiTaskSetup.Sequence == sequence)).first()
+
     # 根据间隔天数和开始时间，判断内嵌的任务是否该被执行
     def is_valid(self):
         date_is_valid = True

@@ -1,10 +1,10 @@
+import argparse
 import os
 import sys
 curPath = os.path.abspath(os.path.dirname(__file__))
 rootPath = os.path.split(curPath)[0]
 sys.path.append(rootPath)
 
-import random
 from bin import cust_vend, fa, invoice, other
 from src import UserList
 from src.dms.notification import Notification
@@ -58,20 +58,20 @@ class Handler:
             # 失败处理，主要读取task里的Fail_Handle字段
             if not self.retry and self.current_task.api_task_setup.Fail_Handle == 1:
                 # 第一次执行失败了，且不重试
-                print("Fail Handle设置为1，不继续执行")
+                print("任务执行失败，原因是 %s, \nFail Handle设置为1，不继续执行" % ex)
                 self.retry = False
                 self.notify = False
                 return False
             elif not self.retry and self.current_task.api_task_setup.Fail_Handle == 4:
                 # 第一次执行失败了，且不重试
-                print("Fail Handle设置为4，将发送提醒但不继续执行")
+                print("任务执行失败，原因是 %s, \nFail Handle设置为4，将发送提醒但不继续执行" % ex)
                 self.notify = True
                 self.retry = False
                 self.load_error = ex
                 return False
             elif not self.retry:
                 # 仍然是第一次执行，失败将重试
-                print("Fail Handle设置不为1，将重试")
+                print("任务执行失败，原因是 %s, \nFail Handle设置不为1，将重试" % ex)
                 self.retry = True
                 self.notify = False
                 self.run_task()
@@ -125,12 +125,24 @@ class Handler:
 
 
 if __name__ == '__main__':
-    task_list = Task.load_tasks()
-    # one_task = random.choice(task_list)
-    one_task = task_list[9]
+    # 参数处理
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-c', '--company_code', dest='company_code', type=str, help='公司代码')
+    parser.add_argument('-s', '--sequence', dest='sequence', type=str, help='任务的序号')
+    # print(parser.parse_args())  ## 字典的方式接收参数
+    args = parser.parse_args()
+    if args.company_code is None or args.sequence is None:
+        print("命令行参数错误，请输入-h 查看帮助")
+        exit(1)
+
+    # 业务调用
+    # task_list = Task.load_tasks()
+    # # one_task = random.choice(task_list)
+    # one_task = task_list[9]
+    one_task = Task.get_task(args.company_code, args.sequence)
     handler = Handler(one_task)
-    # if not handler.check_task():
-    if handler.check_task():
+    # if not handler.check_task():  # 检查任务的开始时间是否符合
+    if False:
         print("任务<%s, %s>还没到执行时间" % (one_task.Company_Code, one_task.API_Code))
     else:
         print("任务<%s, %s>开始执行" % (one_task.Company_Code, one_task.API_Code))
