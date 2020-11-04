@@ -2,22 +2,18 @@
 # -*- coding:utf-8 -*-
 
 import datetime
-
-
 # 将iso标准格式时间字符串（含时区）转换成当前iso标准时间字符串
 from sqlalchemy import collate, VARCHAR, cast, func, literal_column
 from sqlalchemy.dialects.mssql import VARBINARY
 
 
+# 去掉时间字符串日期与时间中间的T后面可能带的空格，只取到秒
 def to_local_time(dt_str):
-    # 时间字符串是否以Z结尾
-    if dt_str.endswith("Z"):
-        dt_str = dt_str[:dt_str.index("Z")]
-        dt = datetime.datetime.fromisoformat(dt_str) + datetime.timedelta(hours=8)
-    else:
-        dt = datetime.datetime.fromisoformat(dt_str)
-    if dt.tzinfo:
-        dt = dt.astimezone()
+    if dt_str.find("T ") != -1:
+        dt_str = dt_str.replace("T ", "T")
+    # # YYYY-mm-ddTHH:MM:SS
+    dt_str = dt_str[:19]
+    dt = datetime.datetime.fromisoformat(dt_str)
     return dt.strftime('%Y-%m-%dT%H:%M:%S')
 
 
@@ -33,6 +29,8 @@ def true_or_false_to_tinyint(bool_str):
 
 # 用cast函数进行中文的编码和解码
 def cast_chinese_encode(some_str):
+    if some_str == "" or some_str is None:
+        return some_str
     exp = collate(some_str, "Chinese_PRC_CI_AS")
     exp = func.convert(literal_column('VARCHAR(500)'), exp)
     exp = cast(exp, VARBINARY())

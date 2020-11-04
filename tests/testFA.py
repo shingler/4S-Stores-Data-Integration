@@ -1,16 +1,14 @@
 import os
-
 import pytest
-import requests
-
-import src.dms
 from src import Company
+from src.dms.base import WebServiceHandler
 from src.dms.fa import FA
 from src.models import nav
 from src.dms.setup import Setup
 
 company_code = "K302ZH"
 api_code = "FA-xml-correct"
+check_repeat = False
 global_vars = {}
 fa_obj = None
 
@@ -22,7 +20,7 @@ def test_1_dms_source(init_app):
     company_info = db.session.query(Company).filter(Company.Code == company_code).first()
     assert company_info is not None
     # 将公司名给与全局变量fa_obj
-    globals()["fa_obj"] = FA(company_info.NAV_Company_Code)
+    globals()["fa_obj"] = FA(company_info.NAV_Company_Code, check_repeat=check_repeat)
 
     # 修改bind
     conn_str = company_info.get_nav_connection_string(app.config)
@@ -61,10 +59,10 @@ def test_3_save_interface(init_app):
     assert len(general_dict) > 0
     assert "DMSCode" in general_dict
 
+    count = fa_obj.get_count_from_data(data["Transaction"], "FA")
+    global_vars["count"] = count
     entry_no = fa_obj.save_data_to_interfaceinfo(
-        general_data=general_dict,
-        Type=1,
-        Count=fa_obj.get_count_from_data(data["Transaction"], "FA"),
+        general_data=general_dict, Type=1, Count=count,
         XMLFile=global_vars["path"] if global_vars["path"] else "")
     assert entry_no != 0
 
@@ -81,9 +79,10 @@ def test_4_save_FA(init_app):
     fa_node_dict = Setup.load_api_p_out_nodes(company_code, api_code, node_type="FA")
     # 拼接fa数据
     fa_dict = fa_obj.splice_data_info(data, node_dict=fa_node_dict)
-    assert len(fa_dict) > 0
-    assert "FANo" in fa_dict[0]
-    fa_obj.save_data_to_nav(nav_data=fa_dict, entry_no=entry_no, TABLE_CLASS=fa_obj.TABLE_CLASS)
+    assert len(fa_dict) == global_vars["count"]
+    if global_vars["count"] > 0:
+        assert "FANo" in fa_dict[0]
+        fa_obj.save_data_to_nav(nav_data=fa_dict, entry_no=entry_no, TABLE_CLASS=fa_obj.TABLE_CLASS)
     # 读取文件，文件归档
     # 环境不同，归档路径不同
     app, db = init_app
@@ -106,9 +105,10 @@ def test_5_valid_data(init_app):
 
     # 检查数据正确性
     assert interfaceInfo.DMSCode == "28976"
-    assert interfaceInfo.FA_Total_Count > 0
-    assert len(faList) > 0
-    assert faList[0].FANo_ == "FA0001"
+    assert interfaceInfo.FA_Total_Count == global_vars["count"]
+    assert len(faList) == global_vars["count"]
+    if global_vars["count"] > 0:
+        assert faList[0].FANo_ == "FA0001"
 
 
 # 将entry_no作为参数写入指定的ws
@@ -120,9 +120,12 @@ def test_6_invoke_ws(init_app):
     api_setup = Setup.load_api_setup(company_code, api_code)
     assert api_setup is not None
 
-    # result = await cv_obj.call_web_service(entry_no, url=api_setup.CallBack_Address, user_id=company_info.NAV_WEB_UserID, password=company_info.NAV_WEB_Password)
-    result = fa_obj.call_web_service(entry_no, api_setup=api_setup, user_id=company_info.NAV_WEB_UserID,
-                                     password=company_info.NAV_WEB_Password)
+    wsh = WebServiceHandler(api_setup, soap_username=company_info.NAV_WEB_UserID,
+                            soap_password=company_info.NAV_WEB_Password)
+    ws_url = wsh.soapAddress(company_info.NAV_Company_Code)
+    ws_env = WebServiceHandler.soapEnvelope(method_name=fa_obj.WS_METHOD, entry_no=entry_no)
+    result = wsh.call_web_service(ws_url, ws_env, direction=fa_obj.DIRECT_NAV, soap_action=fa_obj.WS_ACTION)
+    print(result)
     assert result is not None
 
 
