@@ -80,12 +80,14 @@ def test_4_save_InvoiceHeader(init_app):
     ih_node_dict = invoiceHeader_obj.load_api_p_out_nodes(company_code, api_code, node_type=invoiceHeader_obj.BIZ_NODE_LV1)
     # 拼接fa数据
     ih_dict = invoiceHeader_obj.splice_data_info(data, node_dict=ih_node_dict)
-    assert len(ih_dict) > 0
-    assert "InvoiceType" in ih_dict[0]
-    assert "InvoiceNo" in ih_dict[0]
-    print(invoiceHeader_obj.TABLE_CLASS)
-    invoiceHeader_obj.save_data_to_nav(nav_data=ih_dict, entry_no=entry_no, TABLE_CLASS=invoiceHeader_obj.TABLE_CLASS)
-    global_vars["invoice_no"] = ih_dict[0]["InvoiceNo"]
+    assert len(ih_dict) == global_vars["count"]
+
+    if global_vars["count"] > 0:
+        assert "InvoiceType" in ih_dict[0]
+        assert "InvoiceNo" in ih_dict[0]
+        print(invoiceHeader_obj.TABLE_CLASS)
+        invoiceHeader_obj.save_data_to_nav(nav_data=ih_dict, entry_no=entry_no, TABLE_CLASS=invoiceHeader_obj.TABLE_CLASS)
+        global_vars["invoice_no"] = ih_dict[0]["InvoiceNo"]
 
 
 # 根据API_P_Out写入Other库
@@ -93,17 +95,19 @@ def test_4_save_InvoiceHeader(init_app):
 def test_5_save_InvoiceLine(init_app):
     data = global_vars["data"]
     entry_no = global_vars["entry_no"]
-    invoice_no = global_vars["invoice_no"]
+    # 先确定是否有发票头
+    if "invoice_no" in global_vars:
+        invoice_no = global_vars["invoice_no"]
 
-    # FA节点配置
-    il_node_dict = invoiceLine_obj.load_api_p_out_nodes(company_code, api_code, node_type=invoiceLine_obj.BIZ_NODE_LV1)
-    # 拼接fa数据
-    il_dict = invoiceLine_obj.splice_data_info(data, node_dict=il_node_dict, invoice_no=invoice_no)
-    assert len(il_dict) > 0
-    assert "InvoiceType" in il_dict[0]
-    assert "InvoiceNo" in il_dict[0]
-    # with pytest.raises():
-    invoiceLine_obj.save_data_to_nav(nav_data=il_dict, entry_no=entry_no, TABLE_CLASS=invoiceLine_obj.TABLE_CLASS)
+        # FA节点配置
+        il_node_dict = invoiceLine_obj.load_api_p_out_nodes(company_code, api_code, node_type=invoiceLine_obj.BIZ_NODE_LV1)
+        # 拼接fa数据
+        il_dict = invoiceLine_obj.splice_data_info(data, node_dict=il_node_dict, invoice_no=invoice_no)
+        if len(il_dict) > 0:
+            assert "InvoiceType" in il_dict[0]
+            assert "InvoiceNo" in il_dict[0]
+            # with pytest.raises():
+            invoiceLine_obj.save_data_to_nav(nav_data=il_dict, entry_no=entry_no, TABLE_CLASS=invoiceLine_obj.TABLE_CLASS)
     # 读取文件，文件归档
     # 环境不同，归档路径不同
     app, db = init_app
@@ -128,14 +132,16 @@ def test_6_valid_data(init_app):
     # 检查数据正确性
     assert interfaceInfo.DMSCode == "7000320"
     assert interfaceInfo.Invoice_Total_Count == global_vars["count"]
-    assert headerList[0].InvoiceNo == "1183569670"
-    assert len(headerList) == global_vars["count"]
-    assert lineList[0].GLAccount == "6001040101"
-    assert lineList[0].VIN == "WP1AB2920FLA58047"
-    assert lineList[0].InvoiceNo == headerList[0].InvoiceNo
-    assert lineList[1].GLAccount == "6001030104"
-    assert lineList[1].VIN == "WP1AB2920FLA58047"
-    assert lineList[1].InvoiceNo == headerList[0].InvoiceNo
+
+    if global_vars["count"] > 0:
+        assert headerList[0].InvoiceNo == "1183569670"
+        assert len(headerList) == global_vars["count"]
+        assert lineList[0].GLAccount == "6001040101"
+        assert lineList[0].VIN == "WP1AB2920FLA58047"
+        assert lineList[0].InvoiceNo == headerList[0].InvoiceNo
+        assert lineList[1].GLAccount == "6001030104"
+        assert lineList[1].VIN == "WP1AB2920FLA58047"
+        assert lineList[1].InvoiceNo == headerList[0].InvoiceNo
 
 
 # 将entry_no作为参数写入指定的ws

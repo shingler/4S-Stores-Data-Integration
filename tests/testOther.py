@@ -79,11 +79,13 @@ def test_4_save_Other(init_app):
     other_node_dict = other_obj.load_api_p_out_nodes(company_code, api_code, node_type="Daydook")
     # 拼接fa数据
     other_dict = other_obj.splice_data_info(data, node_dict=other_node_dict)
-    assert len(other_dict) > 0
-    assert "DaydookNo" in other_dict[0]
-    assert "SourceNo" in other_dict[0]
-    # with pytest.raises():
-    other_obj.save_data_to_nav(nav_data=other_dict, entry_no=entry_no, TABLE_CLASS=other_obj.TABLE_CLASS)
+    assert len(other_dict) == global_vars["count"]
+
+    if global_vars["count"] > 0:
+        assert "DaydookNo" in other_dict[0]
+        assert "SourceNo" in other_dict[0]
+        # with pytest.raises():
+        other_obj.save_data_to_nav(nav_data=other_dict, entry_no=entry_no, TABLE_CLASS=other_obj.TABLE_CLASS)
     # 读取文件，文件归档
     # 环境不同，归档路径不同
     app, db = init_app
@@ -108,9 +110,11 @@ def test_5_valid_data(init_app):
     assert interfaceInfo.DMSCode == "7000320"
     assert interfaceInfo.Other_Transaction_Total_Count == global_vars["count"]
     assert len(lineList) == global_vars["count"]
-    assert lineList[0].DocumentNo_ == "XXXXX"
-    assert lineList[0].SourceNo == "C0000001"
-    assert lineList[1].SourceNo == "BNK_320_11_00003"
+
+    if global_vars["count"] > 0:
+        assert lineList[0].DocumentNo_ == "XXXXX"
+        assert lineList[0].SourceNo == "C0000001"
+        assert lineList[1].SourceNo == "BNK_320_11_00003"
 
 
 # 将entry_no作为参数写入指定的ws

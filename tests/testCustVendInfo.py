@@ -77,10 +77,11 @@ def test_4_save_custVendInfo(init_app):
     custVend_node_dict = Setup.load_api_p_out_nodes(company_code, api_code, node_type="CustVendInfo")
     # 拼接custVend数据
     custVend_dict = cv_obj.splice_data_info(data, node_dict=custVend_node_dict)
-    assert len(custVend_dict) > 0
-    assert "No" in custVend_dict[0]
-    cv_obj.save_data_to_nav(custVend_dict, entry_no=entry_no, TABLE_CLASS=cv_obj.TABLE_CLASS)
-    # 读取文件，文件归档
+    assert len(custVend_dict) == global_vars["count"]
+    if global_vars["count"] > 0:
+        assert "No" in custVend_dict[0]
+        cv_obj.save_data_to_nav(custVend_dict, entry_no=entry_no, TABLE_CLASS=cv_obj.TABLE_CLASS)
+        # 读取文件，文件归档
     # 环境不同，归档路径不同
     app, db = init_app
     if app.config["ENV"] == "Development":
@@ -104,10 +105,11 @@ def test_5_valid_data(init_app):
     assert interfaceInfo.DMSCode == "7000320"
     assert interfaceInfo.Customer_Vendor_Total_Count == global_vars["count"]
     assert len(custVendList) == global_vars["count"]
-    assert custVendList[0].No_ == "835194"
-    assert custVendList[0].Type == 0
-    assert custVendList[1].No_ == "V00000002"
-    assert custVendList[1].Type == 1
+    if global_vars["count"] > 0:
+        assert custVendList[0].No_ == "835194"
+        assert custVendList[0].Type == 0
+        assert custVendList[1].No_ == "V00000002"
+        assert custVendList[1].Type == 1
 
 
 # 将entry_no作为参数写入指定的ws

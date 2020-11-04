@@ -79,9 +79,10 @@ def test_4_save_FA(init_app):
     fa_node_dict = Setup.load_api_p_out_nodes(company_code, api_code, node_type="FA")
     # 拼接fa数据
     fa_dict = fa_obj.splice_data_info(data, node_dict=fa_node_dict)
-    assert len(fa_dict) > 0
-    assert "FANo" in fa_dict[0]
-    fa_obj.save_data_to_nav(nav_data=fa_dict, entry_no=entry_no, TABLE_CLASS=fa_obj.TABLE_CLASS)
+    assert len(fa_dict) == global_vars["count"]
+    if global_vars["count"] > 0:
+        assert "FANo" in fa_dict[0]
+        fa_obj.save_data_to_nav(nav_data=fa_dict, entry_no=entry_no, TABLE_CLASS=fa_obj.TABLE_CLASS)
     # 读取文件，文件归档
     # 环境不同，归档路径不同
     app, db = init_app
@@ -106,7 +107,8 @@ def test_5_valid_data(init_app):
     assert interfaceInfo.DMSCode == "28976"
     assert interfaceInfo.FA_Total_Count == global_vars["count"]
     assert len(faList) == global_vars["count"]
-    assert faList[0].FANo_ == "FA0001"
+    if global_vars["count"] > 0:
+        assert faList[0].FANo_ == "FA0001"
 
 
 # 将entry_no作为参数写入指定的ws

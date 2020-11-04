@@ -189,17 +189,18 @@ class DMSBase:
             return data_dict
         else:
             data_dict_list = []
-            list_node = data[node_lv0][node_lv1]
-            data[node_lv0][node_lv1] = list_node if type(list_node) == list else [list_node, ]
+            if node_lv1 in data[node_lv0]:
+                list_node = data[node_lv0][node_lv1]
+                data[node_lv0][node_lv1] = list_node if type(list_node) == list else [list_node, ]
 
-            for row in data[node_lv0][node_lv1]:
-                # print(row, type(row))
-                data_dict = {}
-                for key, value in row.items():
-                    if key in node_dict:
-                        data_dict[key] = value
-                # print(data_dict)
-                data_dict_list.append(data_dict)
+                for row in data[node_lv0][node_lv1]:
+                    # print(row, type(row))
+                    data_dict = {}
+                    for key, value in row.items():
+                        if key in node_dict:
+                            data_dict[key] = value
+                    # print(data_dict)
+                    data_dict_list.append(data_dict)
             # print(data_dict_list)
             return data_dict_list
 
