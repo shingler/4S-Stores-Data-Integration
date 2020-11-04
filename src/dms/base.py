@@ -212,6 +212,8 @@ class DMSBase:
     def save_data_to_interfaceinfo(self, general_data, Type, Count, XMLFile=""):
         # 用数据初始化对象
         InterfaceClass = self.GENERAL_CLASS
+        # 处理sql server的identity_insert问题
+        # db.session.execute("SET IDENTITY_INSERT [%s] ON" % InterfaceClass.__tablename__)
         interfaceInfo = InterfaceClass(
             DMSCode=general_data["DMSCode"],
             DMSTitle=general_data["DMSTitle"],
@@ -239,7 +241,6 @@ class DMSBase:
         else:
             interfaceInfo.Other_Transaction_Total_Count = Count
 
-        # interfaceInfo.Entry_No_ = interfaceInfo.getLatestEntryNo()
         # 加线程锁
         lock = threading.Lock()
         lock.acquire()
@@ -250,6 +251,7 @@ class DMSBase:
         # print("%s的锁已释放" % threading.current_thread().name)
 
         db.session.add(interfaceInfo)
+        # db.session.execute("SET IDENTITY_INSERT [%s] OFF" % InterfaceClass.__tablename__)
         db.session.commit()
         db.session.flush()
         # db.session.query(interfaceInfo.Entry_No_ == interfaceInfo.Entry_No_).first()
