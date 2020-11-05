@@ -83,7 +83,16 @@ class DMSBase:
         cur_date = datetime.datetime.now().strftime("%Y%m%d")
         if apiSetUp.File_Name_Format == "":
             raise DataFieldEmptyError(words.DataImport.field_is_empty("File_Name_Format"))
-        file_name = apiSetUp.File_Name_Format.replace("YYYYMMDD", cur_date)
+
+        # 文件名格式支持“YYYYMMDD”、“YYYY.MM.DD”，“YYYY-MM-DD”
+        if apiSetUp.File_Name_Format.startswith("YYYYMMDD"):
+            file_name = apiSetUp.File_Name_Format.replace("YYYYMMDD", cur_date)
+        elif apiSetUp.File_Name_Format.startswith("YYYY.MM.DD"):
+            file_name = apiSetUp.File_Name_Format.replace("YYYYMMDD", cur_date)
+        elif apiSetUp.File_Name_Format.startswith("YYYY-MM-DD"):
+            file_name = apiSetUp.File_Name_Format.replace("YYYYMMDD", cur_date)
+        else:
+            file_name = apiSetUp.File_Name_Format
 
         if not self.force_secondary:
             if apiSetUp.API_Address1 == "":
