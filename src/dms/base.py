@@ -113,13 +113,14 @@ class DMSBase:
             error_msg = "找不到xml文件：%s" % path
             return InterfaceResult(status=self.STATUS_ERROR, error_msg=error_msg)
 
-        with open(path, "rb") as xml_handler:
+        with open(path, "r") as xml_handler:
             data = xml_handler.read()
         # 模拟超时
         # time.sleep(90)
         if time_out > 0 and time.perf_counter() >= time_out*60:
             return InterfaceResult(status=self.STATUS_TIMEOUT, error_msg="文件：%s 读取超时" % path)
 
+        # print(data, type(data))
         res = InterfaceResult(status=self.STATUS_FINISH, content=data)
         if format == self.FORMAT_XML:
             res.data = xmltodict.parse(data)
@@ -144,7 +145,7 @@ class DMSBase:
             # 使用当天的XML文件
             path = self._splice_xml_file_path(apiSetup)
             res = self._load_data_from_file(path, format=apiSetup.Data_Format, time_out=apiSetup.Time_out*60)
-        print(res)
+        # print(res)
 
         # 根据结果进行后续处理
         if res.status == self.STATUS_ERROR:
