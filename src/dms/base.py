@@ -23,6 +23,7 @@ from src import db, Company, ApiSetup, ApiPInSetup
 from src.dms.logger import Logger
 from src.error import DataFieldEmptyError, DataLoadError, DataLoadTimeOutError, DataImportRepeatError
 from src.models import nav, to_local_time
+from src import words
 
 
 class DMSBase:
@@ -81,16 +82,16 @@ class DMSBase:
 
         cur_date = datetime.datetime.now().strftime("%Y%m%d")
         if apiSetUp.File_Name_Format == "":
-            raise DataFieldEmptyError("File_Name_Format为空")
+            raise DataFieldEmptyError(words.DataImport.field_is_empty("File_Name_Format"))
         file_name = apiSetUp.File_Name_Format.replace("YYYYMMDD", cur_date)
 
         if not self.force_secondary:
             if apiSetUp.API_Address1 == "":
-                raise DataFieldEmptyError("API_Address1为空")
+                raise DataFieldEmptyError(words.DataImport.field_is_empty("API_Address1"))
             xml_src = "%s/%s" % (apiSetUp.API_Address1, file_name)
         else:
             if apiSetUp.API_Address2 == "":
-                raise DataFieldEmptyError("API_Address2为空")
+                raise DataFieldEmptyError(words.DataImport.field_is_empty("API_Address2"))
             xml_src = "%s/%s" % (apiSetUp.API_Address2, file_name)
         return xml_src
 
@@ -107,10 +108,10 @@ class DMSBase:
         # 重复性检查
         repeated = db.session.query(self.GENERAL_CLASS).filter(self.GENERAL_CLASS.XMLFileName == path).all()
         if self.check_repeat and len(repeated) > 0:
-            error_msg = "请不要重复导入xml文件: %s" % path
+            error_msg = words.DataImport.file_is_repeat(path)
             return InterfaceResult(status=self.STATUS_REPEAT, error_msg=error_msg)
         if not os.path.exists(path):
-            error_msg = "找不到xml文件：%s" % path
+            error_msg = words.DataImport.file_not_exist(path)
             return InterfaceResult(status=self.STATUS_ERROR, error_msg=error_msg)
 
         with open(path, "r") as xml_handler:
@@ -118,7 +119,7 @@ class DMSBase:
         # 模拟超时
         # time.sleep(90)
         if time_out > 0 and time.perf_counter() >= time_out*60:
-            return InterfaceResult(status=self.STATUS_TIMEOUT, error_msg="文件：%s 读取超时" % path)
+            return InterfaceResult(status=self.STATUS_TIMEOUT, error_msg=words.DataImport.load_timeout(path))
 
         # print(data, type(data))
         res = InterfaceResult(status=self.STATUS_FINISH, content=data)
