@@ -367,7 +367,7 @@ class WebServiceHandler:
             req = self.invoke(ws_url, soap_action=soap_action, data=envelope)
 
         # 更新日志（只有当状态码为40x，才认为发生错误）
-        if 400 <= req.status_code <= 500:
+        if 400 <= req.status_code < 500:
             logger.update_api_log_when_finish(status=DMSBase.STATUS_ERROR, error_msg=req.text)
             return True
         else:
