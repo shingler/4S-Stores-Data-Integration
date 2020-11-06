@@ -3,7 +3,7 @@
 # 用于做数据合法性校验
 
 
-class DMSInterfaceInfo:
+class DMSInterfaceInfoValidator:
     _chn_leng = {
         "DMSTitle": 50,
         "CompanyTitle": 50
@@ -22,6 +22,8 @@ class DMSInterfaceInfo:
     @classmethod
     # 按照一个汉字为两个字符计数
     def chn_length(cls, txt):
+        if txt is None:
+            return 0
         lenTxt = len(txt)
         lenTxt_utf8 = len(txt.encode('utf-8'))
         # utf-8一个汉字占3个字符，减去原计数就是多出来的2/3，再除以2就是增量。再加回去即可
@@ -29,7 +31,7 @@ class DMSInterfaceInfo:
         return size
 
 
-class CustVendInfo(DMSInterfaceInfo):
+class CustVendInfoValidator(DMSInterfaceInfoValidator):
     _chn_leng = {
         "Name": 50,
         "Address": 50,
@@ -37,26 +39,26 @@ class CustVendInfo(DMSInterfaceInfo):
     }
 
 
-class FA(DMSInterfaceInfo):
+class FAValidator(DMSInterfaceInfoValidator):
     _chn_leng = {
         "Description": 30,
         "SerialNo": 30
     }
 
 
-class InvoiceHeader(DMSInterfaceInfo):
+class InvoiceHeaderValidator(DMSInterfaceInfoValidator):
     _chn_leng = {
         "Description": 100
     }
 
 
-class InvoiceLine(DMSInterfaceInfo):
+class InvoiceLineValidator(DMSInterfaceInfoValidator):
     _chn_leng = {
         "Description": 100
     }
 
 
-class Other(DMSInterfaceInfo):
+class OtherValidator(DMSInterfaceInfoValidator):
     _chn_leng = {
         "Description": 100
     }
