@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
+# 错误类型及错误话术定义
 
 
 class DataFieldEmptyError(Exception):
@@ -19,4 +20,8 @@ class DataLoadTimeOutError(Exception):
 
 
 class DataImportRepeatError(Exception):
+    pass
+
+
+class DataContentTooBig(Exception):
     pass

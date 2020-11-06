@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
+from src import validator
 from src.dms.base import DMSBase
 from src.models import nav
 
@@ -21,3 +22,20 @@ class FA(DMSBase):
         if type(data_dict_list) == "dict":
             data_dict_list = [data_dict_list]
         return data_dict_list
+
+    # 校验节点内容长度
+    def _is_valid(self, data_dict) -> (bool, dict):
+        res_bool = True
+        res_keys = {}
+        data_list = data_dict["Transaction"][self.BIZ_NODE_LV1]
+        if type(data_list) != list:
+            data_list = [data_list]
+        i = 0
+        for line in data_list:
+            for k, v in line.items():
+                is_valid = validator.FAValidator.check_chn_length(k, v)
+                if not is_valid:
+                    res_bool = False
+                    res_keys["%s.%s" % (self.BIZ_NODE_LV1, k)] = validator.FAValidator.expect_length(k)
+            i += 1
+        return res_bool, res_keys

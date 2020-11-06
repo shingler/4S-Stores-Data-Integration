@@ -19,10 +19,11 @@ import xmltodict
 from requests_ntlm import HttpNtlmAuth
 from sqlalchemy.exc import InvalidRequestError
 
-from src import db, Company, ApiSetup, ApiPInSetup
+from src import db, Company, ApiSetup, ApiPInSetup, validator
 from src.dms.logger import Logger
-from src.error import DataFieldEmptyError, DataLoadError, DataLoadTimeOutError, DataImportRepeatError
+from src.error import DataFieldEmptyError, DataLoadError, DataLoadTimeOutError, DataImportRepeatError, DataContentTooBig
 from src.models import nav, to_local_time
+from src import words
 
 
 class DMSBase:
@@ -81,16 +82,25 @@ class DMSBase:
 
         cur_date = datetime.datetime.now().strftime("%Y%m%d")
         if apiSetUp.File_Name_Format == "":
-            raise DataFieldEmptyError("File_Name_Format为空")
-        file_name = apiSetUp.File_Name_Format.replace("YYYYMMDD", cur_date)
+            raise DataFieldEmptyError(words.DataImport.field_is_empty("File_Name_Format"))
+
+        # 文件名格式支持“YYYYMMDD”、“YYYY.MM.DD”，“YYYY-MM-DD”
+        if apiSetUp.File_Name_Format.startswith("YYYYMMDD"):
+            file_name = apiSetUp.File_Name_Format.replace("YYYYMMDD", cur_date)
+        elif apiSetUp.File_Name_Format.startswith("YYYY.MM.DD"):
+            file_name = apiSetUp.File_Name_Format.replace("YYYYMMDD", cur_date)
+        elif apiSetUp.File_Name_Format.startswith("YYYY-MM-DD"):
+            file_name = apiSetUp.File_Name_Format.replace("YYYYMMDD", cur_date)
+        else:
+            file_name = apiSetUp.File_Name_Format
 
         if not self.force_secondary:
             if apiSetUp.API_Address1 == "":
-                raise DataFieldEmptyError("API_Address1为空")
+                raise DataFieldEmptyError(words.DataImport.field_is_empty("API_Address1"))
             xml_src = "%s/%s" % (apiSetUp.API_Address1, file_name)
         else:
             if apiSetUp.API_Address2 == "":
-                raise DataFieldEmptyError("API_Address2为空")
+                raise DataFieldEmptyError(words.DataImport.field_is_empty("API_Address2"))
             xml_src = "%s/%s" % (apiSetUp.API_Address2, file_name)
         return xml_src
 
@@ -107,19 +117,20 @@ class DMSBase:
         # 重复性检查
         repeated = db.session.query(self.GENERAL_CLASS).filter(self.GENERAL_CLASS.XMLFileName == path).all()
         if self.check_repeat and len(repeated) > 0:
-            error_msg = "请不要重复导入xml文件: %s" % path
+            error_msg = words.DataImport.file_is_repeat(path)
             return InterfaceResult(status=self.STATUS_REPEAT, error_msg=error_msg)
         if not os.path.exists(path):
-            error_msg = "找不到xml文件：%s" % path
+            error_msg = words.DataImport.file_not_exist(path)
             return InterfaceResult(status=self.STATUS_ERROR, error_msg=error_msg)
 
-        with open(path, "rb") as xml_handler:
+        with open(path, "r") as xml_handler:
             data = xml_handler.read()
         # 模拟超时
         # time.sleep(90)
         if time_out > 0 and time.perf_counter() >= time_out*60:
-            return InterfaceResult(status=self.STATUS_TIMEOUT, error_msg="文件：%s 读取超时" % path)
+            return InterfaceResult(status=self.STATUS_TIMEOUT, error_msg=words.DataImport.load_timeout(path))
 
+        # print(data, type(data))
         res = InterfaceResult(status=self.STATUS_FINISH, content=data)
         if format == self.FORMAT_XML:
             res.data = xmltodict.parse(data)
@@ -127,11 +138,31 @@ class DMSBase:
             res.data = json.loads(data, encoding="utf-8")
         return res
 
+    # 校验数据合法性
+    def is_valid(self, data_dict) -> (bool, dict):
+        res_bool = True
+        res_keys = {}
+        for k, v in data_dict["Transaction"]["General"].items():
+            is_valid = validator.DMSInterfaceInfoValidator.check_chn_length(k, v)
+            if not is_valid:
+                res_bool = False
+                res_keys["%s.%s" % ("General", k)] = validator.DMSInterfaceInfoValidator.expect_length(k)
+
+        res_bool2, res_keys2 = self._is_valid(data_dict)
+
+        return res_bool and res_bool2, {**res_keys, **res_keys2}
+
+    # 校验数据合法性（子类实现）
+    def _is_valid(self, data_dict) -> (bool, dict):
+        pass
+
     # 读取数据
     def load_data(self, apiSetup, userID=None, file_path=None) -> (str, dict):
         # 先写一条日志，记录执行时间
         logger = self.add_new_api_log_when_start(apiSetup, direction=self.DIRECT_DMS, userID=userID)
 
+        path = ""
+        res = None
         if apiSetup.API_Type == self.TYPE_API:
             # 读取JSON API
             path = ""
@@ -144,7 +175,7 @@ class DMSBase:
             # 使用当天的XML文件
             path = self._splice_xml_file_path(apiSetup)
             res = self._load_data_from_file(path, format=apiSetup.Data_Format, time_out=apiSetup.Time_out*60)
-        print(res)
+        # print(res)
 
         # 根据结果进行后续处理
         if res.status == self.STATUS_ERROR:
@@ -160,7 +191,15 @@ class DMSBase:
             logger.update_api_log_when_finish(status=self.STATUS_ERROR, error_msg=res.error_msg)
             raise DataImportRepeatError(res.error_msg)
         else:
-            # 处理成功，更新日志
+            # 处理成功，校验数据长度是否合法
+            is_valid, keys = self.is_valid(res.data)
+            # print(is_valid, keys)
+            if not is_valid:
+                error_msg = words.DataImport.content_is_too_big(path, keys)
+                logger.update_api_log_when_finish(status=self.STATUS_ERROR, error_msg=error_msg)
+                raise DataContentTooBig(error_msg)
+
+            # 校验成功，更新日志
             logger.update_api_log_when_finish(data=str(res.content), status=self.STATUS_FINISH)
             return path, res.data
 
@@ -270,12 +309,12 @@ class DMSBase:
 
         for row in nav_data:
             try:
-                other_obj = TABLE_CLASS(Entry_No_=entry_no)
-                other_obj.Record_ID = other_obj.getLatestRecordId()
+                model_obj = TABLE_CLASS(Entry_No_=entry_no)
+                model_obj.Record_ID = model_obj.getLatestRecordId()
                 for key, value in row.items():
                     # 自动赋值
-                    other_obj.__setattr__(key, value)
-                db.session.add(other_obj)
+                    model_obj.__setattr__(key, value)
+                db.session.add(model_obj)
                 db.session.commit()
             except InvalidRequestError:
                 db.session.rollback()
@@ -366,7 +405,7 @@ class WebServiceHandler:
             req = self.invoke(ws_url, soap_action=soap_action, data=envelope)
 
         # 更新日志（只有当状态码为40x，才认为发生错误）
-        if 400 <= req.status_code <= 500:
+        if 400 <= req.status_code < 500:
             logger.update_api_log_when_finish(status=DMSBase.STATUS_ERROR, error_msg=req.text)
             return True
         else:

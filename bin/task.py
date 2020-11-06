@@ -86,7 +86,7 @@ class Handler:
     # 发送提醒邮件
     def send_notification(self):
         if self.notify:
-            print("发送提醒邮件")
+            # print("发送提醒邮件")
             # 读取邮件列表
             notify_obj = Notification(self.current_task.Company_Code, self.current_task.API_Code)
             receivers = notify_obj.get_receiver_email()
