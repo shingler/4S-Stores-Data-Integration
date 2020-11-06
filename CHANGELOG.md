@@ -12,7 +12,8 @@
 - NAV表中特定字段需要按照一个汉字=2个字符来做长度判断（参照Database20201105.xlsx）；
 - 将报错话术统一独立处理；
 - web service的500错误忽略；
-- xml文件名格式支持“YYYYMMDD”、“YYYY.MM.DD”，“YYYY-MM-DD”
+- xml文件名格式支持“YYYYMMDD”、“YYYY.MM.DD”，“YYYY-MM-DD”；
+- 修正Other数据的数量统计错误；
 
 #### v 0.4
 

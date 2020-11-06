@@ -309,12 +309,12 @@ class DMSBase:
 
         for row in nav_data:
             try:
-                other_obj = TABLE_CLASS(Entry_No_=entry_no)
-                other_obj.Record_ID = other_obj.getLatestRecordId()
+                model_obj = TABLE_CLASS(Entry_No_=entry_no)
+                model_obj.Record_ID = model_obj.getLatestRecordId()
                 for key, value in row.items():
                     # 自动赋值
-                    other_obj.__setattr__(key, value)
-                db.session.add(other_obj)
+                    model_obj.__setattr__(key, value)
+                db.session.add(model_obj)
                 db.session.commit()
             except InvalidRequestError:
                 db.session.rollback()

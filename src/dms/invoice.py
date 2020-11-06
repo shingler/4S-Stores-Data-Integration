@@ -119,12 +119,13 @@ class InvoiceLine(Invoice):
         # 多Invoice会变成列表，所以改用列表来处理
         for inv in data_dict_list:
             # inv是一个完整的invoice节点
+            # print(inv[self.BIZ_NODE_LV2])
             if type(inv[self.BIZ_NODE_LV2]) == OrderedDict:
                 # 单个发票行数据对象INVLine
                 one_dict = inv[self.BIZ_NODE_LV2]
                 # 将InvoiceType放入INVLine
                 one_dict[self._COMMON_FILED] = inv[self._COMMON_FILED]
-                data_list = [one_dict, ]
+                data_list.append(one_dict)
             else:
                 # 数组对象
                 for one in inv[self.BIZ_NODE_LV2]:

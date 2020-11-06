@@ -76,7 +76,7 @@ class Other(DMSBase):
             for dd in data[node_name]:
                 # daydook里有多行
                 if type(dd["Line"]) == list:
-                    count += len(dd)
+                    count += len(dd["Line"])
                 else:
                     # daydook只有一行
                     count += 1
