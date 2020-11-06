@@ -12,7 +12,7 @@ class DataImport:
     _file_repeat = "请不要重复导入xml文件:{0}"
     _file_not_exist = "找不到目标xml文件：{0}"
     _load_timeout = "文件：{0} 读取超时"
-    _content_is_too_big = "字段{0}的长度超过规定长度{1}"
+    _content_is_too_big = "文件{0}的以下字段长度超过规定长度："
 
     @classmethod
     def field_is_empty(cls, field):
@@ -31,8 +31,11 @@ class DataImport:
         return cls._load_timeout.format(file_path)
 
     @classmethod
-    def content_is_too_big(cls, key, length):
-        return cls._content_is_too_big.format(key, length)
+    def content_is_too_big(cls, path, keys):
+        message = cls._content_is_too_big.format(path)
+        for k, v in keys.items():
+            message += "%s: %s, " % (k, v)
+        return message
 
 
 class RunResult:

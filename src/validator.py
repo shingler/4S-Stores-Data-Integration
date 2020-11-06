@@ -10,6 +10,10 @@ class DMSInterfaceInfoValidator:
     }
 
     @classmethod
+    def expect_length(cls, key):
+        return cls._chn_leng.get(key, "")
+
+    @classmethod
     def check_chn_length(cls, key, value):
         if key not in cls._chn_leng:
             return True

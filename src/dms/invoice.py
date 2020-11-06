@@ -1,6 +1,8 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
 from collections import OrderedDict
+
+from src import validator
 from src.dms.base import DMSBase
 from src.dms.setup import Setup
 from src.models import nav
@@ -64,6 +66,38 @@ class InvoiceHeader(Invoice):
             data_list.append(one_header)
 
         return data_list
+
+    # 校验节点内容长度
+    def _is_valid(self, data_dict) -> (bool, dict):
+        res_bool = True
+        res_keys = {}
+        data_list = data_dict["Transaction"][InvoiceHeader.BIZ_NODE_LV1]
+        if type(data_list) != list:
+            data_list = [data_list]
+        i = 0
+        for invoice in data_list:
+            # 发票头
+            inv_header = invoice[InvoiceHeader.BIZ_NODE_LV2]
+            for k, v in inv_header.items():
+                is_valid = validator.InvoiceHeaderValidator.check_chn_length(k, v)
+                if not is_valid:
+                    res_bool = False
+                    res_keys["%s.%s" % (InvoiceHeader.BIZ_NODE_LV2, k)] = validator.InvoiceHeaderValidator.expect_length(k)
+            # 发票明细
+            j = 0
+            inv_line = invoice[InvoiceLine.BIZ_NODE_LV2]
+            if type(inv_line) != list:
+                inv_line = [inv_line]
+            for line in inv_line:
+                for k, v in line.items():
+                    is_valid = validator.InvoiceLineValidator.check_chn_length(k, v)
+                    if not is_valid:
+                        res_bool = False
+                        res_keys[
+                            "%s.%s" % (InvoiceLine.BIZ_NODE_LV2, k)] = validator.InvoiceLineValidator.expect_length(k)
+                j += 1
+            i += 1
+        return res_bool, res_keys
 
 
 class InvoiceLine(Invoice):

@@ -2,6 +2,7 @@
 # -*- coding:utf-8 -*-
 from collections import OrderedDict
 
+from src import validator
 from src.dms.base import DMSBase
 from src.dms.setup import Setup
 from src.models import nav
@@ -89,3 +90,27 @@ class Other(DMSBase):
                 # daydook只有一行
                 count += 1
         return count
+
+    # 校验节点内容长度
+    def _is_valid(self, data_dict) -> (bool, dict):
+        res_bool = True
+        res_keys = {}
+
+        data_list = data_dict["Transaction"][self.BIZ_NODE_LV1]
+        if type(data_list) != list:
+            data_list = [data_list]
+        i = 0
+        for dd in data_list:
+            lines = dd[self.BIZ_NODE_LV2]
+            if type(lines) != list:
+                lines = [lines]
+            j = 0
+            for line in lines:
+                for k, v in line.items():
+                    is_valid = validator.OtherValidator.check_chn_length(k, v)
+                    if not is_valid:
+                        res_bool = False
+                        res_keys["%s.%s" % (self.BIZ_NODE_LV1, k)] = validator.OtherValidator.expect_length(k)
+                j += 1
+            i += 1
+        return res_bool, res_keys

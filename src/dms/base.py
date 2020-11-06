@@ -19,9 +19,9 @@ import xmltodict
 from requests_ntlm import HttpNtlmAuth
 from sqlalchemy.exc import InvalidRequestError
 
-from src import db, Company, ApiSetup, ApiPInSetup
+from src import db, Company, ApiSetup, ApiPInSetup, validator
 from src.dms.logger import Logger
-from src.error import DataFieldEmptyError, DataLoadError, DataLoadTimeOutError, DataImportRepeatError
+from src.error import DataFieldEmptyError, DataLoadError, DataLoadTimeOutError, DataImportRepeatError, DataContentTooBig
 from src.models import nav, to_local_time
 from src import words
 
@@ -138,11 +138,31 @@ class DMSBase:
             res.data = json.loads(data, encoding="utf-8")
         return res
 
+    # 校验数据合法性
+    def is_valid(self, data_dict) -> (bool, dict):
+        res_bool = True
+        res_keys = {}
+        for k, v in data_dict["Transaction"]["General"].items():
+            is_valid = validator.DMSInterfaceInfoValidator.check_chn_length(k, v)
+            if not is_valid:
+                res_bool = False
+                res_keys["%s.%s" % ("General", k)] = validator.DMSInterfaceInfoValidator.expect_length(k)
+
+        res_bool2, res_keys2 = self._is_valid(data_dict)
+
+        return res_bool and res_bool2, {**res_keys, **res_keys2}
+
+    # 校验数据合法性（子类实现）
+    def _is_valid(self, data_dict) -> (bool, dict):
+        pass
+
     # 读取数据
     def load_data(self, apiSetup, userID=None, file_path=None) -> (str, dict):
         # 先写一条日志，记录执行时间
         logger = self.add_new_api_log_when_start(apiSetup, direction=self.DIRECT_DMS, userID=userID)
 
+        path = ""
+        res = None
         if apiSetup.API_Type == self.TYPE_API:
             # 读取JSON API
             path = ""
@@ -171,7 +191,15 @@ class DMSBase:
             logger.update_api_log_when_finish(status=self.STATUS_ERROR, error_msg=res.error_msg)
             raise DataImportRepeatError(res.error_msg)
         else:
-            # 处理成功，更新日志
+            # 处理成功，校验数据长度是否合法
+            is_valid, keys = self.is_valid(res.data)
+            # print(is_valid, keys)
+            if not is_valid:
+                error_msg = words.DataImport.content_is_too_big(path, keys)
+                logger.update_api_log_when_finish(status=self.STATUS_ERROR, error_msg=error_msg)
+                raise DataContentTooBig(error_msg)
+
+            # 校验成功，更新日志
             logger.update_api_log_when_finish(data=str(res.content), status=self.STATUS_FINISH)
             return path, res.data
 

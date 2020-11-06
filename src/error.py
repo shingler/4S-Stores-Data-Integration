@@ -21,3 +21,7 @@ class DataLoadTimeOutError(Exception):
 
 class DataImportRepeatError(Exception):
     pass
+
+
+class DataContentTooBig(Exception):
+    pass
