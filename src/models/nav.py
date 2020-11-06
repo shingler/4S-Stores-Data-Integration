@@ -632,7 +632,8 @@ def otherBuffer(nav_company_code):
         "VINNo": "VIN"
     }
     # 需要处理中文转码的字段
-    convert_chn_fields = []
+    convert_chn_fields = ["ExtDocumentNo_", "Description", "CostCenterCode", "VehicleSeries",
+                          "WIP_No_", "FromCompanyName", "ToCompanyName", "VIN"]
     # 需要转换时间格式的字段
     convert_local_time_fields = ["Posting_Date", "Document_Date"]
 
