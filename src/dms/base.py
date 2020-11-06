@@ -123,7 +123,7 @@ class DMSBase:
             error_msg = words.DataImport.file_not_exist(path)
             return InterfaceResult(status=self.STATUS_ERROR, error_msg=error_msg)
 
-        with open(path, "r") as xml_handler:
+        with open(path, "r", encoding="UTF-8") as xml_handler:
             data = xml_handler.read()
         # 模拟超时
         # time.sleep(90)
@@ -269,7 +269,7 @@ class DMSBase:
         )
         # print(self.company_nav_code, interfaceInfo.__bind_key__)
         # 再补充一些默认值
-        interfaceInfo.DateTime_Imported = datetime.datetime.now().isoformat(timespec="seconds")
+        interfaceInfo.DateTime_Imported = datetime.datetime.utcnow().isoformat(timespec="seconds")
 
         if Type == 0:
             interfaceInfo.Customer_Vendor_Total_Count = Count

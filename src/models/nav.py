@@ -182,7 +182,7 @@ def custVendBuffer(nav_company_code):
         "Template": db.Column(db.String(20), nullable=False, default=''),
         "Entry_No_": Entry_No_,
         "Error_Message": db.Column("Error Message", db.String(250), nullable=False, default=""),
-        "DateTime_Imported": db.Column("DateTime Imported", db.DateTime, nullable=False, default=datetime.datetime.now().isoformat(timespec="seconds"), comment="导入时间"),
+        "DateTime_Imported": db.Column("DateTime Imported", db.DateTime, nullable=False, default=datetime.datetime.utcnow().isoformat(timespec="seconds"), comment="导入时间"),
         "DateTime_Handled": db.Column("DateTime Handled", db.DateTime, nullable=False, default="1753-01-01 00:00:00.000", comment="处理时间, 初始插入数据时插入('1753-01-01 00:00:00.000')"),
         "Type": db.Column(db.Integer, nullable=False, default=1, comment="类型(0 - Customer, 1 - Vendor, 3 - Unknow)"),
         "Handled_by": db.Column("Handled by", db.String(20), nullable=False, comment="处理人", default=''),
@@ -233,7 +233,7 @@ def faBuffer(nav_company_code):
     Error_Message = db.Column("Error Message", db.String(250), nullable=False, default='', comment="错误消息")
     # 导入时间
     DateTime_Imported = db.Column("DateTime Imported", db.DateTime, nullable=False, comment="导入时间",
-                                  default=datetime.datetime.now().isoformat(timespec="seconds"))
+                                  default=datetime.datetime.utcnow().isoformat(timespec="seconds"))
     # 处理时间, 初始插入数据时插入('1753-01-01 00:00:00.000')
     DateTime_Handled = db.Column("DateTime Handled", db.DateTime, nullable=False,
                                  default="1753-01-01T00:00:00.000",
@@ -246,7 +246,7 @@ def faBuffer(nav_company_code):
     # 如文件或接口里没有值, 初始插入数据时插入('1753-01-01 00:00:00.000')
     WarrantyDate = db.Column(db.DateTime, nullable=False, default="1753-01-01T00:00:00.000")
     DepreciationPeriod = db.Column(db.Integer, default=0, nullable=False)
-    DepreciationStartingDate = db.Column(db.DateTime, default=datetime.datetime.now().isoformat(timespec="seconds"),
+    DepreciationStartingDate = db.Column(db.DateTime, default=datetime.datetime.utcnow().isoformat(timespec="seconds"),
                                          nullable=False)
     CostCenterCode = db.Column(db.String(20), default='', nullable=False)
 
@@ -343,11 +343,11 @@ def invoiceHeaderBuffer(nav_company_code):
     Record_ID = db.Column("Record ID", db.Integer, nullable=False, primary_key=True, autoincrement=False)
     InvoiceNo = db.Column(db.String(20), default='', nullable=False)
     Posting_Date = db.Column("Posting Date", db.DateTime,
-                             default=datetime.datetime.now().isoformat(timespec="seconds"), nullable=False)
+                             default=datetime.datetime.utcnow().isoformat(timespec="seconds"), nullable=False)
     Document_Date = db.Column("Document Date", db.DateTime,
-                              default=datetime.datetime.now().isoformat(timespec="seconds"), nullable=False)
+                              default=datetime.datetime.utcnow().isoformat(timespec="seconds"), nullable=False)
     Due_Date = db.Column("Due Date", db.DateTime,
-                         default=datetime.datetime.now().isoformat(timespec="seconds"), nullable=False)
+                         default=datetime.datetime.utcnow().isoformat(timespec="seconds"), nullable=False)
     PayToBillToNo = db.Column(db.String(20), default='', nullable=False)
     SellToBuyFromNo = db.Column(db.String(20), default='', nullable=False)
     CostCenterCode = db.Column(db.String(20), default='', nullable=False)
@@ -358,7 +358,7 @@ def invoiceHeaderBuffer(nav_company_code):
     InvoiceType = db.Column(db.String(10), default='', nullable=False)
     # 导入时间
     DateTime_Imported = db.Column("DateTime Imported", db.DateTime,
-                                  default=datetime.datetime.now().isoformat(timespec="seconds"), nullable=False)
+                                  default=datetime.datetime.utcnow().isoformat(timespec="seconds"), nullable=False)
     # 处理时间, 初始插入数据时插入('1753-01-01 00:00:00.000')
     DateTime_handled = db.Column("DateTime handled", db.DateTime, nullable=False,
                                  default='1753-01-01 00:00:00.000', comment="处理时间")
@@ -463,7 +463,7 @@ def invoiceLineBuffer(nav_company_code):
     Error_Message = db.Column("Error Message", db.String(250), default="", nullable=False, comment="错误消息")
     # 导入时间
     DateTime_Imported = db.Column("DateTime Imported", db.DateTime,
-                                  default=datetime.datetime.now().isoformat(timespec="seconds"), nullable=False,
+                                  default=datetime.datetime.utcnow().isoformat(timespec="seconds"), nullable=False,
                                   comment="导入时间")
     # 处理时间, 初始插入数据时插入('1753-01-01 00:00:00.000')
     DateTime_Handled = db.Column("DateTime Handled", db.DateTime, nullable=False, default='1753-01-01 00:00:00.000',
@@ -574,9 +574,9 @@ def otherBuffer(nav_company_code):
     TransactionType = db.Column(db.String(20), default="", nullable=False)
     Line_No_ = db.Column("Line No_", db.Integer, default=0, nullable=False)
     Posting_Date = db.Column("Posting Date", db.DateTime,
-                             default=datetime.datetime.now().isoformat(timespec="seconds"), nullable=False)
+                             default=datetime.datetime.utcnow().isoformat(timespec="seconds"), nullable=False)
     Document_Date = db.Column("Document Date", db.DateTime,
-                              default=datetime.datetime.now().isoformat(timespec="seconds"), nullable=False)
+                              default=datetime.datetime.utcnow().isoformat(timespec="seconds"), nullable=False)
     ExtDocumentNo_ = db.Column(db.String(20), default="", nullable=False)
     Account_No_ = db.Column("Account No_", db.String(50), default="", nullable=False)
     Description = db.Column(db.String(100), default="", nullable=False)
@@ -588,7 +588,7 @@ def otherBuffer(nav_company_code):
     Entry_No_ = db.Column("Entry No_", db.Integer, default=0, nullable=False)
     # 导入时间
     DateTime_Imported = db.Column("DateTime Imported", db.DateTime,
-                                  default=datetime.datetime.now().isoformat(timespec="seconds"), nullable=False)
+                                  default=datetime.datetime.utcnow().isoformat(timespec="seconds"), nullable=False)
     # 处理时间, 初始插入数据时插入('1753-01-01 00:00:00.000')
     DateTime_handled = db.Column("DateTime handled", db.DateTime, nullable=False,
                                  default="1753-01-01 00:00:00.000", comment="处理时间")
