@@ -52,13 +52,10 @@ def main(company_code, api_code, retry=False, file_path=None, async_ws=False):
     if len(ih_dict) > 0:
         invoiceHeader_obj.save_data_to_nav(nav_data=ih_dict, entry_no=entry_no, TABLE_CLASS=invoiceHeader_obj.TABLE_CLASS)
 
-        # 发票号
-        invoice_no = ih_dict[0]["InvoiceNo"]
-
         # 发票明细节点配置
         il_node_dict = invoiceLine_obj.load_api_p_out_nodes(company_code, api_code, node_type=invoiceLine_obj.BIZ_NODE_LV1)
         # 拼接发票明细数据
-        il_dict = invoiceLine_obj.splice_data_info(data, node_dict=il_node_dict, invoice_no=invoice_no)
+        il_dict = invoiceLine_obj.splice_data_info(data, node_dict=il_node_dict)
         invoiceLine_obj.save_data_to_nav(nav_data=il_dict, entry_no=entry_no, TABLE_CLASS=invoiceLine_obj.TABLE_CLASS)
 
     # 读取文件，文件归档

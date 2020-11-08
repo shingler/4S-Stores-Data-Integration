@@ -32,14 +32,14 @@ class Invoice(DMSBase):
         return node_dict
 
     # 从api_p_out获取数据
-    def splice_data_info(self, data, node_dict, invoice_no=""):
-        data_dict_list = self._splice_field_by_name(data, node_dict, invoice_no)
+    def splice_data_info(self, data, node_dict):
+        data_dict_list = self._splice_field_by_name(data, node_dict)
         if type(data_dict_list) == OrderedDict:
             data_dict_list = [data_dict_list]
         return data_dict_list
 
     # 根据节点名处理二级/三级层级数据
-    def _splice_field_by_name(self, data, node_dict, invoice_no):
+    def _splice_field_by_name(self, data, node_dict):
         pass
 
 
@@ -52,8 +52,8 @@ class InvoiceHeader(Invoice):
         super(__class__, self).__init__(company_name, force_secondary, check_repeat)
         self.TABLE_CLASS = nav.invoiceHeaderBuffer(company_name)
 
-    # 根据节点名处理二级/三级层级数据（假设一个xml文件里只有1个发票抬头）
-    def _splice_field_by_name(self, data, node_dict, invoice_no=""):
+    # 根据节点名处理二级/三级层级数据
+    def _splice_field_by_name(self, data, node_dict):
         data_dict_list = self._splice_field(data, node_dict, node_lv0="Transaction", node_lv1=self.BIZ_NODE_LV1,
                                             node_type="list")
         # 多Invoice会变成列表，所以改用列表来处理
@@ -63,6 +63,12 @@ class InvoiceHeader(Invoice):
             one_header = inv[self.BIZ_NODE_LV2]
             # 将InvoiceType与INVHeader合并
             one_header[self._COMMON_FILED] = inv[self._COMMON_FILED]
+            # 统计发票行数量
+            if type(inv[InvoiceLine.BIZ_NODE_LV2]) != list:
+                inv[InvoiceLine.BIZ_NODE_LV2] = [inv[InvoiceLine.BIZ_NODE_LV2]]
+            line_count = len(inv[InvoiceLine.BIZ_NODE_LV2])
+            one_header["Line_Total_Count"] = line_count
+
             data_list.append(one_header)
 
         return data_list
@@ -110,7 +116,7 @@ class InvoiceLine(Invoice):
         self.TABLE_CLASS = nav.invoiceLineBuffer(company_nav_code)
 
     # 根据节点名处理二级/三级层级数据
-    def _splice_field_by_name(self, data, node_dict, invoice_no):
+    def _splice_field_by_name(self, data, node_dict):
         data_dict_list = self._splice_field(data, node_dict, node_lv0="Transaction", node_lv1=self.BIZ_NODE_LV1,
                                             node_type="list")
         # print(data_dict_list)
@@ -125,6 +131,8 @@ class InvoiceLine(Invoice):
                 one_dict = inv[self.BIZ_NODE_LV2]
                 # 将InvoiceType放入INVLine
                 one_dict[self._COMMON_FILED] = inv[self._COMMON_FILED]
+                # 将发票号放入INVLine
+                one_dict["InvoiceNo"] = inv[InvoiceHeader.BIZ_NODE_LV2]["InvoiceNo"]
                 data_list.append(one_dict)
             else:
                 # 数组对象
@@ -133,10 +141,11 @@ class InvoiceLine(Invoice):
                     # print(type(one))
                     for key, value in one.items():
                         one_dict[key] = value
+                        # 将发票号放入INVLine
+                        one_dict["InvoiceNo"] = inv[InvoiceHeader.BIZ_NODE_LV2]["InvoiceNo"]
                     data_list.append(one_dict)
         # print(data_list)
-        # 把发票号放入明细中
-        data_list = self.set_invoice_no(data_list, invoice_no=invoice_no)
+
         return data_list
 
     # 把发票号放入明细中
