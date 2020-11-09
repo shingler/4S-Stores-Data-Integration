@@ -3,10 +3,18 @@
 # 提示话术定义
 
 
+# 提醒邮件话术模板
 class Notice:
-    pass
+    # 提醒邮件标题模板
+    title = 'DMS Interface Error (Data Type: {0} )'
+    # 提醒邮件内容模板
+    content = '''Dear User,
+<p>There are some errors occurred during system import DMS <strong>{0}</strong> Interface Data, please check error log in NAV interface platform (URL:{1}).</p>
+<p>If you have any questions, please contact NAV support team with Email:<a href="mailto:phnav.support@hytci.com!">phnav.support@hytci.com!</a></p>
+<p>Navision system</p>'''
 
 
+# 数据导入错误消息模板
 class DataImport:
     _some_field_is_empty = "{0}为空"
     _file_repeat = "请不要重复导入xml文件:{0}"
@@ -44,6 +52,7 @@ class DataImport:
         return message
 
 
+# 程序运行时报错消息模板
 class RunResult:
     _sucess = "读取成功，Entry_No={0}"
     _fail = "任务执行失败，原因是 {0}"

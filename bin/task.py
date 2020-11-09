@@ -95,32 +95,12 @@ class Handler:
             for r in receivers:
                 if (isinstance(r, NotificationUser) and r.Activated) \
                         or (isinstance(r, UserList) and r.Receive_Notification):
-                    email_title = ""
-                    email_content = ""
-
-                    if isinstance(self.load_error, DataLoadError):
-                        email_title, email_content = notify_obj.get_notification_content(
-                            type=notify_obj.TYPE_ERROR, error_msg=str(self.load_error)
-                        )
-                    elif isinstance(self.load_error, DataLoadTimeOutError):
-                        email_title, email_content = notify_obj.get_notification_content(
-                            type=notify_obj.TYPE_TIMEOUT, error_msg=str(self.load_error)
-                        )
-                    elif isinstance(self.load_error, DataImportRepeatError):
-                        email_title, email_content = notify_obj.get_notification_content(
-                            type=notify_obj.TYPE_REPEAT, error_msg=str(self.load_error)
-                        )
-                    elif isinstance(self.load_error, Exception):
-                        email_title, email_content = notify_obj.get_notification_content(
-                            type=notify_obj.TYPE_OTHER, error_msg=str(self.load_error)
-                        )
-                    assert email_content != ""
+                    email_title, email_content = notify_obj.get_notification_content(type=self.current_task.Task_Name)
                     result = notify_obj.send_mail(r.Email_Address, email_title, email_content)
-                    assert result
+
                     # 写入提醒日志
                     if result:
                         nid = notify_obj.save_notification_log(r.Email_Address, email_title, email_content)
-                        assert nid is not None
                         nids.append(nid)
 
 
