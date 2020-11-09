@@ -16,12 +16,12 @@ class Notice:
 
 # 数据导入错误消息模板
 class DataImport:
-    _some_field_is_empty = "{0}为空"
-    _file_repeat = "请不要重复导入xml文件:{0}"
-    _file_not_exist = "找不到目标xml文件：{0}"
-    _load_timeout = "文件：{0} 读取超时"
-    _content_is_too_big = "文件{0}的以下字段长度超过规定长度："
-    _node_not_exists = "缺少必要的节点：{0}"
+    _some_field_is_empty = "{0} can not be null!"
+    _file_repeat = "XML file:{0} is already existing in system, can not import again! "
+    _file_not_exist = "There is no XML file:{0}!"
+    _load_timeout = "Timeout for reading file:{0}"
+    _content_is_too_big = "The length of content field:{0} exceeds the max length{1}"
+    _node_not_exists = "Node:{0} is missing!"
 
     @classmethod
     def field_is_empty(cls, field):
@@ -41,10 +41,10 @@ class DataImport:
 
     @classmethod
     def content_is_too_big(cls, path, keys):
-        message = cls._content_is_too_big.format(path)
+        key_list = ""
         for k, v in keys.items():
-            message += "%s: %s, " % (k, v)
-        return message
+            key_list += "%s: %s, " % (k, v)
+        return cls._content_is_too_big.format(path, key_list)
 
     @classmethod
     def node_not_exists(cls, nodes):
@@ -54,10 +54,12 @@ class DataImport:
 
 # 程序运行时报错消息模板
 class RunResult:
-    _sucess = "读取成功，Entry_No={0}"
-    _fail = "任务执行失败，原因是 {0}"
-    _retry = "根据设置，任务将重试"
-    _send_notify = "根据设置，任务将发送提醒邮件"
+    _sucess = "Operation successful, Entry No:{0}"
+    _fail = "Task failed, reason is {0}"
+    _retry = "According to system setting, the task will be tried again"
+    _send_notify = "According to system setting, the task will send notification email"
+    _task_start = "Task<%s, %s> is running"
+    _task_not_reach_time = "The Time is not for Task<%s, %s>"
 
     @classmethod
     def success(cls, entry_no):
@@ -74,3 +76,11 @@ class RunResult:
     @classmethod
     def send_notify(cls):
         return cls._send_notify
+
+    @classmethod
+    def task_start(cls, company_code, api_code):
+        return cls._task_start.format(company_code, api_code)
+
+    @classmethod
+    def task_not_reach_time(cls, company_code, api_code):
+        return cls._task_not_reach_time.format(company_code, api_code)

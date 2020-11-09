@@ -6,10 +6,9 @@ rootPath = os.path.split(curPath)[0]
 sys.path.append(rootPath)
 
 from bin import cust_vend, fa, invoice, other
-from src import UserList
+from src import UserList, words
 from src.dms.notification import Notification
 from src.dms.task import Task
-from src.error import DataLoadError, DataLoadTimeOutError, DataImportRepeatError
 from src.models.dms import ApiTaskSetup, NotificationUser
 
 
@@ -46,7 +45,7 @@ class Handler:
                 self.runner = other
 
             self.entry_no = self.runner.main(company_code=company_code, api_code=api_code)
-            print("读取成功，Entry_No=%d" % self.entry_no)
+            print(words.RunResult.success(self.entry_no))
             # 更新成功执行时间
             self.current_task.update_execute_time()
 
@@ -54,24 +53,25 @@ class Handler:
             return True
 
         except Exception as ex:
-            print(ex)
             # 失败处理，主要读取task里的Fail_Handle字段
             if not self.retry and self.current_task.api_task_setup.Fail_Handle == 1:
                 # 第一次执行失败了，且不重试
-                print("任务执行失败，原因是 %s, \nFail Handle设置为1，不继续执行" % ex)
+                print(words.RunResult.fail(ex))
                 self.retry = False
                 self.notify = False
                 return False
             elif not self.retry and self.current_task.api_task_setup.Fail_Handle == 4:
                 # 第一次执行失败了，且不重试
-                print("任务执行失败，原因是 %s, \nFail Handle设置为4，将发送提醒但不继续执行" % ex)
+                print(words.RunResult.fail(ex))
+                print(words.RunResult.send_notify())
                 self.notify = True
                 self.retry = False
                 self.load_error = ex
                 return False
             elif not self.retry:
                 # 仍然是第一次执行，失败将重试
-                print("任务执行失败，原因是 %s, \nFail Handle设置不为1，将重试" % ex)
+                print(words.RunResult.fail(ex))
+                print(words.RunResult.retry())
                 self.retry = True
                 self.notify = False
                 self.run_task()
@@ -79,6 +79,8 @@ class Handler:
             # retry=True，表示这是第二次执行了
             if self.retry and self.current_task.api_task_setup.Fail_Handle == 3:
                 # 重试后依然失败，如果Fail_Handle=3则发送提醒邮件
+                print(words.RunResult.fail(ex))
+                print(words.RunResult.send_notify())
                 self.notify = True
                 self.load_error = ex
                 return False
@@ -115,7 +117,7 @@ if __name__ == '__main__':
     
     args = parser.parse_args()
     if args.company_code is None or args.sequence is None:
-        print("命令行参数错误，请输入-h 查看帮助")
+        print("Command Line Error，Please add Option -h for help")
         exit(1)
 
     # 业务调用
@@ -126,16 +128,7 @@ if __name__ == '__main__':
     handler = Handler(one_task)
     time_check = args.time_check
     if time_check and not handler.check_task():  # 检查任务的开始时间是否符合
-        print("任务<%s, %s>还没到执行时间" % (one_task.Company_Code, one_task.API_Code))
+        print(words.RunResult.task_not_reach_time(one_task.Company_Code, one_task.API_Code))
     else:
-        print("任务<%s, %s>开始执行" % (one_task.Company_Code, one_task.API_Code))
+        print(words.RunResult.task_start(one_task.Company_Code, one_task.API_Code))
         res = handler.run_task()
-        if not res and handler.notify:
-            print("任务重试后依然失败，根据设置将发送电子邮件")
-            handler.send_notification()
-        elif not res and handler.retry:
-            print("任务执行失败，重试后依然失败")
-        elif not res:
-            print("任务执行失败")
-        else:
-            print("任务执行成功")
