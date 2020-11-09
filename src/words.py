@@ -13,6 +13,7 @@ class DataImport:
     _file_not_exist = "找不到目标xml文件：{0}"
     _load_timeout = "文件：{0} 读取超时"
     _content_is_too_big = "文件{0}的以下字段长度超过规定长度："
+    _node_not_exists = "缺少必要的节点：{0}"
 
     @classmethod
     def field_is_empty(cls, field):
@@ -35,6 +36,11 @@ class DataImport:
         message = cls._content_is_too_big.format(path)
         for k, v in keys.items():
             message += "%s: %s, " % (k, v)
+        return message
+
+    @classmethod
+    def node_not_exists(cls, nodes):
+        message = cls._node_not_exists.format(','.join(nodes))
         return message
 
 

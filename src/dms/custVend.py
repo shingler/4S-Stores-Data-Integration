@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
 from src import validator
+from src.dms.setup import Setup
 from .base import DMSBase
 from src.models import nav
 
@@ -39,5 +40,22 @@ class CustVend(DMSBase):
                 if not is_valid:
                     res_bool = False
                     res_keys["%s.%s" % (self.BIZ_NODE_LV1, k)] = validator.CustVendInfoValidator.expect_length(k)
+            i += 1
+        return res_bool, res_keys
+
+    # 校验数据完整性（子类实现）
+    def _is_integrity(self, data_dict, company_code, api_code) -> (bool, list):
+        res_bool = True
+        res_keys = []
+        custVend_node_dict = Setup.load_api_p_out_nodes(company_code, api_code, node_type=self.BIZ_NODE_LV1)
+        data_list = data_dict["Transaction"][self.BIZ_NODE_LV1]
+        if type(data_list) != list:
+            data_list = [data_list]
+        i = 0
+        for node in custVend_node_dict:
+            for one_node in data_list:
+                if node not in one_node.keys():
+                    res_bool = False
+                    res_keys.append("%s.%s" % (self.BIZ_NODE_LV1, node))
             i += 1
         return res_bool, res_keys

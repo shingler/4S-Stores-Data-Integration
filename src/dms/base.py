@@ -21,7 +21,9 @@ from sqlalchemy.exc import InvalidRequestError
 
 from src import db, Company, ApiSetup, ApiPInSetup, validator
 from src.dms.logger import Logger
-from src.error import DataFieldEmptyError, DataLoadError, DataLoadTimeOutError, DataImportRepeatError, DataContentTooBig
+from src.dms.setup import Setup
+from src.error import DataFieldEmptyError, DataLoadError, DataLoadTimeOutError, DataImportRepeatError, \
+    DataContentTooBig, NodeNotExistError
 from src.models import nav, to_local_time
 from src import words
 
@@ -127,7 +129,7 @@ class DMSBase:
             data = xml_handler.read()
         # 模拟超时
         # time.sleep(90)
-        if time_out > 0 and time.perf_counter() >= time_out*60:
+        if time_out > 0 and time.perf_counter() >= time_out * 60:
             return InterfaceResult(status=self.STATUS_TIMEOUT, error_msg=words.DataImport.load_timeout(path))
 
         # print(data, type(data))
@@ -138,7 +140,7 @@ class DMSBase:
             res.data = json.loads(data, encoding="utf-8")
         return res
 
-    # 校验数据合法性
+    # 校验数据长度合法性
     def is_valid(self, data_dict) -> (bool, dict):
         res_bool = True
         res_keys = {}
@@ -152,8 +154,31 @@ class DMSBase:
 
         return res_bool and res_bool2, {**res_keys, **res_keys2}
 
-    # 校验数据合法性（子类实现）
+    # 校验数据长度合法性（子类实现）
     def _is_valid(self, data_dict) -> (bool, dict):
+        pass
+
+    # 校验数据完整性
+    def is_integrity(self, data_dict, company_code, api_code) -> (bool, list):
+        res_bool = True
+        res_keys = []
+        general_node_dict = Setup.load_api_p_out_nodes(company_code, api_code, node_type="General")
+        # print(general_node_dict)
+        # 检查规定的节点是否存在于data中
+        for node in general_node_dict:
+            # print(node, type(node))
+            if node not in data_dict["Transaction"]["General"]:
+                res_bool = False
+                res_keys.append("%s.%s" % ("General", node))
+
+        res_bool2, res_keys2 = self._is_integrity(data_dict, company_code, api_code)
+        # 合并结果
+        res_keys.extend(res_keys2)
+        # print(res_keys)
+        return res_bool and res_bool2, res_keys
+
+    # 校验数据完整性（子类实现）
+    def _is_integrity(self, data_dict, company_code, api_code) -> (bool, list):
         pass
 
     # 读取数据
@@ -166,7 +191,7 @@ class DMSBase:
         if apiSetup.API_Type == self.TYPE_API:
             # 读取JSON API
             path = ""
-            res = self._load_data_from_dms_interface(path, format=apiSetup.Data_Format, time_out=apiSetup.Time_out*60)
+            res = self._load_data_from_dms_interface(path, format=apiSetup.Data_Format, time_out=apiSetup.Time_out * 60)
         elif apiSetup.API_Type == self.TYPE_FILE and file_path is not None:
             # 直接提供XML地址
             path = file_path
@@ -174,7 +199,7 @@ class DMSBase:
         elif apiSetup.API_Type == self.TYPE_FILE:
             # 使用当天的XML文件
             path = self._splice_xml_file_path(apiSetup)
-            res = self._load_data_from_file(path, format=apiSetup.Data_Format, time_out=apiSetup.Time_out*60)
+            res = self._load_data_from_file(path, format=apiSetup.Data_Format, time_out=apiSetup.Time_out * 60)
         # print(res)
 
         # 根据结果进行后续处理
@@ -191,6 +216,14 @@ class DMSBase:
             logger.update_api_log_when_finish(status=self.STATUS_ERROR, error_msg=res.error_msg)
             raise DataImportRepeatError(res.error_msg)
         else:
+            # 处理成功，校验数据完整性
+            is_integrity, keys = self.is_integrity(res.data, apiSetup.Company_Code, apiSetup.API_Code)
+            print(is_integrity, keys)
+            if not is_integrity:
+                error_msg = words.DataImport.node_not_exists(keys)
+                logger.update_api_log_when_finish(status=self.STATUS_ERROR, error_msg=error_msg)
+                raise NodeNotExistError(error_msg)
+
             # 处理成功，校验数据长度是否合法
             is_valid, keys = self.is_valid(res.data)
             # print(is_valid, keys)
@@ -219,6 +252,7 @@ class DMSBase:
         @param str node_lv1 一级节点名
         @param str node_type 节点类型，node=对象节点，list=数组节点
     '''
+
     def _splice_field(self, data, node_dict, node_lv0, node_lv1, node_type="node"):
         if node_type == "node":
             data_dict = {}
@@ -333,7 +367,8 @@ class DMSBase:
 
     # 访问接口/文件时先新增一条API日志，并返回API_Log的主键用于后续更新
     @staticmethod
-    def add_new_api_log_when_start(apiSetup: ApiSetup, direction: int = 1, apiPIn: ApiPInSetup = None, userID: str = None) -> object:
+    def add_new_api_log_when_start(apiSetup: ApiSetup, direction: int = 1, apiPIn: ApiPInSetup = None,
+                                   userID: str = None) -> object:
         return Logger.add_new_api_log(apiSetup, direction, apiPIn, userID)
 
     # 判断是否超时

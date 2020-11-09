@@ -17,6 +17,8 @@ class Notification:
     TYPE_ERROR = 1
     TYPE_TIMEOUT = 2
     TYPE_REPEAT = 3
+    TYPE_DATA_TOO_BIG = 4
+    TYPE_NODE_NOT_EXISTS = 5
     TYPE_OTHER = 9
 
     def __init__(self, company_code, api_code):
@@ -41,6 +43,10 @@ class Notification:
             type_label = "读取超时"
         elif type == self.TYPE_REPEAT:
             type_label = "重复导入"
+        elif type == self.TYPE_DATA_TOO_BIG:
+            type_label = "数据字段内容太长"
+        elif type == self.TYPE_NODE_NOT_EXISTS:
+            type_label = "缺少数据节点"
 
         return "一封{0}邮件".format(type_label), "这是一封{0}邮件，错误信息为：{1}".format(type_label, error_msg)
 

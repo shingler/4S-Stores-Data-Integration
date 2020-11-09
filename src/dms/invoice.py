@@ -27,7 +27,7 @@ class Invoice(DMSBase):
         if node_type == "general":
             return node_dict
 
-        node_dict["INVHeader"] = Setup.load_api_p_out_nodes(company_code, api_code, node_type=self.BIZ_NODE_LV2, depth=depth)
+        node_dict[node_type] = Setup.load_api_p_out_nodes(company_code, api_code, node_type=node_type, depth=depth)
         # print(node_dict)
         return node_dict
 
@@ -103,6 +103,46 @@ class InvoiceHeader(Invoice):
                             "%s.%s" % (InvoiceLine.BIZ_NODE_LV2, k)] = validator.InvoiceLineValidator.expect_length(k)
                 j += 1
             i += 1
+        return res_bool, res_keys
+
+    # 校验数据完整性（子类实现）
+    def _is_integrity(self, data_dict, company_code, api_code) -> (bool, dict):
+        res_bool = True
+        res_keys = []
+        # 加载配置
+        inv_header_dict = self.load_api_p_out_nodes(company_code, api_code, node_type=self.BIZ_NODE_LV2, depth=3)
+        inv_line_dict = self.load_api_p_out_nodes(company_code, api_code, node_type=InvoiceLine.BIZ_NODE_LV2, depth=3)
+
+        data_list = data_dict["Transaction"][self.BIZ_NODE_LV1]
+        if type(data_list) != list:
+            data_list = [data_list]
+        i = 0
+        for invoice in data_list:
+            # 先检查发票头
+            inv_header_data = invoice[InvoiceHeader.BIZ_NODE_LV2]
+            # print(inv_header_dict)
+            for hd in inv_header_dict[InvoiceHeader.BIZ_NODE_LV2].values():
+                if hd.Level == 2:
+                    continue
+                if hd.P_Name not in inv_header_data:
+                    res_bool = False
+                    res_keys.append("%s.%s" % (self.BIZ_NODE_LV2, hd.P_Name))
+            # 再检查发票行
+            if res_bool:
+                # print(inv_line_dict, type(inv_line_dict))
+                inv_lines_data = invoice[InvoiceLine.BIZ_NODE_LV2]
+                if type(inv_lines_data) != list:
+                    inv_lines_data = [inv_lines_data]
+
+                for one_line in inv_lines_data:
+                    one_line_keys = one_line.keys()
+
+                    for hd in inv_line_dict[InvoiceLine.BIZ_NODE_LV2].values():
+                        if hd.Level != 3:
+                            continue
+                        if hd.P_Name not in one_line_keys:
+                            res_bool = False
+                            res_keys.append("%s.%s" % (InvoiceLine.BIZ_NODE_LV2, hd.P_Name))
         return res_bool, res_keys
 
 
