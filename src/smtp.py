@@ -14,11 +14,11 @@ from email.utils import formataddr
 # @param str email_title 邮件标题
 # @param str email_body 邮件正文
 def mail(smtp_config, to_addr, email_title, email_body):
-    print(smtp_config, to_addr, email_title, email_body)
+    # print(smtp_config, to_addr, email_title, email_body)
     ret = True
     try:
         # 构建邮件对象
-        msg = MIMEText(email_body, 'plain', 'utf-8')
+        msg = MIMEText(email_body, 'html', 'utf-8')
         msg['From'] = formataddr(["dms_develop", smtp_config["sender"]])  # 括号里的对应发件人邮箱昵称、发件人邮箱账号
         msg['To'] = formataddr(["FK", to_addr])  # 括号里的对应收件人邮箱昵称、收件人邮箱账号
         msg['Subject'] = email_title

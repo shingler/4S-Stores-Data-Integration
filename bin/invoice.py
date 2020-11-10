@@ -52,13 +52,10 @@ def main(company_code, api_code, retry=False, file_path=None, async_ws=False):
     if len(ih_dict) > 0:
         invoiceHeader_obj.save_data_to_nav(nav_data=ih_dict, entry_no=entry_no, TABLE_CLASS=invoiceHeader_obj.TABLE_CLASS)
 
-        # 发票号
-        invoice_no = ih_dict[0]["InvoiceNo"]
-
         # 发票明细节点配置
         il_node_dict = invoiceLine_obj.load_api_p_out_nodes(company_code, api_code, node_type=invoiceLine_obj.BIZ_NODE_LV1)
         # 拼接发票明细数据
-        il_dict = invoiceLine_obj.splice_data_info(data, node_dict=il_node_dict, invoice_no=invoice_no)
+        il_dict = invoiceLine_obj.splice_data_info(data, node_dict=il_node_dict)
         invoiceLine_obj.save_data_to_nav(nav_data=il_dict, entry_no=entry_no, TABLE_CLASS=invoiceLine_obj.TABLE_CLASS)
 
     # 读取文件，文件归档
@@ -68,9 +65,9 @@ def main(company_code, api_code, retry=False, file_path=None, async_ws=False):
     wsh = WebServiceHandler(api_setup, soap_username=company_info.NAV_WEB_UserID,
                             soap_password=company_info.NAV_WEB_Password)
     ws_url = wsh.soapAddress(company_info.NAV_Company_Code)
-    ws_env = WebServiceHandler.soapEnvelope(method_name=invoiceHeader_obj.WS_METHOD, entry_no=entry_no)
+    ws_env = WebServiceHandler.soapEnvelope(method_name=invoiceHeader_obj.WS_METHOD, entry_no=entry_no, command_code=api_setup.CallBack_Command_Code)
     wsh.call_web_service(ws_url, ws_env, direction=invoiceHeader_obj.DIRECT_NAV, async_invoke=async_ws,
-                         soap_action=invoiceHeader_obj.WS_ACTION)
+                         soap_action=api_setup.CallBack_SoapAction)
     return entry_no
 
 

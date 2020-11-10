@@ -3,16 +3,25 @@
 # 提示话术定义
 
 
+# 提醒邮件话术模板
 class Notice:
-    pass
+    # 提醒邮件标题模板
+    title = 'DMS Interface Error (Data Type: {0} )'
+    # 提醒邮件内容模板
+    content = '''Dear User,
+<p>There are some errors occurred during system import DMS <strong>{0}</strong> Interface Data, please check error log in NAV interface platform (URL:{1}).</p>
+<p>If you have any questions, please contact NAV support team with Email:<a href="mailto:phnav.support@hytci.com!">phnav.support@hytci.com!</a></p>
+<p>Navision system</p>'''
 
 
+# 数据导入错误消息模板
 class DataImport:
-    _some_field_is_empty = "{0}为空"
-    _file_repeat = "请不要重复导入xml文件:{0}"
-    _file_not_exist = "找不到目标xml文件：{0}"
-    _load_timeout = "文件：{0} 读取超时"
-    _content_is_too_big = "文件{0}的以下字段长度超过规定长度："
+    _some_field_is_empty = "{0} can not be null!"
+    _file_repeat = "XML file:{0} is already existing in system, can not import again! "
+    _file_not_exist = "There is no XML file:{0}!"
+    _load_timeout = "Timeout for reading file:{0}"
+    _content_is_too_big = "The length of content field:{0} exceeds the max length{1}"
+    _node_not_exists = "Node:{0} is missing!"
 
     @classmethod
     def field_is_empty(cls, field):
@@ -32,17 +41,25 @@ class DataImport:
 
     @classmethod
     def content_is_too_big(cls, path, keys):
-        message = cls._content_is_too_big.format(path)
+        key_list = ""
         for k, v in keys.items():
-            message += "%s: %s, " % (k, v)
+            key_list += "%s: %s, " % (k, v)
+        return cls._content_is_too_big.format(path, key_list)
+
+    @classmethod
+    def node_not_exists(cls, nodes):
+        message = cls._node_not_exists.format(','.join(nodes))
         return message
 
 
+# 程序运行时报错消息模板
 class RunResult:
-    _sucess = "读取成功，Entry_No={0}"
-    _fail = "任务执行失败，原因是 {0}"
-    _retry = "根据设置，任务将重试"
-    _send_notify = "根据设置，任务将发送提醒邮件"
+    _sucess = "Operation successful, Entry No:{0}"
+    _fail = "Task failed, reason is {0}"
+    _retry = "According to system setting, the task will be tried again"
+    _send_notify = "According to system setting, the task will send notification email"
+    _task_start = "Task<%s, %s> is running"
+    _task_not_reach_time = "The Time for Task<%s, %s> is not arrived"
 
     @classmethod
     def success(cls, entry_no):
@@ -59,3 +76,40 @@ class RunResult:
     @classmethod
     def send_notify(cls):
         return cls._send_notify
+
+    @classmethod
+    def task_start(cls, company_code, api_code):
+        return cls._task_start.format(company_code, api_code)
+
+    @classmethod
+    def task_not_reach_time(cls, company_code, api_code):
+        return cls._task_not_reach_time.format(company_code, api_code)
+
+
+# API错误提示模板
+class WebApi:
+    _field_empty = "{0} can not be empty!"
+    _invalid_value = "the field {0} has an invalid value: {1}"
+    _api_type_not_support = "the {0} is not supported"
+    _other_error = "there's something wrong, please contact us."
+    _method_error = "Request method is incorrect, please retry with POST"
+
+    @classmethod
+    def filed_empty(cls, field):
+        return cls._field_empty.format(field)
+
+    @classmethod
+    def invalid_value(cls, key, value):
+        return cls._invalid_value.format(key, value)
+
+    @classmethod
+    def api_type_not_support(cls, api_name):
+        return cls._api_type_not_support.format(api_name)
+
+    @classmethod
+    def internal_error(cls):
+        return cls._other_error
+
+    @classmethod
+    def method_error(cls):
+        return cls._method_error

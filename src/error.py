@@ -25,3 +25,7 @@ class DataImportRepeatError(Exception):
 
 class DataContentTooBig(Exception):
     pass
+
+
+class NodeNotExistError(Exception):
+    pass

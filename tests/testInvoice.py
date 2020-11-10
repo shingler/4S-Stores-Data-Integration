@@ -1,5 +1,7 @@
 import os
 import pytest
+from sqlalchemy import and_
+
 from src import Company
 from src.dms.base import WebServiceHandler
 from src.dms.invoice import InvoiceHeader, InvoiceLine
@@ -87,7 +89,7 @@ def test_4_save_InvoiceHeader(init_app):
         assert "InvoiceNo" in ih_dict[0]
         print(invoiceHeader_obj.TABLE_CLASS)
         invoiceHeader_obj.save_data_to_nav(nav_data=ih_dict, entry_no=entry_no, TABLE_CLASS=invoiceHeader_obj.TABLE_CLASS)
-        global_vars["invoice_no"] = ih_dict[0]["InvoiceNo"]
+        global_vars["invoice_no"] = [ih["InvoiceNo"] for ih in ih_dict]
 
 
 # 根据API_P_Out写入Other库
@@ -95,19 +97,16 @@ def test_4_save_InvoiceHeader(init_app):
 def test_5_save_InvoiceLine(init_app):
     data = global_vars["data"]
     entry_no = global_vars["entry_no"]
-    # 先确定是否有发票头
-    if "invoice_no" in global_vars:
-        invoice_no = global_vars["invoice_no"]
 
-        # FA节点配置
-        il_node_dict = invoiceLine_obj.load_api_p_out_nodes(company_code, api_code, node_type=invoiceLine_obj.BIZ_NODE_LV1)
-        # 拼接fa数据
-        il_dict = invoiceLine_obj.splice_data_info(data, node_dict=il_node_dict, invoice_no=invoice_no)
-        if len(il_dict) > 0:
-            assert "InvoiceType" in il_dict[0]
-            assert "InvoiceNo" in il_dict[0]
-            # with pytest.raises():
-            invoiceLine_obj.save_data_to_nav(nav_data=il_dict, entry_no=entry_no, TABLE_CLASS=invoiceLine_obj.TABLE_CLASS)
+    # FA节点配置
+    il_node_dict = invoiceLine_obj.load_api_p_out_nodes(company_code, api_code, node_type=invoiceLine_obj.BIZ_NODE_LV1)
+    # 拼接fa数据
+    il_dict = invoiceLine_obj.splice_data_info(data, node_dict=il_node_dict)
+    if len(il_dict) > 0:
+        assert "InvoiceType" in il_dict[0]
+        assert "InvoiceNo" in il_dict[0]
+        # with pytest.raises():
+        invoiceLine_obj.save_data_to_nav(nav_data=il_dict, entry_no=entry_no, TABLE_CLASS=invoiceLine_obj.TABLE_CLASS)
     # 读取文件，文件归档
     # 环境不同，归档路径不同
     app, db = init_app
@@ -119,7 +118,7 @@ def test_5_save_InvoiceLine(init_app):
 
 
 # 检查数据正确性
-# @pytest.mark.skip(reason="调通了上一步再说")
+# @pytest.mark.skip(reason="数据文件变更导致具体判断不适用")
 def test_6_valid_data(init_app):
     app, db = init_app
     entry_no = global_vars["entry_no"]
@@ -127,21 +126,16 @@ def test_6_valid_data(init_app):
     interfaceInfoClass = invoiceHeader_obj.GENERAL_CLASS
     interfaceInfo = db.session.query(interfaceInfoClass).filter(interfaceInfoClass.Entry_No_ == entry_no).first()
     headerList = db.session.query(invoiceHeader_obj.TABLE_CLASS).filter(invoiceHeader_obj.TABLE_CLASS.Entry_No_ == entry_no).all()
-    lineList = db.session.query(invoiceLine_obj.TABLE_CLASS).filter(invoiceLine_obj.TABLE_CLASS.Entry_No_ == entry_no).all()
 
     # 检查数据正确性
-    assert interfaceInfo.DMSCode == "7000320"
-    assert interfaceInfo.Invoice_Total_Count == global_vars["count"]
+    assert interfaceInfo.Invoice_Total_Count == len(headerList)
 
-    if global_vars["count"] > 0:
-        assert headerList[0].InvoiceNo == "1183569670"
-        assert len(headerList) == global_vars["count"]
-        assert lineList[0].GLAccount == "6001040101"
-        assert lineList[0].VIN == "WP1AB2920FLA58047"
-        assert lineList[0].InvoiceNo == headerList[0].InvoiceNo
-        assert lineList[1].GLAccount == "6001030104"
-        assert lineList[1].VIN == "WP1AB2920FLA58047"
-        assert lineList[1].InvoiceNo == headerList[0].InvoiceNo
+    for h in headerList:
+        lineList = db.session.query(invoiceLine_obj.TABLE_CLASS).filter(
+            and_(invoiceLine_obj.TABLE_CLASS.Entry_No_ == entry_no, invoiceLine_obj.TABLE_CLASS.InvoiceNo == h.InvoiceNo)).all()
+
+        # 检查发票数据正确性
+        assert h.Line_Total_Count == len(lineList)
 
 
 # 将entry_no作为参数写入指定的ws
@@ -156,8 +150,8 @@ def test_7_invoke_ws(init_app):
     wsh = WebServiceHandler(api_setup, soap_username=company_info.NAV_WEB_UserID,
                             soap_password=company_info.NAV_WEB_Password)
     ws_url = wsh.soapAddress(company_info.NAV_Company_Code)
-    ws_env = WebServiceHandler.soapEnvelope(method_name=invoiceHeader_obj.WS_METHOD, entry_no=entry_no)
-    result = wsh.call_web_service(ws_url, ws_env, direction=invoiceHeader_obj.DIRECT_NAV, soap_action=invoiceHeader_obj.WS_ACTION)
+    ws_env = WebServiceHandler.soapEnvelope(method_name=invoiceHeader_obj.WS_METHOD, entry_no=entry_no, command_code=api_setup.CallBack_Command_Code)
+    result = wsh.call_web_service(ws_url, ws_env, direction=invoiceHeader_obj.DIRECT_NAV, soap_action=api_setup.CallBack_SoapAction)
     print(result)
     assert result is not None
 
