@@ -2,7 +2,7 @@
 # -*- coding:utf-8 -*-
 from collections import OrderedDict
 
-from src import validator
+from src import validator, words
 from src.dms.base import DMSBase
 from src.dms.setup import Setup
 from src.models import nav
@@ -12,7 +12,6 @@ from src.error import InvoiceEmptyError
 class Invoice(DMSBase):
     TABLE_CLASS = None
     WS_METHOD = "HandleInvoiceWithEntryNo"
-    WS_ACTION = "urn:microsoft-dynamics-schemas/codeunit/DMSWebAPI:HandleInvoiceWithEntryNo"
 
     # 数据一级节点
     BIZ_NODE_LV1 = ""
@@ -27,19 +26,19 @@ class Invoice(DMSBase):
         if node_type == "general":
             return node_dict
 
-        node_dict["INVHeader"] = Setup.load_api_p_out_nodes(company_code, api_code, node_type=self.BIZ_NODE_LV2, depth=depth)
+        node_dict[node_type] = Setup.load_api_p_out_nodes(company_code, api_code, node_type=node_type, depth=depth)
         # print(node_dict)
         return node_dict
 
     # 从api_p_out获取数据
-    def splice_data_info(self, data, node_dict, invoice_no=""):
-        data_dict_list = self._splice_field_by_name(data, node_dict, invoice_no)
+    def splice_data_info(self, data, node_dict):
+        data_dict_list = self._splice_field_by_name(data, node_dict)
         if type(data_dict_list) == OrderedDict:
             data_dict_list = [data_dict_list]
         return data_dict_list
 
     # 根据节点名处理二级/三级层级数据
-    def _splice_field_by_name(self, data, node_dict, invoice_no):
+    def _splice_field_by_name(self, data, node_dict):
         pass
 
 
@@ -52,8 +51,8 @@ class InvoiceHeader(Invoice):
         super(__class__, self).__init__(company_name, force_secondary, check_repeat)
         self.TABLE_CLASS = nav.invoiceHeaderBuffer(company_name)
 
-    # 根据节点名处理二级/三级层级数据（假设一个xml文件里只有1个发票抬头）
-    def _splice_field_by_name(self, data, node_dict, invoice_no=""):
+    # 根据节点名处理二级/三级层级数据
+    def _splice_field_by_name(self, data, node_dict):
         data_dict_list = self._splice_field(data, node_dict, node_lv0="Transaction", node_lv1=self.BIZ_NODE_LV1,
                                             node_type="list")
         # 多Invoice会变成列表，所以改用列表来处理
@@ -63,6 +62,12 @@ class InvoiceHeader(Invoice):
             one_header = inv[self.BIZ_NODE_LV2]
             # 将InvoiceType与INVHeader合并
             one_header[self._COMMON_FILED] = inv[self._COMMON_FILED]
+            # 统计发票行数量
+            if type(inv[InvoiceLine.BIZ_NODE_LV2]) != list:
+                inv[InvoiceLine.BIZ_NODE_LV2] = [inv[InvoiceLine.BIZ_NODE_LV2]]
+            line_count = len(inv[InvoiceLine.BIZ_NODE_LV2])
+            one_header["Line_Total_Count"] = line_count
+
             data_list.append(one_header)
 
         return data_list
@@ -99,6 +104,46 @@ class InvoiceHeader(Invoice):
             i += 1
         return res_bool, res_keys
 
+    # 校验数据完整性（子类实现）
+    def _is_integrity(self, data_dict, company_code, api_code) -> (bool, dict):
+        res_bool = True
+        res_keys = []
+        # 加载配置
+        inv_header_dict = self.load_api_p_out_nodes(company_code, api_code, node_type=self.BIZ_NODE_LV2, depth=3)
+        inv_line_dict = self.load_api_p_out_nodes(company_code, api_code, node_type=InvoiceLine.BIZ_NODE_LV2, depth=3)
+
+        data_list = data_dict["Transaction"][self.BIZ_NODE_LV1]
+        if type(data_list) != list:
+            data_list = [data_list]
+        i = 0
+        for invoice in data_list:
+            # 先检查发票头
+            inv_header_data = invoice[InvoiceHeader.BIZ_NODE_LV2]
+            # print(inv_header_dict)
+            for hd in inv_header_dict[InvoiceHeader.BIZ_NODE_LV2].values():
+                if hd.Level == 2:
+                    continue
+                if hd.P_Name not in inv_header_data:
+                    res_bool = False
+                    res_keys.append("%s.%s" % (self.BIZ_NODE_LV2, hd.P_Name))
+            # 再检查发票行
+            if res_bool:
+                # print(inv_line_dict, type(inv_line_dict))
+                inv_lines_data = invoice[InvoiceLine.BIZ_NODE_LV2]
+                if type(inv_lines_data) != list:
+                    inv_lines_data = [inv_lines_data]
+
+                for one_line in inv_lines_data:
+                    one_line_keys = one_line.keys()
+
+                    for hd in inv_line_dict[InvoiceLine.BIZ_NODE_LV2].values():
+                        if hd.Level != 3:
+                            continue
+                        if hd.P_Name not in one_line_keys:
+                            res_bool = False
+                            res_keys.append("%s.%s" % (InvoiceLine.BIZ_NODE_LV2, hd.P_Name))
+        return res_bool, res_keys
+
 
 class InvoiceLine(Invoice):
     BIZ_NODE_LV1 = "Invoice"
@@ -110,7 +155,7 @@ class InvoiceLine(Invoice):
         self.TABLE_CLASS = nav.invoiceLineBuffer(company_nav_code)
 
     # 根据节点名处理二级/三级层级数据
-    def _splice_field_by_name(self, data, node_dict, invoice_no):
+    def _splice_field_by_name(self, data, node_dict):
         data_dict_list = self._splice_field(data, node_dict, node_lv0="Transaction", node_lv1=self.BIZ_NODE_LV1,
                                             node_type="list")
         # print(data_dict_list)
@@ -125,6 +170,8 @@ class InvoiceLine(Invoice):
                 one_dict = inv[self.BIZ_NODE_LV2]
                 # 将InvoiceType放入INVLine
                 one_dict[self._COMMON_FILED] = inv[self._COMMON_FILED]
+                # 将发票号放入INVLine
+                one_dict["InvoiceNo"] = inv[InvoiceHeader.BIZ_NODE_LV2]["InvoiceNo"]
                 data_list.append(one_dict)
             else:
                 # 数组对象
@@ -133,16 +180,17 @@ class InvoiceLine(Invoice):
                     # print(type(one))
                     for key, value in one.items():
                         one_dict[key] = value
+                        # 将发票号放入INVLine
+                        one_dict["InvoiceNo"] = inv[InvoiceHeader.BIZ_NODE_LV2]["InvoiceNo"]
                     data_list.append(one_dict)
         # print(data_list)
-        # 把发票号放入明细中
-        data_list = self.set_invoice_no(data_list, invoice_no=invoice_no)
+
         return data_list
 
     # 把发票号放入明细中
     def set_invoice_no(self, nav_data, invoice_no=""):
         if not invoice_no:
-            raise InvoiceEmptyError("发票号不能为空")
+            raise InvoiceEmptyError(words.DataImport.field_is_empty("invoiceNo"))
         for one in nav_data:
             one["InvoiceNo"] = invoice_no
         return nav_data

@@ -24,6 +24,10 @@ class Task:
     def API_Code(self):
         return self.api_task_setup.API_Code
 
+    @property
+    def Task_Name(self):
+        return self.api_task_setup.Task_Name
+
     # 读取任务配置, 返回任务列表
     @staticmethod
     def load_tasks() -> list:
