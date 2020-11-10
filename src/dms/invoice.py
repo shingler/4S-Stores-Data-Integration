@@ -2,7 +2,7 @@
 # -*- coding:utf-8 -*-
 from collections import OrderedDict
 
-from src import validator
+from src import validator, words
 from src.dms.base import DMSBase
 from src.dms.setup import Setup
 from src.models import nav
@@ -190,7 +190,7 @@ class InvoiceLine(Invoice):
     # 把发票号放入明细中
     def set_invoice_no(self, nav_data, invoice_no=""):
         if not invoice_no:
-            raise InvoiceEmptyError("发票号不能为空")
+            raise InvoiceEmptyError(words.DataImport.field_is_empty("invoiceNo"))
         for one in nav_data:
             one["InvoiceNo"] = invoice_no
         return nav_data

@@ -1,10 +1,13 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
 from gevent import monkey
+
+from src.error import NodeNotExistError
+
 monkey.patch_all()
 import json
 from flask import jsonify, request, Response
-from src import create_app
+from src import create_app, words
 from bin import cust_vend, fa, invoice, other
 from src import error
 
@@ -15,6 +18,71 @@ app = create_app()
 @app.route("/")
 def default():
     return Response("It Works!")
+
+
+# dms接口统一入口
+# @param string company_code 公司代码
+# @param string api_code 执行代码
+# @param string command_code 01=cust_vend, 02=fa, 03=invoice, 04=other
+# @param int retry 是否重试。retry=0将按照地址1执行；为1则按照地址2执行。
+# @param int api_type 接口类型：1=JSON API，2=XML
+# @param string options 指定参数，格式为JSON，详见说明文档
+@app.route("/dms_interface", methods=["POST"])
+def dms_interface_api():
+    if request.method != "POST":
+        return jsonify({"status": 40000, "error_message": words.WebApi.method_error()})
+
+    company_code = request.form.get("company_code", "")
+    api_code = request.form.get("api_code", "")
+    command_code = request.form.get("command_code", "01")
+    retry = request.form.get("retry", 0)
+    api_type = request.form.get("api_type", 0)
+    options = request.form.get("options", "")
+    if len(options) > 0:
+        options = json.loads(options, encoding="UTF-8")
+
+    # 参数检查
+    if company_code == "":
+        return jsonify({"status": 40001, "error_message": words.WebApi.filed_empty("company_code")})
+    if api_code == "":
+        return jsonify({"status": 40001, "error_message": words.WebApi.filed_empty("api_code")})
+    if command_code not in ["01", "02", "03", "04"]:
+        return jsonify({"status": 40002, "error_message": words.WebApi.invalid_value("command_code", command_code)})
+    if api_type not in ["1", "2"]:
+        return jsonify({"status": 40003, "error_message": words.WebApi.api_type_not_support(api_type)})
+
+    if api_type == "1":
+        # 解析JSON API
+        return jsonify({"status": 40003, "error_message": words.WebApi.api_type_not_support("JSON API")})
+    else:
+        file_path = options["file_path"] if "file_path" in options else None
+
+        if command_code == "01":
+            runner = cust_vend
+        elif command_code == "02":
+            runner = fa
+        elif command_code == "03":
+            runner = invoice
+        else:
+            runner = other
+        try:
+            entry_no = runner.main(company_code=company_code, api_code=api_code, file_path=file_path,
+                                   retry=True if retry else False)
+            res = {"status": 0, "entry_no": entry_no}
+        except error.DataFieldEmptyError as ex:
+            res = {"status": 50001, "error_message": str(ex)}
+        except error.InvoiceEmptyError as ex:
+            res = {"status": 50002, "error_message": str(ex)}
+        except (error.DataLoadError, NodeNotExistError) as ex:
+            res = {"status": 50003, "error_message": str(ex)}
+        except error.DataLoadTimeOutError as ex:
+            res = {"status": 50004, "error_message": str(ex)}
+        except error.DataImportRepeatError as ex:
+            res = {"status": 50005, "error_message": str(ex)}
+        except Exception as ex:
+            res = {"status": 50000, "error_message": str(ex)}
+
+    return jsonify(res)
 
 
 # cust vend 接口手动调用
@@ -47,7 +115,8 @@ def cust_vend_api():
     elif api_type == "2":
         file_path = options["file_path"] if "file_path" in options else None
         try:
-            entry_no = cust_vend.main(company_code=company_code, api_code=api_code, file_path=file_path, retry=True if retry else False)
+            entry_no = cust_vend.main(company_code=company_code, api_code=api_code, file_path=file_path,
+                                      retry=True if retry else False)
             res = {"status": 1, "entry_no": entry_no}
         except error.DataFieldEmptyError as ex:
             res = {"status": 10001, "error_message": str(ex)}
@@ -96,7 +165,8 @@ def fa_api():
     elif api_type == "2":
         file_path = options["file_path"] if "file_path" in options else None
         try:
-            entry_no = fa.main(company_code=company_code, api_code=api_code, file_path=file_path, retry=True if retry else False)
+            entry_no = fa.main(company_code=company_code, api_code=api_code, file_path=file_path,
+                               retry=True if retry else False)
             res = {"status": 1, "entry_no": entry_no}
         except error.DataFieldEmptyError as ex:
             res = {"status": 20001, "error_message": str(ex)}
@@ -145,7 +215,8 @@ def invoice_api():
     elif api_type == "2":
         file_path = options["file_path"] if "file_path" in options else None
         try:
-            entry_no = invoice.main(company_code=company_code, api_code=api_code, file_path=file_path, retry=True if retry else False)
+            entry_no = invoice.main(company_code=company_code, api_code=api_code, file_path=file_path,
+                                    retry=True if retry else False)
             res = {"status": 1, "entry_no": entry_no}
         except error.DataFieldEmptyError as ex:
             res = {"status": 30001, "error_message": str(ex)}
@@ -194,7 +265,8 @@ def other_api():
     elif api_type == "2":
         file_path = options["file_path"] if "file_path" in options else None
         try:
-            entry_no = other.main(company_code=company_code, api_code=api_code, file_path=file_path, retry=True if retry else False)
+            entry_no = other.main(company_code=company_code, api_code=api_code, file_path=file_path,
+                                  retry=True if retry else False)
             res = {"status": 1, "entry_no": entry_no}
         except error.DataFieldEmptyError as ex:
             res = {"status": 40001, "error_message": str(ex)}

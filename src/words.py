@@ -84,3 +84,32 @@ class RunResult:
     @classmethod
     def task_not_reach_time(cls, company_code, api_code):
         return cls._task_not_reach_time.format(company_code, api_code)
+
+
+# API错误提示模板
+class WebApi:
+    _field_empty = "{0} can not be empty!"
+    _invalid_value = "the field {0} has an invalid value: {1}"
+    _api_type_not_support = "the {0} is not supported"
+    _other_error = "there's something wrong, please contact us."
+    _method_error = "Request method is incorrect, please retry with POST"
+
+    @classmethod
+    def filed_empty(cls, field):
+        return cls._field_empty.format(field)
+
+    @classmethod
+    def invalid_value(cls, key, value):
+        return cls._invalid_value.format(key, value)
+
+    @classmethod
+    def api_type_not_support(cls, api_name):
+        return cls._api_type_not_support.format(api_name)
+
+    @classmethod
+    def internal_error(cls):
+        return cls._other_error
+
+    @classmethod
+    def method_error(cls):
+        return cls._method_error
