@@ -92,6 +92,7 @@ def test_4_save_custVendInfo(init_app):
 
 
 # 检查数据正确性
+# @pytest.mark.skip("数据导入前校验测试")
 def test_5_valid_data(init_app):
     app, db = init_app
     entry_no = global_vars["entry_no"]
@@ -121,11 +122,10 @@ def test_6_invoke_ws(init_app):
     api_setup = Setup.load_api_setup(company_code, api_code)
     assert api_setup is not None
 
-    # result = cv_obj.call_web_service(entry_no, api_setup=api_setup, user_id=company_info.NAV_WEB_UserID, password=company_info.NAV_WEB_Password)
     wsh = WebServiceHandler(api_setup, soap_username=company_info.NAV_WEB_UserID, soap_password=company_info.NAV_WEB_Password)
     ws_url = wsh.soapAddress(company_info.NAV_Company_Code)
-    ws_env = WebServiceHandler.soapEnvelope(method_name=cv_obj.WS_METHOD, entry_no=entry_no)
-    result = wsh.call_web_service(ws_url, ws_env, direction=cv_obj.DIRECT_NAV, soap_action=cv_obj.WS_ACTION)
+    ws_env = WebServiceHandler.soapEnvelope(method_name=cv_obj.WS_METHOD, entry_no=entry_no, command_code=api_setup.CallBack_Command_Code)
+    result = wsh.call_web_service(ws_url, ws_env, direction=cv_obj.DIRECT_NAV, soap_action=api_setup.CallBack_SoapAction)
     assert result is not None
 
 
