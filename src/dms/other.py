@@ -11,7 +11,6 @@ from src.models import nav
 class Other(DMSBase):
     TABLE_CLASS = None
     WS_METHOD = "HandleOtherWithEntryNo"
-    WS_ACTION = "urn:microsoft-dynamics-schemas/codeunit/DMSWebAPI:HandleOtherWithEntryNo"
 
     # 数据一级节点
     BIZ_NODE_LV1 = "Daydook"

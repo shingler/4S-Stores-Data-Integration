@@ -59,7 +59,7 @@ class RunResult:
     _retry = "According to system setting, the task will be tried again"
     _send_notify = "According to system setting, the task will send notification email"
     _task_start = "Task<%s, %s> is running"
-    _task_not_reach_time = "The Time is not for Task<%s, %s>"
+    _task_not_reach_time = "The Time for Task<%s, %s> is not arrived"
 
     @classmethod
     def success(cls, entry_no):

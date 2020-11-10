@@ -77,6 +77,8 @@ class ApiSetup(db.Model):
     Signature_Method = db.Column(db.String(50), nullable=True, comment="签名方法")
     # 签名信息
     Signature = db.Column(db.String(200), nullable=True, comment="签名信息")
+    # 密钥
+    Secret_Key = db.Column(db.Text, nullable=True, default="", comment="密钥")
     # 启用接口
     Activated = db.Column(db.Boolean, nullable=False, default=False, comment="启用接口")
     # 如果接口类型为2 - XML File, 该字段内容为XML文件名的格式(e.g.YYYYMMDD_CustVendInfo.XML)
@@ -85,6 +87,9 @@ class ApiSetup(db.Model):
     Notification_Activated = db.Column(db.Boolean, nullable=False, default=False, comment="启用邮件提醒")
     # 回调地址
     CallBack_Address = db.Column(db.String(200), nullable=True, comment="回调地址")
+    CallBack_SoapAction = db.Column(db.String(50), nullable=False, default="DMSDataInterfaceIn")
+    # 回调命令代码(01-CustVendInfo,02-FA,03-Invoice,04-Other)
+    CallBack_Command_Code = db.Column(db.String(50), nullable=False, default="01", comment="回调命令代码(01-CustVendInfo,02-FA,03-Invoice,04-Other)")
     # 超时时间(单位: 分钟)
     Time_out = db.Column(db.Integer, nullable=False, default=0, comment="超时时间(单位: 分钟)")
     # XML文件最大容量(单位: M兆)

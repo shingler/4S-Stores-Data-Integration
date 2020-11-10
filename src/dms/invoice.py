@@ -12,7 +12,6 @@ from src.error import InvoiceEmptyError
 class Invoice(DMSBase):
     TABLE_CLASS = None
     WS_METHOD = "HandleInvoiceWithEntryNo"
-    WS_ACTION = "urn:microsoft-dynamics-schemas/codeunit/DMSWebAPI:HandleInvoiceWithEntryNo"
 
     # 数据一级节点
     BIZ_NODE_LV1 = ""

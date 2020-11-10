@@ -37,11 +37,11 @@ class DMSBase:
     force_secondary = False
     # 是否检查重复导入
     check_repeat = True
+    # NAV的WebService的SOAPAction
+    WS_ACTION = "urn:microsoft-dynamics-schemas/codeunit/DMSWebAPI:DMSDataInterfaceIn"
 
     # NAV的WebService方法名
     WS_METHOD = ""
-    # NAV的WebService的SOAPAction
-    WS_ACTION = ""
 
     # ------- 下面是常量 --------#
     # dms方向
@@ -449,10 +449,9 @@ class WebServiceHandler:
 
     # 生成soap报文
     @staticmethod
-    def soapEnvelope(method_name, entry_no):
-        postcontent = '<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"><soap:Body><{0} xmlns="urn:microsoft-dynamics-schemas/codeunit/DMSWebAPI"><entryNo>{1}</entryNo><_CalledBy>0</_CalledBy></{0}></soap:Body></soap:Envelope>'.format(
-            method_name, entry_no)
-        # postcontent = '<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"><soap:Body><HandleCVInfoWithEntryNo xmlns="urn:microsoft-dynamics-schemas/codeunit/DMSWebAPI"><entryNo>6541</entryNo><_CalledBy>0</_CalledBy></HandleCVInfoWithEntryNo></soap:Body></soap:Envelope>'
+    def soapEnvelope(method_name, entry_no, command_code):
+        postcontent = '<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"><soap:Body><{0} xmlns="urn:microsoft-dynamics-schemas/codeunit/DMSWebAPI"><entryNo>{1}</entryNo><_CalledBy>0</_CalledBy><CommandCode>{2}</CommandCode></{0}></soap:Body></soap:Envelope>'.format(
+            method_name, entry_no, command_code)
         return postcontent
 
     # 获取动态ws地址
@@ -470,7 +469,7 @@ class WebServiceHandler:
             "SOAPAction": soap_action
         }
         req = requests.post(url, headers=headers, auth=self.auth, data=data.encode('utf-8'))
-        print(req)
+        # print(req)
         return req
 
     # 将entry_no作为参数写入指定的ws（异步版本）
@@ -482,7 +481,7 @@ class WebServiceHandler:
         }
         rs = [grequests.post(url, headers=headers, auth=self.auth, data=data.encode('utf-8'))]
         res = grequests.map(rs)
-        print(res)
+        # print(res)
         if len(res) > 0:
             return res[0]
         return None

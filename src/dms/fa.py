@@ -10,7 +10,6 @@ class FA(DMSBase):
     TABLE_CLASS = None
     BIZ_NODE_LV1 = "FA"
     WS_METHOD = "HandleFAWithEntryNo"
-    WS_ACTION = "urn:microsoft-dynamics-schemas/codeunit/DMSWebAPI:HandleFAWithEntryNo"
 
     def __init__(self, company_nav_code, force_secondary=False, check_repeat=True):
         super(__class__, self).__init__(company_nav_code, force_secondary, check_repeat)
