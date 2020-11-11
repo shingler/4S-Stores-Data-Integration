@@ -54,6 +54,8 @@ class CustVend(DMSBase):
             for one_node in data_list:
                 if node not in one_node.keys():
                     res_bool = False
-                    res_keys.append("%s.%s" % (self.BIZ_NODE_LV1, node))
+                    miss_key = "%s.%s" % (self.BIZ_NODE_LV1, node)
+                    if miss_key not in res_keys:
+                        res_keys.append(miss_key)
             i += 1
         return res_bool, res_keys

@@ -125,7 +125,9 @@ class InvoiceHeader(Invoice):
                     continue
                 if hd.P_Name not in inv_header_data:
                     res_bool = False
-                    res_keys.append("%s.%s" % (self.BIZ_NODE_LV2, hd.P_Name))
+                    miss_key = "%s.%s" % (self.BIZ_NODE_LV2, hd.P_Name)
+                    if miss_key not in res_keys:
+                        res_keys.append(miss_key)
             # 再检查发票行
             if res_bool:
                 # print(inv_line_dict, type(inv_line_dict))
@@ -141,7 +143,9 @@ class InvoiceHeader(Invoice):
                             continue
                         if hd.P_Name not in one_line_keys:
                             res_bool = False
-                            res_keys.append("%s.%s" % (InvoiceLine.BIZ_NODE_LV2, hd.P_Name))
+                            miss_key = "%s.%s" % (InvoiceLine.BIZ_NODE_LV2, hd.P_Name)
+                            if miss_key not in res_keys:
+                                res_keys.append(miss_key)
         return res_bool, res_keys
 
 

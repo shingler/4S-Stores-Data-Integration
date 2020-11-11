@@ -119,7 +119,7 @@ class Other(DMSBase):
         res_bool = True
         res_keys = []
         other_node_dict = self.load_api_p_out_nodes(company_code, api_code, node_type=self.BIZ_NODE_LV1)
-        print(data_dict)
+        # print(data_dict)
         data_list = data_dict["Transaction"][self.BIZ_NODE_LV1]
         if type(data_list) != list:
             data_list = [data_list]
@@ -134,6 +134,8 @@ class Other(DMSBase):
                         continue
                     if node.P_Name not in line_keys:
                         res_bool = False
-                        res_keys.append("%s.%s" % (self.BIZ_NODE_LV2, node.P_Name))
+                        miss_key = "%s.%s" % (self.BIZ_NODE_LV2, node.P_Name)
+                        if miss_key not in res_keys:
+                            res_keys.append(miss_key)
 
         return res_bool, res_keys
