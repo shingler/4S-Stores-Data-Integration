@@ -117,6 +117,7 @@ class InvoiceHeader(Invoice):
             # 只有存在节点时才判断
 
             # 加载配置
+            inv_dict = self.load_api_p_out_nodes(company_code, api_code, node_type=self.BIZ_NODE_LV1, depth=2)
             inv_header_dict = self.load_api_p_out_nodes(company_code, api_code, node_type=self.BIZ_NODE_LV2, depth=3)
             inv_line_dict = self.load_api_p_out_nodes(company_code, api_code, node_type=InvoiceLine.BIZ_NODE_LV2, depth=3)
 
@@ -125,7 +126,16 @@ class InvoiceHeader(Invoice):
                 data_list = [data_list]
             i = 0
             for invoice in data_list:
-                # 先检查发票头
+                # 先检查发票整体结构
+                for inv in inv_dict[InvoiceHeader.BIZ_NODE_LV1].values():
+                    if inv.P_Name not in invoice:
+                        res_bool = False
+                        miss_key = "%s.%s" % (self.BIZ_NODE_LV1, inv.P_Name)
+                        if miss_key not in res_keys:
+                            res_keys.append(miss_key)
+                        return res_bool, res_keys
+
+                # 再检查发票头
                 inv_header_data = invoice[InvoiceHeader.BIZ_NODE_LV2]
                 # print(inv_header_dict)
                 for hd in inv_header_dict[InvoiceHeader.BIZ_NODE_LV2].values():
