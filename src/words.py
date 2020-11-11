@@ -20,7 +20,7 @@ class DataImport:
     _file_repeat = "XML file:{0} is already existing in system, can not import again! "
     _file_not_exist = "There is no XML file:{0}!"
     _load_timeout = "Timeout for reading file:{0}"
-    _content_is_too_big = "The length of content (field:{0}) exceeds the max length (1) in file: {2}"
+    _content_is_too_big = "The length of content (field:{0}) exceeds the max length {1} in file: {2}"
     _node_not_exists = "Node:{0} is missing!"
 
     @classmethod
