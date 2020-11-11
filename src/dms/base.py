@@ -449,9 +449,9 @@ class WebServiceHandler:
 
     # 生成soap报文
     @staticmethod
-    def soapEnvelope(method_name, entry_no, command_code):
-        postcontent = '<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"><soap:Body><{0} xmlns="urn:microsoft-dynamics-schemas/codeunit/DMSWebAPI"><entryNo>{1}</entryNo><CommandCode>{2}</CommandCode></{0}></soap:Body></soap:Envelope>'.format(
-            method_name, entry_no, command_code)
+    def soapEnvelope(entry_no, command_code):
+        postcontent = '<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"><soap:Body><DMSDataInterfaceIn xmlns="urn:microsoft-dynamics-schemas/codeunit/DMSWebAPI"><entryNo>{0}</entryNo><commandCode>{1}</commandCode></DMSDataInterfaceIn></soap:Body></soap:Envelope>'.format(
+            entry_no, command_code)
         return postcontent
 
     # 获取动态ws地址
