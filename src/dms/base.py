@@ -449,17 +449,17 @@ class WebServiceHandler:
 
     # 生成soap报文
     @staticmethod
-    def soapEnvelope(method_name, entry_no, command_code):
-        postcontent = '<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"><soap:Body><{0} xmlns="urn:microsoft-dynamics-schemas/codeunit/DMSWebAPI"><entryNo>{1}</entryNo><_CalledBy>0</_CalledBy><CommandCode>{2}</CommandCode></{0}></soap:Body></soap:Envelope>'.format(
-            method_name, entry_no, command_code)
+    def soapEnvelope(entry_no, command_code):
+        postcontent = '<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"><soap:Body><DMSDataInterfaceIn xmlns="urn:microsoft-dynamics-schemas/codeunit/DMSWebAPI"><entryNo>{0}</entryNo><commandCode>{1}</commandCode></DMSDataInterfaceIn></soap:Body></soap:Envelope>'.format(
+            entry_no, command_code)
         return postcontent
 
     # 获取动态ws地址
     # e.g: "http://62.234.26.35:7047/DynamicsNAV/WS/K302%20Zhuhai%20JJ/Codeunit/DMSWebAPI"
     def soapAddress(self, company_nav_code):
         url = self.api_setup.CallBack_Address
-        if '%s' in url:
-            url = url % urllib.parse.quote(company_nav_code)
+        if '%NAVCOMPANYCODE%' in url:
+            url = url.replace('%NAVCOMPANYCODE%', company_nav_code)
         return url
 
     # 执行请求
