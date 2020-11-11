@@ -7,7 +7,7 @@ from src.models import nav
 from src.dms.setup import Setup
 
 company_code = "K302ZH"
-api_code = "Other-xml-correct"
+api_code = "Other"
 check_repeat = False
 global_vars = {}
 other_obj = None
@@ -107,14 +107,14 @@ def test_5_valid_data(init_app):
     lineList = db.session.query(other_obj.TABLE_CLASS).filter(other_obj.TABLE_CLASS.Entry_No_ == entry_no).all()
 
     # 检查数据正确性
-    assert interfaceInfo.DMSCode == "7000320"
+    # assert interfaceInfo.DMSCode == "7000320"
     assert interfaceInfo.Other_Transaction_Total_Count == global_vars["count"]
     assert len(lineList) == global_vars["count"]
 
-    if global_vars["count"] > 0:
-        assert lineList[0].DocumentNo_ == "XXXXX"
-        assert lineList[0].SourceNo == "C0000001"
-        assert lineList[1].SourceNo == "BNK_320_11_00003"
+    # if global_vars["count"] > 0:
+    #     assert lineList[0].DocumentNo_ == "XXXXX"
+    #     assert lineList[0].SourceNo == "C0000001"
+    #     assert lineList[1].SourceNo == "BNK_320_11_00003"
 
 
 # 将entry_no作为参数写入指定的ws
@@ -129,7 +129,7 @@ def test_6_invoke_ws(init_app):
     wsh = WebServiceHandler(api_setup, soap_username=company_info.NAV_WEB_UserID,
                             soap_password=company_info.NAV_WEB_Password)
     ws_url = wsh.soapAddress(company_info.NAV_Company_Code)
-    ws_env = WebServiceHandler.soapEnvelope(method_name=other_obj.WS_METHOD, entry_no=entry_no, command_code=api_setup.CallBack_Command_Code)
+    ws_env = WebServiceHandler.soapEnvelope(entry_no=entry_no, command_code=api_setup.CallBack_Command_Code)
     result = wsh.call_web_service(ws_url, ws_env, direction=other_obj.DIRECT_NAV,
                                   soap_action=api_setup.CallBack_SoapAction)
     print(result)
