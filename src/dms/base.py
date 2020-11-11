@@ -458,8 +458,8 @@ class WebServiceHandler:
     # e.g: "http://62.234.26.35:7047/DynamicsNAV/WS/K302%20Zhuhai%20JJ/Codeunit/DMSWebAPI"
     def soapAddress(self, company_nav_code):
         url = self.api_setup.CallBack_Address
-        if '%s' in url:
-            url = url % urllib.parse.quote(company_nav_code)
+        if '%NAVCOMPANYCODE%' in url:
+            url = url.replace('%NAVCOMPANYCODE%', company_nav_code)
         return url
 
     # 执行请求
