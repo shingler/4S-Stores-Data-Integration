@@ -95,47 +95,55 @@ class Other(DMSBase):
         res_bool = True
         res_keys = {}
 
-        data_list = data_dict["Transaction"][self.BIZ_NODE_LV1]
-        if type(data_list) != list:
-            data_list = [data_list]
-        i = 0
-        for dd in data_list:
-            lines = dd[self.BIZ_NODE_LV2]
-            if type(lines) != list:
-                lines = [lines]
-            j = 0
-            for line in lines:
-                for k, v in line.items():
-                    is_valid = validator.OtherValidator.check_chn_length(k, v)
-                    if not is_valid:
-                        res_bool = False
-                        res_keys["%s.%s" % (self.BIZ_NODE_LV1, k)] = validator.OtherValidator.expect_length(k)
-                j += 1
-            i += 1
+        if self.BIZ_NODE_LV1 in data_dict["Transaction"]:
+            # 只有存在节点时才判断
+
+            data_list = data_dict["Transaction"][self.BIZ_NODE_LV1]
+            if type(data_list) != list:
+                data_list = [data_list]
+            i = 0
+            for dd in data_list:
+                lines = dd[self.BIZ_NODE_LV2]
+                if type(lines) != list:
+                    lines = [lines]
+                j = 0
+                for line in lines:
+                    for k, v in line.items():
+                        is_valid = validator.OtherValidator.check_chn_length(k, v)
+                        if not is_valid:
+                            res_bool = False
+                            res_keys["%s.%s" % (self.BIZ_NODE_LV1, k)] = validator.OtherValidator.expect_length(k)
+                    j += 1
+                i += 1
+
         return res_bool, res_keys
 
     # 校验数据完整性（子类实现）
     def _is_integrity(self, data_dict, company_code, api_code) -> (bool, list):
         res_bool = True
         res_keys = []
-        other_node_dict = self.load_api_p_out_nodes(company_code, api_code, node_type=self.BIZ_NODE_LV1)
-        # print(data_dict)
-        data_list = data_dict["Transaction"][self.BIZ_NODE_LV1]
-        if type(data_list) != list:
-            data_list = [data_list]
-        for dd in data_list:
-            lines = dd[self.BIZ_NODE_LV2]
-            if type(lines) != list:
-                lines = [lines]
-            for line in lines:
-                line_keys = line.keys()
-                for node in other_node_dict[self.BIZ_NODE_LV2].values():
-                    if node.Level != 3:
-                        continue
-                    if node.P_Name not in line_keys:
-                        res_bool = False
-                        miss_key = "%s.%s" % (self.BIZ_NODE_LV2, node.P_Name)
-                        if miss_key not in res_keys:
-                            res_keys.append(miss_key)
+
+        if self.BIZ_NODE_LV1 in data_dict["Transaction"]:
+            # 只有存在节点时才判断
+
+            other_node_dict = self.load_api_p_out_nodes(company_code, api_code, node_type=self.BIZ_NODE_LV1)
+            # print(data_dict)
+            data_list = data_dict["Transaction"][self.BIZ_NODE_LV1]
+            if type(data_list) != list:
+                data_list = [data_list]
+            for dd in data_list:
+                lines = dd[self.BIZ_NODE_LV2]
+                if type(lines) != list:
+                    lines = [lines]
+                for line in lines:
+                    line_keys = line.keys()
+                    for node in other_node_dict[self.BIZ_NODE_LV2].values():
+                        if node.Level != 3:
+                            continue
+                        if node.P_Name not in line_keys:
+                            res_bool = False
+                            miss_key = "%s.%s" % (self.BIZ_NODE_LV2, node.P_Name)
+                            if miss_key not in res_keys:
+                                res_keys.append(miss_key)
 
         return res_bool, res_keys
