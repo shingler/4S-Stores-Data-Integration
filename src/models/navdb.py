@@ -6,12 +6,19 @@ import random
 import threading
 import time
 
-from src import db, ApiPOutSetup
+from sqlalchemy import MetaData, Table, create_engine
+from sqlalchemy.util import OrderedDict
+
+from src import ApiPOutSetup
 from src import to_local_time
 
 
-def _getTableName(company_nav_code: str, data_name) -> str:
-    return "[{0}${1}]".format(company_nav_code, data_name)
+class NavDB:
+    dbo = None
+
+    @staticmethod
+    def _getTableName(company_nav_code: str, data_name) -> str:
+        return "[{0}${1}]".format(company_nav_code, data_name)
 
 
 # 获取最大id然后+1
@@ -47,7 +54,6 @@ def writeInterfaceInfo(company_nav_code: str, data_dict: dict, api_p_out: ApiPOu
     # 合并数据
     data_dict = {**data_dict, **other_data}
 
-    print(type(api_p_out))
     table_name = _getTableName(company_nav_code, "DMSInterfaceInfo")
 
     db.session.execute("USE Nav")
@@ -58,10 +64,10 @@ def writeInterfaceInfo(company_nav_code: str, data_dict: dict, api_p_out: ApiPOu
     lock.acquire()
     time.sleep(0.5)
     # print("%s已上锁" % threading.current_thread().name)
-    data_dict["[Entry No_]"] = getLatestEntryNo(table_name)
-    lock.release()
+    entry_no = getLatestEntryNo(table_name)
 
     # 拼接sql
+    data_dict["[Entry No_]"] = entry_no
     sql = "INSERT INTO {0} ({1}) VALUES ({2})"
     values = []
     i = 0
@@ -89,12 +95,71 @@ def writeInterfaceInfo(company_nav_code: str, data_dict: dict, api_p_out: ApiPOu
     print(values)
     sql = sql.format(table_name, ",".join(data_dict.keys()), ','.join(values))
     print(sql)
+    result = db.session.execute(sql)
 
-    return 1
+    db.session.commit()
+    lock.release()
+
+    return entry_no
 
 
-def writeCV():
-    pass
+def writeCV(company_nav_code: str, data_dict: dict, api_p_out: ApiPOutSetup, entry_no: int):
+    # 需要转中文编码的字段
+    convert_chn_fields = ["Name", "Address", "City", "Country", "Application_Method",
+                          "PaymentTermsCode", "Address_2", "Email", "Cost_Center_Code", "ICPartnerCode"]
+    # 非xml的数据
+    other_data = {"[Gen_ Bus_ Posting Group]": "''", "[VAT Bus_ Posting Group]": "''",
+                  "Cust_VendPostingGroup": "''", "[Entry No_]": entry_no,
+                  "[Error Message]": "''", "[DateTime Imported]": "'%s'" % datetime.datetime.utcnow().isoformat(timespec="seconds"),
+                  "[DateTime Handled]": "'1753-01-01 00:00:00.000'", "[Handled by]": "''"}
+
+    table_name = _getTableName(company_nav_code, "CustVendBuffer")
+    metadata = MetaData(db)
+
+    # 写cv
+    if type(data_dict) == OrderedDict:
+        data_dict = [data_dict]
+
+    for row_dict in data_dict:
+
+        # 对xml的数据做处理
+        if row_dict["Type"] == "Customer":
+            row_dict["Type"] = 0
+        elif row_dict["Type"] == "Vendor":
+            row_dict["Type"] = 1
+        else:
+            row_dict["Type"] = 2
+
+        if row_dict["PricesIncludingVAT"].lower() == "true":
+            row_dict["PricesIncludingVAT"] = 1
+        else:
+            row_dict["PricesIncludingVAT"] = 0
+
+        # 合并数据
+        row_dict = {**row_dict, **other_data}
+
+        record_id = getLatestEntryNo(table_name)
+        row_dict["[Record ID]"] = record_id
+
+        # 处理中文转码和字段更名
+        for k, v in row_dict.items():
+            if k in api_p_out:
+                k = api_p_out[k].Column_Name
+                if api_p_out[k].Value_Type == 1:
+                    # v = "'{0}'".format(v)
+                    # 转换中文
+                    if k in convert_chn_fields:
+                        v = "cast(cast(%s collate Chinese_PRC_CI_AS as varchar(250)) as varbinary(max))" % v
+                elif api_p_out[k].Value_Type in [2, 3]:
+                    v = str(v)
+                elif api_p_out[k].Value_Type == 5:
+                    v = to_local_time(v)
+        try:
+            table = Table(table_name, metadata, autoload=True)
+            i = table.insert()
+            db.session.execute(i, row_dict)
+        except Exception:
+            db.session.rollback()
 
 
 def writeFA():
