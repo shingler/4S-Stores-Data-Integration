@@ -450,7 +450,7 @@ class WebServiceHandler:
     # 生成soap报文
     @staticmethod
     def soapEnvelope(method_name, entry_no, command_code):
-        postcontent = '<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"><soap:Body><{0} xmlns="urn:microsoft-dynamics-schemas/codeunit/DMSWebAPI"><entryNo>{1}</entryNo><_CalledBy>0</_CalledBy><CommandCode>{2}</CommandCode></{0}></soap:Body></soap:Envelope>'.format(
+        postcontent = '<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"><soap:Body><{0} xmlns="urn:microsoft-dynamics-schemas/codeunit/DMSWebAPI"><entryNo>{1}</entryNo><CommandCode>{2}</CommandCode></{0}></soap:Body></soap:Envelope>'.format(
             method_name, entry_no, command_code)
         return postcontent
 
