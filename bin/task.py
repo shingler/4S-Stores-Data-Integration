@@ -128,6 +128,11 @@ if __name__ == '__main__':
     # # one_task = random.choice(task_list)
     # one_task = task_list[9]
     one_task = Task.get_task(args.company_code, args.sequence)
+    
+    if one_task is None:
+        print("there is no such a task.")
+        exit(1)
+
     handler = Handler(one_task)
     time_check = args.time_check
     if time_check and not handler.check_task():  # 检查任务的开始时间是否符合
