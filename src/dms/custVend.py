@@ -39,8 +39,13 @@ class CustVend(DMSBase):
                 for k, v in line.items():
                     is_valid = validator.CustVendInfoValidator.check_chn_length(k, v)
                     if not is_valid:
+                        res_keys = {
+                            "key": "%s.%s" % (self.BIZ_NODE_LV1, k),
+                            "expect": validator.CustVendInfoValidator.expect_length(k),
+                            "content": v
+                        }
                         res_bool = False
-                        res_keys["%s.%s" % (self.BIZ_NODE_LV1, k)] = validator.CustVendInfoValidator.expect_length(k)
+                        return res_bool, res_keys
                 i += 1
 
         return res_bool, res_keys

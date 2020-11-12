@@ -90,7 +90,12 @@ class InvoiceHeader(Invoice):
                     is_valid = validator.InvoiceHeaderValidator.check_chn_length(k, v)
                     if not is_valid:
                         res_bool = False
-                        res_keys["%s.%s" % (InvoiceHeader.BIZ_NODE_LV2, k)] = validator.InvoiceHeaderValidator.expect_length(k)
+                        res_keys = {
+                            "key": "%s.%s" % (InvoiceHeader.BIZ_NODE_LV2, k),
+                            "expect": validator.InvoiceHeaderValidator.expect_length(k),
+                            "content": v
+                        }
+                        return res_bool, res_keys
                 # 发票明细
                 j = 0
                 inv_line = invoice[InvoiceLine.BIZ_NODE_LV2]
@@ -101,8 +106,12 @@ class InvoiceHeader(Invoice):
                         is_valid = validator.InvoiceLineValidator.check_chn_length(k, v)
                         if not is_valid:
                             res_bool = False
-                            res_keys[
-                                "%s.%s" % (InvoiceLine.BIZ_NODE_LV2, k)] = validator.InvoiceLineValidator.expect_length(k)
+                            res_keys = {
+                                "key": "%s.%s" % (InvoiceLine.BIZ_NODE_LV2, k),
+                                "expect": validator.InvoiceLineValidator.expect_length(k),
+                                "content": v
+                            }
+                            return res_bool, res_keys
                     j += 1
                 i += 1
 

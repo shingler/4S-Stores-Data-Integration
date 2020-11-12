@@ -8,10 +8,22 @@ class Notice:
     # 提醒邮件标题模板
     title = 'DMS Interface Error (Data Type: {0} )'
     # 提醒邮件内容模板
-    content = '''Dear User,
-<p>There are some errors occurred during system import DMS <strong>{0}</strong> Interface Data, please check error log in NAV interface platform (URL:{1}).</p>
-<p>If you have any questions, please contact NAV support team with Email:<a href="mailto:phnav.support@hytci.com!">phnav.support@hytci.com!</a></p>
-<p>Navision system</p>'''
+    # 0=data_type; 1=company_code; 2=api_code; 3=error_message; 4=url
+    content = '''<html>
+<head>
+<meta http-equiv=Content-Type content="text/html; charset=UTF-8">
+</head>
+<body>
+<div class=WordSection1>
+<p class=MsoNormal>Dear User,</p>
+<p class=MsoNormal>There are some errors occurred during system import DMS <span style="color: rgb(255, 0, 0);"><strong>{0}</strong></span> Interface Data, the first error message like below:</span></p>
+<p class=MsoNormal>Company Code: {1}, <br/>API Code: {2}, <br/>Error Message:{3}</span></p>
+<p class=MsoNormal>Please check error log in NAV interface platform (URL:<a href="{4}" target="_self">{4}</a>).</p>
+<p class=MsoNormal>If you have any questions, please contact NAV support team with Email:<a href="mailto:phnav.support@hytci.com" target="_self">phnav.support@hytci.com</a>!</p>
+<p class=MsoNormal>Navision system</p>
+</div>
+</body>
+</html>'''
 
 
 # 数据导入错误消息模板
@@ -20,7 +32,7 @@ class DataImport:
     _file_repeat = "XML file:{0} is already existing in system, can not import again! "
     _file_not_exist = "There is no XML file:{0}!"
     _load_timeout = "Timeout for reading file:{0}"
-    _content_is_too_big = "The length of content (field:{0}) exceeds the max length {1} in file: {2}"
+    _content_is_too_big = "The length of content (field:{0} \"{3}\" ) exceeds the max length {1} in file: {2}"
     _node_not_exists = "Node:{0} is missing!"
 
     @classmethod
@@ -40,10 +52,10 @@ class DataImport:
         return cls._load_timeout.format(file_path)
 
     @classmethod
-    def content_is_too_big(cls, path, keys):
-        # 因为内容格式变了，只返回一个超过长度的key
-        for k, v in keys.items():
-            return cls._content_is_too_big.format(k, v, path)
+    # @param str path 文件路径
+    # @param dict cnt 内容超长的具体信息，{key=节点名, expect=预期长度, content=内容}
+    def content_is_too_big(cls, path, cnt):
+        return cls._content_is_too_big.format(cnt["key"], cnt["expect"], path, cnt["content"])
 
     @classmethod
     def node_not_exists(cls, nodes):
