@@ -20,7 +20,7 @@ class DataImport:
     _file_repeat = "XML file:{0} is already existing in system, can not import again! "
     _file_not_exist = "There is no XML file:{0}!"
     _load_timeout = "Timeout for reading file:{0}"
-    _content_is_too_big = "The length of content (field:{0}) exceeds the max length {1} in file: {2}"
+    _content_is_too_big = "The length of content (field:{0} \"{3}\" ) exceeds the max length {1} in file: {2}"
     _node_not_exists = "Node:{0} is missing!"
 
     @classmethod
@@ -40,10 +40,10 @@ class DataImport:
         return cls._load_timeout.format(file_path)
 
     @classmethod
-    def content_is_too_big(cls, path, keys):
-        # 因为内容格式变了，只返回一个超过长度的key
-        for k, v in keys.items():
-            return cls._content_is_too_big.format(k, v, path)
+    # @param str path 文件路径
+    # @param dict cnt 内容超长的具体信息，{key=节点名, expect=预期长度, content=内容}
+    def content_is_too_big(cls, path, cnt):
+        return cls._content_is_too_big.format(cnt["key"], cnt["expect"], path, cnt["content"])
 
     @classmethod
     def node_not_exists(cls, nodes):

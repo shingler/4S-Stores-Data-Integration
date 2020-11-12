@@ -1,8 +1,23 @@
 ##更新说明及后续版本计划
 
-当前版本：v 0.4.2
+当前版本：v 0.4.4
 
 ### 更新说明
+
+#### v0.4.4
+
+- 11月12日word文档里提出的优化；
+- 任务加载指定顺序（Company_Code,Execute_Time,Sequence asc）；
+- 针对非SSL邮件服务器做优化（system设置里是否启用ssl）；
+- 任务执行的时候，需要做如下判断：
+  1.DMS_Company_List表里DMS_Interface_Activated为1-继续执行，0-执行下一个任务
+  2.DMS_API_Setup表里Activated为1-继续执行，0-执行下一个任务
+- 任务脚本调用用api_setup的callback_command_code来判断；
+- 一个文件一个提醒邮件，收件人里可以是多个
+
+#### v 0.4.3
+
+- 使用指定的测试用例进行调试
 
 #### v 0.4.2
 

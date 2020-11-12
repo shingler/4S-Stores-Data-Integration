@@ -4,9 +4,10 @@
 import datetime
 import math
 
+from sqlalchemy import asc
 from sqlalchemy.sql.elements import and_
 
-from src import ApiTaskSetup, db
+from src import ApiTaskSetup, db, Company, ApiSetup
 
 
 class Task:
@@ -28,10 +29,20 @@ class Task:
     def Task_Name(self):
         return self.api_task_setup.Task_Name
 
+    # 获得任务对应的API的command_code
+    @property
+    def API_Command_Code(self):
+        return db.session.query(ApiSetup.CallBack_Command_Code)\
+            .filter(and_(ApiSetup.Company_Code == self.api_task_setup.Company_Code,
+                         ApiSetup.API_Code == self.api_task_setup.API_Code)).scalar()
+
     # 读取任务配置, 返回任务列表
     @staticmethod
     def load_tasks() -> list:
-        return db.session.query(ApiTaskSetup).all()
+        return db.session.query(ApiTaskSetup).join(Company, ApiTaskSetup.Company_Code == Company.Code).join(ApiSetup, ApiSetup.API_Code == ApiTaskSetup.API_Code)\
+            .filter(and_(Company.DMS_Interface_Activated == 1, ApiSetup.Activated == 1))\
+            .order_by(asc(ApiTaskSetup.Company_Code), asc(ApiTaskSetup.Execute_Time), asc(ApiTaskSetup.Sequence))\
+            .all()
 
     # 获取特定任务
     @staticmethod

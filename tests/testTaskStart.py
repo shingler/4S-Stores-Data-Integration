@@ -45,3 +45,9 @@ def test_task_can_run():
     task = Task(one_task)
     assert task.is_valid() == True
 
+
+def test_task_list(init_app):
+    tasks = Task.load_tasks()
+    for t in tasks:
+        task = Task(t)
+        print(task.Company_Code, task.API_Code, task.API_Command_Code)

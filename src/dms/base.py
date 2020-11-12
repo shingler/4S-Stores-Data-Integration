@@ -142,17 +142,21 @@ class DMSBase:
 
     # 校验数据长度合法性
     def is_valid(self, data_dict) -> (bool, dict):
-        res_bool = True
-        res_keys = {}
+        # 检查general
         for k, v in data_dict["Transaction"]["General"].items():
             is_valid = validator.DMSInterfaceInfoValidator.check_chn_length(k, v)
             if not is_valid:
                 res_bool = False
-                res_keys["%s.%s" % ("General", k)] = validator.DMSInterfaceInfoValidator.expect_length(k)
+                res_keys = {
+                    "key": "%s.%s" % ("General", k),
+                    "expect": validator.DMSInterfaceInfoValidator.expect_length(k),
+                    "content": v
+                }
+                return res_bool, res_keys
 
+        # 检查具体部分，由子类实现
         res_bool2, res_keys2 = self._is_valid(data_dict)
-
-        return res_bool and res_bool2, {**res_keys, **res_keys2}
+        return res_bool2, res_keys2
 
     # 校验数据长度合法性（子类实现）
     def _is_valid(self, data_dict) -> (bool, dict):
@@ -218,18 +222,18 @@ class DMSBase:
         else:
             # 处理成功，校验数据完整性
             is_integrity, keys = self.is_integrity(res.data, apiSetup.Company_Code, apiSetup.API_Code)
-            print(is_integrity, keys)
+            # print(is_integrity, keys)
             if not is_integrity:
                 error_msg = words.DataImport.node_not_exists(keys)
-                logger.update_api_log_when_finish(status=self.STATUS_ERROR, error_msg=error_msg)
+                logger.update_api_log_when_finish(status=self.STATUS_ERROR, error_msg=error_msg, data=str(res.content))
                 raise NodeNotExistError(error_msg)
 
             # 处理成功，校验数据长度是否合法
             is_valid, keys = self.is_valid(res.data)
             # print(is_valid, keys)
             if not is_valid:
-                error_msg = words.DataImport.content_is_too_big(path, keys)
-                logger.update_api_log_when_finish(status=self.STATUS_ERROR, error_msg=error_msg)
+                error_msg = words.DataImport.content_is_too_big(path, keys, )
+                logger.update_api_log_when_finish(status=self.STATUS_ERROR, error_msg=error_msg, data=str(res.content))
                 raise DataContentTooBig(error_msg)
 
             # 校验成功，更新日志
@@ -362,8 +366,13 @@ class DMSBase:
         if not os.path.exists(archive_path):
             os.makedirs(archive_path, 0o777)
 
-        archive_path = "%s/%s" % (archive_path, os.path.basename(xml_path))
-        os.replace(xml_path, archive_path)
+        archive_file_path = os.path.join(archive_path, os.path.basename(xml_path))
+        # 如果文件存在则附加当前时间
+        if os.path.exists(archive_file_path):
+            file_name = "%s_%s%s" % (os.path.splitext(os.path.basename(xml_path))[0], datetime.datetime.now().strftime("%Y%m%d_%H.%M.%S"), os.path.splitext(os.path.basename(xml_path))[1])
+            archive_file_path = os.path.join(archive_path, file_name)
+
+        os.replace(xml_path, archive_file_path)
 
     # 访问接口/文件时先新增一条API日志，并返回API_Log的主键用于后续更新
     @staticmethod

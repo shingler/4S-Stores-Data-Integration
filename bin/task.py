@@ -35,13 +35,13 @@ class Handler:
         api_code = self.current_task.API_Code
 
         try:
-            if self.current_task.API_Code.startswith("CustVendInfo"):
+            if self.current_task.API_Command_Code == "01":
                 self.runner = cust_vend
-            elif self.current_task.API_Code.startswith("FA"):
+            elif self.current_task.API_Command_Code == "02":
                 self.runner = fa
-            elif self.current_task.API_Code.startswith("Invoice"):
+            elif self.current_task.API_Command_Code == "03":
                 self.runner = invoice
-            elif self.current_task.API_Code.startswith("Other"):
+            elif self.current_task.API_Command_Code == "04":
                 self.runner = other
 
             self.entry_no = self.runner.main(company_code=company_code, api_code=api_code)

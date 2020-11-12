@@ -39,7 +39,12 @@ class FA(DMSBase):
                     is_valid = validator.FAValidator.check_chn_length(k, v)
                     if not is_valid:
                         res_bool = False
-                        res_keys["%s.%s" % (self.BIZ_NODE_LV1, k)] = validator.FAValidator.expect_length(k)
+                        res_keys = {
+                            "key": "%s.%s" % (self.BIZ_NODE_LV1, k),
+                            "expect": validator.FAValidator.expect_length(k),
+                            "content": v
+                        }
+                        return res_bool, res_keys
                 i += 1
 
         return res_bool, res_keys
