@@ -93,17 +93,20 @@ class Handler:
             notify_obj = Notification(self.current_task.Company_Code, self.current_task.API_Code)
             receivers = notify_obj.get_receiver_email()
 
-            nids = []
             for r in receivers:
                 if (isinstance(r, NotificationUser) and r.Activated) \
                         or (isinstance(r, UserList) and r.Receive_Notification):
-                    email_title, email_content = notify_obj.get_notification_content(type=self.current_task.Task_Name)
-                    result = notify_obj.send_mail(r.Email_Address, email_title, email_content)
+                    notify_obj.add_receiver(r.Email_Address)
 
-                    # 写入提醒日志
-                    if result:
-                        nid = notify_obj.save_notification_log(r.Email_Address, email_title, email_content)
-                        nids.append(nid)
+            email_title, email_content = notify_obj.get_notification_content(one_task.Task_Name, one_task.Company_Code,
+                                                                             one_task.API_Code,
+                                                                             error_message=self.load_error)
+
+            result = notify_obj.send_mail(email_title, email_content)
+            print(result)
+            # 写入提醒日志
+            if result:
+                notify_obj.save_notification_log(",".join(notify_obj.receivers), email_title, email_content)
 
 
 if __name__ == '__main__':
@@ -132,3 +135,5 @@ if __name__ == '__main__':
     else:
         print(words.RunResult.task_start(one_task.Company_Code, one_task.API_Code))
         res = handler.run_task()
+        if not res and handler.notify:
+            handler.send_notification()

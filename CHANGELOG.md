@@ -14,6 +14,7 @@
   2.DMS_API_Setup表里Activated为1-继续执行，0-执行下一个任务
 - 任务脚本调用用api_setup的callback_command_code来判断；
 - 一个文件一个提醒邮件，收件人里可以是多个
+- 修改邮件内容
 
 #### v 0.4.3
 

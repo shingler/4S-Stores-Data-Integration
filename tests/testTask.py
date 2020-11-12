@@ -128,23 +128,22 @@ def test_4_send_notification(init_app):
         for r in receivers:
             if (isinstance(r, NotificationUser) and r.Activated) \
                     or (isinstance(r, UserList) and r.Receive_Notification):
-                email_title, email_content = notify_obj.get_notification_content(type=one_task.Task_Name)
+                notify_obj.add_receiver(r.Email_Address)
 
-                assert email_content != ""
-                result = notify_obj.send_mail(r.Email_Address, email_title, email_content)
-                assert result
-                # 写入提醒日志
-                if result:
-                    nid = notify_obj.save_notification_log(r.Email_Address, email_title, email_content)
-                    assert nid is not None
-                    nids.append(nid)
+        email_title, email_content = notify_obj.get_notification_content(one_task.Task_Name, one_task.Company_Code, one_task.API_Code, error_message=load_error)
+
+        assert email_content != ""
+        result = notify_obj.send_mail(email_title, email_content)
+        assert result
+        # 写入提醒日志
+        if result:
+            nid = notify_obj.save_notification_log(",".join(notify_obj.receivers), email_title, email_content)
+            assert nid is not None
+            nids.append(nid)
         # 验证日志有记录
         app, db = init_app
         logs = db.session.query(NotificationLog).filter(NotificationLog.ID.in_(nids)).all()
         assert len(logs) > 0
-        one_log = logs[0]
-        assert one_log.Company_Code != ""
-        assert one_log.Recipients == "shingler@gf-app.cn"
 
 
 # 验证写入的数据是否符合预期

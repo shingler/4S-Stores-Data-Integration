@@ -116,15 +116,18 @@ class DMSBase:
     # @param string format 数据解析格式（JSON | XML）
     # @param int time_out 超时时间，单位为秒。为0表示不判断超时
     def _load_data_from_file(self, path, format="xml", time_out=0):
+        # 文件是否存在
+        if not os.path.exists(path):
+            error_msg = words.DataImport.file_not_exist(path)
+            return InterfaceResult(status=self.STATUS_ERROR, error_msg=error_msg)
+
         # 重复性检查
         repeated = db.session.query(self.GENERAL_CLASS).filter(self.GENERAL_CLASS.XMLFileName == path).all()
         if self.check_repeat and len(repeated) > 0:
             error_msg = words.DataImport.file_is_repeat(path)
             return InterfaceResult(status=self.STATUS_REPEAT, error_msg=error_msg)
-        if not os.path.exists(path):
-            error_msg = words.DataImport.file_not_exist(path)
-            return InterfaceResult(status=self.STATUS_ERROR, error_msg=error_msg)
 
+        # 读取文件内容
         with open(path, "r", encoding="UTF-8") as xml_handler:
             data = xml_handler.read()
         # 模拟超时
