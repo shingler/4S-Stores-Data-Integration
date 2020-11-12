@@ -12,7 +12,10 @@ from src.smtp import mail
 class Notification:
     company_code = ""
     api_code = ""
+    # smtp设置，读取自SystemSetup
     smtp_config = None
+    # 收件人列表
+    receivers = []
 
     TYPE_ERROR = 1
     TYPE_TIMEOUT = 2
@@ -34,14 +37,21 @@ class Notification:
             and_(UserList.Receive_Notification == True, not UserList.Blocked == False)).all()
         return receivers + users
 
+    # 增加收件人
+    def add_receiver(self, email_address):
+        if email_address not in self.receivers:
+            self.receivers.append(email_address)
+
     # 获取提醒邮件内容
-    # @param string type 报错的数据类型
-    # @param string url 报错参考访问地址
+    # @param string data_type 报错的数据类型
+    # @param string company_code
+    # @param string api_code
+    # @param string error_message
     # @return email_title, email_content
-    def get_notification_content(self, type, ref_url="") -> (str, str):
+    def get_notification_content(self, data_type, company_code, api_code, error_message="") -> (str, str):
         title = words.Notice.title
         content = words.Notice.content
-        return title.format(type), content.format(type, ref_url)
+        return title.format(data_type), content.format(data_type, company_code, api_code, error_message, self.smtp_config.System_URL)
 
     # 获取smtp设置
     def _get_smtp_setup(self):
@@ -54,14 +64,16 @@ class Notification:
         return conf
 
     # 发送邮件
-    def send_mail(self, to_address, email_title, email_content):
+    def send_mail(self, email_title, email_content):
         smtp_conf = {
             "smtp_host": self.smtp_config.Email_SMTP,
             "smtp_port": self.smtp_config.SMTP_Port,
             "sender": self.smtp_config.Email_UserID,
-            "user_pwd": self.smtp_config.Email_Password
+            "sender_name": self.smtp_config.Email_SenderName,
+            "user_pwd": self.smtp_config.Email_Password,
+            "use_ssl": self.smtp_config.Use_SSL
         }
-        ret = mail(smtp_config=smtp_conf, to_addr=to_address, email_title=email_title, email_body=email_content)
+        ret = mail(smtp_config=smtp_conf, to_addr=self.receivers, email_title=email_title, email_body=email_content)
         # ret = True
         return ret
 

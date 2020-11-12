@@ -19,13 +19,18 @@ def mail(smtp_config, to_addr, email_title, email_body):
     try:
         # 构建邮件对象
         msg = MIMEText(email_body, 'html', 'utf-8')
-        msg['From'] = formataddr(["dms_develop", smtp_config["sender"]])  # 括号里的对应发件人邮箱昵称、发件人邮箱账号
-        msg['To'] = formataddr(["FK", to_addr])  # 括号里的对应收件人邮箱昵称、收件人邮箱账号
+        msg['From'] = formataddr([smtp_config["sender_name"], smtp_config["sender"]])  # 括号里的对应发件人邮箱昵称、发件人邮箱账号
+        msg['To'] = ",".join(to_addr)  # 括号里的对应收件人邮箱昵称、收件人邮箱账号
         msg['Subject'] = email_title
 
-        server = smtplib.SMTP_SSL(smtp_config["smtp_host"], smtp_config["smtp_port"])
+        # 启用SSL发送邮件
+        if smtp_config["use_ssl"]:
+            server = smtplib.SMTP_SSL(smtp_config["smtp_host"], smtp_config["smtp_port"])
+        else:
+            server = smtplib.SMTP(smtp_config["smtp_host"], smtp_config["smtp_port"])
+
         server.login(smtp_config["sender"], smtp_config["user_pwd"])
-        server.sendmail(smtp_config["sender"], [to_addr, ], msg.as_string())
+        server.sendmail(smtp_config["sender"], to_addr, msg.as_string())
         # 关闭连接
         server.quit()
     except Exception:

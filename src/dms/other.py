@@ -112,7 +112,12 @@ class Other(DMSBase):
                         is_valid = validator.OtherValidator.check_chn_length(k, v)
                         if not is_valid:
                             res_bool = False
-                            res_keys["%s.%s" % (self.BIZ_NODE_LV1, k)] = validator.OtherValidator.expect_length(k)
+                            res_keys = {
+                                "key": "%s.%s" % (self.BIZ_NODE_LV1, k),
+                                "expect": validator.OtherValidator.expect_length(k),
+                                "content": v
+                            }
+                            return res_bool, res_keys
                     j += 1
                 i += 1
 
