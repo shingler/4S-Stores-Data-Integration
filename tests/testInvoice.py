@@ -9,7 +9,7 @@ from src.models import nav
 from src.dms.setup import Setup
 
 company_code = "K302ZH"
-api_code = "Invoice-xml-correct"
+api_code = "Invoice"
 check_repeat = False
 global_vars = {}
 invoiceHeader_obj = None
@@ -150,7 +150,7 @@ def test_7_invoke_ws(init_app):
     wsh = WebServiceHandler(api_setup, soap_username=company_info.NAV_WEB_UserID,
                             soap_password=company_info.NAV_WEB_Password)
     ws_url = wsh.soapAddress(company_info.NAV_Company_Code)
-    ws_env = WebServiceHandler.soapEnvelope(method_name=invoiceHeader_obj.WS_METHOD, entry_no=entry_no, command_code=api_setup.CallBack_Command_Code)
+    ws_env = WebServiceHandler.soapEnvelope(entry_no=entry_no, command_code=api_setup.CallBack_Command_Code)
     result = wsh.call_web_service(ws_url, ws_env, direction=invoiceHeader_obj.DIRECT_NAV, soap_action=api_setup.CallBack_SoapAction)
     print(result)
     assert result is not None

@@ -40,6 +40,15 @@ class SystemSetup(db.Model):
     Last_Modified_DT = db.Column(db.DateTime, nullable=False, comment="最后修改时间")
     # 最后修改人
     Last_Modified_By = db.Column(db.String(20), nullable=False, comment="最后修改人")
+    # 系统URL
+    System_URL = db.Column(db.String(500))
+    # 使用SSL(1-是,0-否)
+    Use_SSL = db.Column(db.Integer, default=1)
+    # 每页显示行数
+    Page_Cnt = db.Column(db.Integer, default=1)
+    # 发件人名称
+    Email_SenderName = db.Column(db.String(50))
+
 
 
 class NAVTableFieldSetup(db.Model):

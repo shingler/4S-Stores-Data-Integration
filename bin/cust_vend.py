@@ -55,7 +55,7 @@ def main(company_code, api_code, retry=False, file_path=None, async_ws=False):
     # 读取web service
     wsh = WebServiceHandler(api_setup, soap_username=company_info.NAV_WEB_UserID, soap_password=company_info.NAV_WEB_Password)
     ws_url = wsh.soapAddress(company_info.NAV_Company_Code)
-    ws_env = WebServiceHandler.soapEnvelope(method_name=cv_obj.WS_METHOD, entry_no=entry_no, command_code=api_setup.CallBack_Command_Code)
+    ws_env = WebServiceHandler.soapEnvelope(entry_no=entry_no, command_code=api_setup.CallBack_Command_Code)
     wsh.call_web_service(ws_url, ws_env, direction=cv_obj.DIRECT_NAV, soap_action=api_setup.CallBack_SoapAction, async_invoke=async_ws)
     return entry_no
 
@@ -63,6 +63,6 @@ def main(company_code, api_code, retry=False, file_path=None, async_ws=False):
 if __name__ == '__main__':
     # 应由task提供
     company_code = "K302ZH"
-    api_code = "CustVendInfo-xml-correct"
+    api_code = "CustVendInfo"
     entry_no = main(company_code, api_code, retry=False)
     print("脚本运行成功，EntryNo=%s" % entry_no)

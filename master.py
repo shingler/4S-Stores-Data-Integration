@@ -11,7 +11,7 @@ import time
 
 from bin import app
 from bin.task import Handler
-from src import ApiTaskSetup
+from src import ApiTaskSetup, words
 from src.dms.task import Task
 
 
@@ -23,19 +23,12 @@ def do(one_task: ApiTaskSetup, time_check=False):
     handler = Handler(one_task)
 
     if time_check and not handler.check_task():
-        print("任务<%s, %s>还没到执行时间" % (one_task.Company_Code, one_task.API_Code))
+        print(words.RunResult.task_not_reach_time(one_task.Company_Code, one_task.API_Code))
     else:
-        print("任务<%s, %s>开始执行" % (one_task.Company_Code, one_task.API_Code))
+        print(words.RunResult.task_start(one_task.Company_Code, one_task.API_Code))
         res = handler.run_task()
         if not res and handler.notify:
-            print("任务执行失败，根据设置将发送电子邮件")
             handler.send_notification()
-        elif not res and handler.retry:
-            print("任务执行失败，重试后依然失败")
-        elif not res:
-            print("任务执行失败")
-        else:
-            print("任务执行成功")
 
 
 if __name__ == '__main__':
