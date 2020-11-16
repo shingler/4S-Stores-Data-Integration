@@ -122,8 +122,8 @@ class DMSBase:
             return InterfaceResult(status=self.STATUS_ERROR, error_msg=error_msg)
 
         # 重复性检查
-        repeated = db.session.query(self.GENERAL_CLASS).filter(self.GENERAL_CLASS.XMLFileName == path).all()
-        if self.check_repeat and len(repeated) > 0:
+        repeated = db.session.query(self.GENERAL_CLASS).filter(self.GENERAL_CLASS.XMLFileName.like("%{0}".format(os.path.basename(path)))).first()
+        if self.check_repeat and repeated is not None:
             error_msg = words.DataImport.file_is_repeat(path)
             return InterfaceResult(status=self.STATUS_REPEAT, error_msg=error_msg)
 
