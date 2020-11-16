@@ -63,7 +63,7 @@ class Task:
             last_run_dt = datetime.datetime.fromisoformat(last_run_dt_str).strftime("%Y-%m-%d 00:00:00")
             interval_days = datetime.datetime.now() - datetime.datetime.fromisoformat(last_run_dt)
             # print(interval_days.days)
-            if interval_days.days != self.api_task_setup.Recurrence_Day:
+            if interval_days.days < self.api_task_setup.Recurrence_Day:
                 return False
 
         # 日期正确的前提下验证开始时间和当前的时间间隔小于5分钟
