@@ -67,6 +67,8 @@ class ApiSetup(db.Model):
     API_Address1 = db.Column(db.String(500), nullable=False, comment="接口地址(主)")
     # 接口地址(备), 如果接口类型为2 - XML File, 该字段内容为XML文件的存储路径
     API_Address2 = db.Column(db.String(500), nullable=False, comment="接口地址(备)")
+    # 接口版本号
+    API_Version = db.Column(db.String(50), nullable=False, default="v1", comment="接口版本号")
     # 命令代码
     Command_Code = db.Column(db.String(20), nullable=True, comment="命令代码")
     # 数据格式(1 - JSON, 2 - XML)
