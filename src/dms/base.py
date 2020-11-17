@@ -262,26 +262,29 @@ class DMSBase:
     从api_p_out获取数据
         @param dict data 要处理的源数据
         @param dict node_dict 要处理的数据字段字典
-        @param str node_lv0 顶部节点名
-        @param str node_lv1 一级节点名
+        @param str node_lv0 顶部节点名 Transaction
+        @param str node_lv1 一级节点名 General/CustVend/Invoice等等
         @param str node_type 节点类型，node=对象节点，list=数组节点
     '''
 
     def _splice_field(self, data, node_dict, node_lv0, node_lv1, node_type="node"):
         if node_type == "node":
+            # 按单节点（对象）取值
             data_dict = {}
             for key, value in data[node_lv0][node_lv1].items():
                 if key in node_dict:
                     data_dict[key] = value
             return data_dict
         else:
+            # 按多节点（数组）取值
             data_dict_list = []
             if node_lv1 in data[node_lv0]:
                 list_node = data[node_lv0][node_lv1]
-                data[node_lv0][node_lv1] = list_node if type(list_node) == list else [list_node, ]
+                if type(list_node) != list:
+                    list_node = [list_node, ]
 
-                for row in data[node_lv0][node_lv1]:
-                    # print(row, type(row))
+                for row in list_node:
+                    print(row, type(row))
                     data_dict = {}
                     for key, value in row.items():
                         if key in node_dict:

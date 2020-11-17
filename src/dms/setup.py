@@ -37,3 +37,25 @@ class Setup:
                 node_dict[one.P_Name] = one
         # print(node_dict)
         return node_dict
+
+    # 按层级关系读取所有出参配置
+    @staticmethod
+    def load_api_p_out(company_code, api_code) -> dict:
+        node_dict = {}
+        api_p_out_config = db.session.query(dms.ApiPOutSetup) \
+            .filter(dms.ApiPOutSetup.Company_Code == company_code) \
+            .filter(dms.ApiPOutSetup.API_Code == api_code) \
+            .order_by(dms.ApiPOutSetup.Sequence.asc()).all()
+        for one in api_p_out_config:
+            # 根节点
+            if one.Parent_Node_Name == '':
+                one.Parent_Node_Name = "/"
+            # 构造上级节点
+            if one.Parent_Node_Name not in node_dict:
+                node_dict[one.Parent_Node_Name] = {}
+
+            # 按层级组装
+            node_dict[one.Parent_Node_Name][one.P_Name] = one
+
+        # print(node_dict)
+        return node_dict

@@ -66,7 +66,8 @@ class InvoiceHeader(Invoice):
             if type(inv[InvoiceLine.BIZ_NODE_LV2]) != list:
                 inv[InvoiceLine.BIZ_NODE_LV2] = [inv[InvoiceLine.BIZ_NODE_LV2]]
             line_count = len(inv[InvoiceLine.BIZ_NODE_LV2])
-            one_header["Line_Total_Count"] = line_count
+            # one_header["Line_Total_Count"] = line_count
+            one_header["Line Total Count"] = line_count
 
             data_list.append(one_header)
 

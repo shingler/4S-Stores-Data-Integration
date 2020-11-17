@@ -6,6 +6,7 @@ import pytest
 from src import Company
 from src.dms.custVend import CustVend
 from src.dms.fa import FA
+from src.dms.invoice import Invoice, InvoiceHeader, InvoiceLine
 from src.dms.other import Other
 from src.dms.setup import Setup
 from src.models import navdb
@@ -86,12 +87,51 @@ def test_fa(init_app):
                  entry_no=entry_no)
 
 
-@pytest.mark.skip("先测别的")
-def test_inv(init_app):
-    api_code = "Invoice-xml-correct"
-
-
 # @pytest.mark.skip("先测别的")
+def test_inv(init_app):
+    api_code = "Invoice"
+    app, db = init_app
+    company_info = db.session.query(Company).filter(Company.Code == company_code).first()
+
+    # 修改bind
+    conn_str = company_info.get_nav_connection_string(app.config)
+    assert conn_str.startswith(app.config["DATABASE_ENGINE"])
+    app.config["SQLALCHEMY_BINDS"]["%s-nav" % company_info.NAV_Company_Code] = conn_str
+
+    api_setup = Setup.load_api_setup(company_code, api_code)
+    invh_obj = InvoiceHeader(company_info.NAV_Company_Code, check_repeat=check_repeat)
+    invl_obj = InvoiceLine(company_info.NAV_Company_Code, check_repeat=check_repeat)
+
+    # 节点配置
+    # other_node_dict = inv_obj.load_api_p_out_nodes(company_code, api_code, node_type=InvoiceHeader.BIZ_NODE_LV1)
+    inv_node_dict = Setup.load_api_p_out(company_code, api_code)
+
+    general_node_dict = inv_node_dict["General"]
+    inv_header_node_dict = {**inv_node_dict[InvoiceHeader.BIZ_NODE_LV1], **inv_node_dict[InvoiceHeader.BIZ_NODE_LV2]}
+    inv_line_node_dict = {**inv_node_dict[InvoiceLine.BIZ_NODE_LV1], **inv_node_dict[InvoiceLine.BIZ_NODE_LV2]}
+    print("======")
+    print(inv_line_node_dict)
+    path, data = invh_obj.load_data(api_setup)
+
+    general_dict = invh_obj.splice_general_info(data, node_dict=general_node_dict)
+
+    count = invh_obj.get_count_from_data(data["Transaction"], InvoiceHeader.BIZ_NODE_LV1)
+
+    nav = navdb.NavDB('127.0.0.1', 'sa', 'msSqlServer2020', 'NAV', company_nav_code=company_info.NAV_Company_Code)
+    nav.prepare()
+    entry_no = nav.insertGeneral(company_info.NAV_Company_Code, api_p_out=general_node_dict,
+                                 data_dict=general_dict, Type=1, Count=count, XMLFile=path)
+    assert entry_no is not None and entry_no != 0
+    # 写发票头数据
+    invh_dict = invh_obj.splice_data_info(data, node_dict=inv_header_node_dict)
+    nav.insertInvHeader(api_p_out=inv_header_node_dict, data_dict=invh_dict, entry_no=entry_no)
+
+    # 写发票行数据
+    invl_dict = invl_obj.splice_data_info(data, node_dict=inv_line_node_dict)
+    nav.insertInvLines(api_p_out=inv_line_node_dict, data_dict=invl_dict, entry_no=entry_no)
+
+
+@pytest.mark.skip("先测别的")
 def test_other(init_app):
     api_code = "Other"
     app, db = init_app
@@ -129,6 +169,7 @@ def test_other(init_app):
                  entry_no=entry_no)
 
 
+@pytest.mark.skip("先测别的")
 def test():
     nav = navdb.NavDB('127.0.0.1', 'sa', '123', 'NAV')
     nav.prepare()

@@ -20,15 +20,27 @@ class NavDB:
     conn = None
     meta = None
     base = None
+    tables = {
+        "CustVendBuffer": "CustVendBuffer",
+        "FABuffer": "FABuffer",
+        "InvoiceHeaderBuffer": "InvoiceHeaderBuffer",
+        "InvoiceLineBuffer": "InvoiceLineBuffer",
+        "OtherBuffer": "OtherBuffer",
+        "DMSInterfaceInfo": "DMSInterfaceInfo"
+    }
 
-    def __init__(self, db_host, db_user, db_password, db_name):
-        conn_str = "mssql+pyodbc://{1}:{2}@{0}:1433/{3}?driver=ODBC+Driver+17+for+SQL+Server".format(db_host, db_user, db_password, db_name)
+    def __init__(self, db_host, db_user, db_password, db_name, company_nav_code):
+        conn_str = "mssql+pyodbc://{1}:{2}@{0}:1401/{3}?driver=ODBC+Driver+17+for+SQL+Server".format(db_host, db_user, db_password, db_name)
         engine = create_engine(conn_str)
         DBSession = sessionmaker(bind=engine)
         self.dbo = DBSession()
+        self.company_nav_code = company_nav_code
         self.meta = MetaData()
-        self.meta.reflect(bind=engine)
         self.conn = engine.connect()
+        # 建立反射模型
+        for t in self.tables:
+            self.tables[t] = self._getTableName(company_nav_code, t)
+        self.meta.reflect(bind=engine, only=list(self.tables.values()))
 
     @staticmethod
     def _getTableName(company_nav_code: str, data_name) -> str:
@@ -65,9 +77,8 @@ class NavDB:
         # 合并数据
         data_dict = {**data_dict, **other_data}
 
-
-        table_name = self._getTableName(company_nav_code, "DMSInterfaceInfo")
-
+        table_name = self.tables["DMSInterfaceInfo"]
+        print(self.base.classes)
         General = self.base.classes[table_name]
 
         # 获取entry_no
@@ -91,6 +102,12 @@ class NavDB:
                 if api_p_out[f].Value_Type == 1 and f in convert_chn_fields:
                     # 处理中文编码
                     v = cast_chinese_encode(v)
+                elif api_p_out[f].Value_Type in [2, 3] and type(v) == str:
+                    # 布尔类型的节点
+                    v = true_or_false_to_tinyint(v)
+                elif api_p_out[f].Value_Type in [2, 3] and v is None:
+                    # 数字类型的无值节点
+                    v = 0
                 elif api_p_out[f].Value_Type == 5:
                     # 时间转换
                     v = to_local_time(v)
@@ -165,7 +182,13 @@ class NavDB:
                     if f.find("[") != -1:
                         f = f.replace("[", "").replace("]", "")
                     if api_p_out[k].Value_Type == 1 and f in convert_chn_fields:
-                            v = cast_chinese_encode(v)
+                        v = cast_chinese_encode(v)
+                    elif api_p_out[k].Value_Type in [2, 3] and type(v) == str:
+                        # 布尔类型的节点
+                        v = true_or_false_to_tinyint(v)
+                    elif api_p_out[k].Value_Type in [2, 3] and v is None:
+                        # 数字类型的无值节点
+                        v = 0
                     elif api_p_out[k].Value_Type == 5:
                         v = to_local_time(v)
                     ins_data[f] = v if v is not None else ""
@@ -214,8 +237,11 @@ class NavDB:
                         f = f.replace("[", "").replace("]", "")
                     if api_p_out[k].Value_Type == 1 and f in convert_chn_fields:
                         v = cast_chinese_encode(v)
-                    elif api_p_out[k].Value_Type == 2 and type(v) == str:
+                    elif api_p_out[k].Value_Type in [2, 3] and type(v) == str:
                         v = true_or_false_to_tinyint(v)
+                    elif api_p_out[k].Value_Type in [2, 3] and v is None:
+                        # 数字类型的无值节点
+                        v = 0
                     elif api_p_out[k].Value_Type == 5:
                         v = to_local_time(v)
                     ins_data[f] = v if v is not None else ""
@@ -227,20 +253,16 @@ class NavDB:
             # print(ins, ins.compile().params)
             self.conn.execute(ins)
 
-    # 写入发票部分
-    def insertInv(self, company_nav_code: str, data_dict: dict, api_p_out: ApiPOutSetup, entry_no: int):
+    # 写入发票头部分
+    def insertInvHeader(self, data_dict: dict, api_p_out: dict, entry_no: int):
         # 需要转中文编码的字段
-        convert_chn_fields = ["Description", "SerialNo", "FAClassCode", "FASubclassCode", "FALocationCode",
-                              "CostCenterCode"]
+        convert_chn_fields = ["CostCenterCode", "VehicleSeries", "ExtDocumentNo", "Description"]
         # 非xml的数据
-        other_data = {"UnderMaintenance": "", "Entry No_": entry_no, "DepreciationPeriod": 0,
-                      "Error Message": "", "CostCenterCode": "",
+        other_data = {"Entry No_": entry_no, "Error Message": "", "CostCenterCode": "",
                       "DateTime Imported": datetime.datetime.utcnow().isoformat(timespec="seconds"),
-                      "DateTime Handled": "1753-01-01 00:00:00.000", "Handled by": "",
-                      "NextServiceDate": "1753-01-01 00:00:00.000", "WarrantyDate": "1753-01-01 00:00:00.000",
-                      "DepreciationStartingDate": datetime.datetime.utcnow().isoformat(timespec="seconds")}
+                      "DateTime handled": "1753-01-01 00:00:00.000", "Handled by": ""}
 
-        table_name = self._getTableName(company_nav_code, "FABuffer")
+        table_name = self.tables["InvoiceHeaderBuffer"]
 
         # 写cv
         if type(data_dict) == OrderedDict:
@@ -264,8 +286,11 @@ class NavDB:
                         f = f.replace("[", "").replace("]", "")
                     if api_p_out[k].Value_Type == 1 and f in convert_chn_fields:
                         v = cast_chinese_encode(v)
-                    elif api_p_out[k].Value_Type == 2 and type(v) == str:
+                    elif api_p_out[k].Value_Type in [2, 3] and type(v) == str:
                         v = true_or_false_to_tinyint(v)
+                    elif api_p_out[k].Value_Type in [2, 3] and v is None:
+                        # 数字类型的无值节点
+                        v = 0
                     elif api_p_out[k].Value_Type == 5:
                         v = to_local_time(v)
                     ins_data[f] = v if v is not None else ""
@@ -274,7 +299,60 @@ class NavDB:
             # print(ins_data)
             FaTable = self.base.classes[table_name]
             ins = Insert(FaTable, values=ins_data)
-            # print(ins, ins.compile().params)
+            print(ins, ins.compile().params)
+            self.conn.execute(ins)
+
+    # 写入发票行部分
+    def insertInvLines(self, data_dict: dict, api_p_out: dict, entry_no: int):
+        # 需要转中文编码的字段
+        convert_chn_fields = ["Description", "CostCenterCode", "VehicleSeries", "VIN", "WIP_No_",
+                          "FromCompanyName", "ToCompanyName"]
+        # 非xml的数据
+        other_data = {"Entry No_": entry_no, "Error Message": "",
+                      "DateTime Imported": datetime.datetime.utcnow().isoformat(timespec="seconds"),
+                      "DateTime Handled": "1753-01-01 00:00:00.000", "Handled by": ""}
+
+        table_name = self.tables["InvoiceLineBuffer"]
+
+        # 写cv
+        if type(data_dict) == OrderedDict:
+            data_dict = [data_dict]
+
+        for row_dict in data_dict:
+            # 合并数据
+            row_dict = {**row_dict, **other_data}
+
+            record_id = self.getLatestEntryNo(table_name, "Record ID")
+            row_dict["Record ID"] = record_id
+
+            # 处理中文转码和字段更名
+            ins_data = {}
+            for k in row_dict.keys():
+                if k == "InvoiceType":
+                    continue
+                v = row_dict[k]
+                if k in api_p_out:
+                    f = api_p_out[k].Column_Name
+                    # 去掉方括号
+                    if f.find("[") != -1:
+                        f = f.replace("[", "").replace("]", "")
+                    if api_p_out[k].Value_Type == 1 and f in convert_chn_fields:
+                        v = cast_chinese_encode(v)
+                    elif api_p_out[k].Value_Type in [2, 3] and type(v) == str:
+                        v = true_or_false_to_tinyint(v)
+                    elif api_p_out[k].Value_Type in [2, 3] and v is None:
+                        # 数字类型的无值节点
+                        v = 0
+                    elif api_p_out[k].Value_Type == 5:
+                        v = to_local_time(v)
+                    ins_data[f] = v if v is not None else ""
+                else:
+                    ins_data[k] = v if v is not None else ""
+            print(ins_data)
+            FaTable = self.base.classes[table_name]
+            ins = Insert(FaTable, values=ins_data)
+            print(FaTable, table_name)
+            print(ins, ins.compile().params)
             self.conn.execute(ins)
 
     # 写入other部分
@@ -315,6 +393,8 @@ class NavDB:
                         v = cast_chinese_encode(v)
                     elif api_p_out["Daydook"]["Line"][k].Value_Type == 2 and type(v) == str:
                         v = true_or_false_to_tinyint(v)
+                    elif api_p_out["Daydook"]["Line"][k].Value_Type in [2, 3] and v is None:
+                        v = 0
                     elif api_p_out["Daydook"]["Line"][k].Value_Type == 5:
                         v = to_local_time(v)
                     ins_data[f] = v if v is not None else ""
