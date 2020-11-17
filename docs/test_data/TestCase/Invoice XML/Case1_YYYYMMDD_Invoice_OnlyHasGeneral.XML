@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Transaction>
+    <General>
+        <DMSCode>SA32041</DMSCode>
+        <DMSTitle>苏州奥保行汽车销售服务有限公司</DMSTitle>
+        <CompanyCode>SA32041</CompanyCode>
+        <CompanyTitle>苏州奥保行汽车销售服务有限公司</CompanyTitle>
+        <CreateDateTime>2020-10-09T13:10:47.47+8</CreateDateTime>
+        <Creator>FI_GRACE</Creator>
+    </General>
+</Transaction>

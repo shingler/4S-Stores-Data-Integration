@@ -20,11 +20,12 @@ from requests_ntlm import HttpNtlmAuth
 from sqlalchemy.exc import InvalidRequestError
 
 from src import db, Company, ApiSetup, ApiPInSetup, validator
+from src.dms import interface
 from src.dms.logger import Logger
 from src.dms.setup import Setup
 from src.error import DataFieldEmptyError, DataLoadError, DataLoadTimeOutError, DataImportRepeatError, \
     DataContentTooBig, NodeNotExistError
-from src.models import nav, to_local_time
+from src.models import nav, to_local_time, dms
 from src import words
 
 
@@ -109,8 +110,14 @@ class DMSBase:
     # 读取接口
     # @param string format 数据解析格式（JSON | XML）
     # @param int time_out 超时时间，单位为秒。为0表示不判断超时
-    def _load_data_from_dms_interface(self, path, format="json", time_out=0):
-        return InterfaceResult(status=self.STATUS_FINISH, content="")
+    def _load_data_from_dms_interface(self, apiSetup: dms.ApiSetup):
+        p_in_list = Setup.load_api_p_in(apiSetup.Company_Code, apiSetup.API_Code)
+        company_info = db.session.query(Company).filter(Company.Code == apiSetup.Company_Code).first()
+        res = interface.api_dms(company_info, api_setup=apiSetup, p_in_list=p_in_list)
+        if res is None:
+            return InterfaceResult(status=self.STATUS_ERROR, content="")
+        else:
+            return InterfaceResult(status=self.STATUS_FINISH, content=res, data=json.loads(res, encoding="UTF-8"))
 
     # 读取xml,返回InterfaceResult对象
     # @param string format 数据解析格式（JSON | XML）
@@ -198,7 +205,7 @@ class DMSBase:
         if apiSetup.API_Type == self.TYPE_API:
             # 读取JSON API
             path = ""
-            res = self._load_data_from_dms_interface(path, format=apiSetup.Data_Format, time_out=apiSetup.Time_out * 60)
+            res = self._load_data_from_dms_interface(apiSetup)
         elif apiSetup.API_Type == self.TYPE_FILE and file_path is not None:
             # 直接提供XML地址
             path = file_path

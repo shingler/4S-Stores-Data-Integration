@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Transaction>
+  <General>
+    <DMSCode>SA32041</DMSCode>
+    <DMSTitle>苏州奥保行汽车销售服务有限公司</DMSTitle>
+    <CompanyCode>SA32041</CompanyCode>
+    <CompanyTitle>苏州奥保行汽车销售服务有限公司</CompanyTitle>
+    <CreateDateTime>2020-10-09T13:10:47.47+8</CreateDateTime>
+    <Creator>FI_GRACE</Creator>
+  </General>
+  <FA>
+    <FANo>FA_950_18_00001</FANo>
+    <SerialNo />
+    <Inactive>FALSE</Inactive>
+    <Blocked>FALSE</Blocked>
+    <FAClassCode>INTANGIBLE</FAClassCode>
+    <FASubclassCode>LANDRIGHTS</FASubclassCode>
+    <FALocationCode />
+    <BudgetedAsset>FALSE</BudgetedAsset>
+    <VendorNo />
+    <MaintenanceVendorNo />
+    <UnderMaintenance>FALSE</UnderMaintenance>
+    <NextServiceDate />
+    <WarrantyDate />
+    <DepreciationPeriod>480</DepreciationPeriod>
+    <DepreciationStartingDate>2017-01-01</DepreciationStartingDate>
+    <CostCenterCode>FNA_AD_01</CostCenterCode>
+  </FA>
+  <FA>
+    <FANo>FA_950_18_00002</FANo>
+    <SerialNo />
+    <Inactive>FALSE</Inactive>
+    <Blocked>FALSE</Blocked>
+    <FAClassCode>TANGIBLE</FAClassCode>
+    <FASubclassCode>IT-EQUIP</FASubclassCode>
+    <FALocationCode />
+    <BudgetedAsset>FALSE</BudgetedAsset>
+    <VendorNo />
+    <MaintenanceVendorNo />
+    <UnderMaintenance>FALSE</UnderMaintenance>
+    <NextServiceDate />
+    <WarrantyDate />
+    <DepreciationPeriod>36</DepreciationPeriod>
+    <DepreciationStartingDate>2017-05-01</DepreciationStartingDate>
+    <CostCenterCode>FNA_AD_01</CostCenterCode>
+  </FA>
+</Transaction>

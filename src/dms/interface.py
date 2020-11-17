@@ -3,7 +3,7 @@
 # DMS json接口
 import json
 import requests
-from python_sdk.sign.security_util import get_signature_dict
+from sco_request_sdk.sign.security_util import get_signature_dict
 from src.models import dms
 
 
@@ -17,6 +17,7 @@ class Interface:
         self.dealer_group_code = dealer_group_code
         self.dealer_entity_code = dealer_entity_code
         self.action = api_setup.Command_Code
+        # self.action = "G100910000"
         self.access_key_secret = api_setup.Secret_Key
         self.signature_version = api_setup.Signature_Verision
         self.version = api_setup.API_Version
@@ -31,7 +32,7 @@ class Interface:
             'DealerGroupCode': self.dealer_group_code,
             'DealerEntityCode': self.dealer_entity_code,
             'SignatureMethod': self.signature_method,
-            'Data': json.dumps(data),
+            'Data': json.dumps(data, separators=(',', ':')),
             'AccessKeySecret': self.access_key_secret
         }
 
@@ -42,7 +43,7 @@ def send_data(url, data, interface_instance: Interface) -> requests.Response:
     # 原始请求数据
     params = interface_instance.get_interface_params(data)
     # 用于签名后的data
-    url = url.format(interface_instance.action.lower())
+    # url = url.format(interface_instance.action.lower())
     sign_dict = get_signature_dict(params)
     print(url, params)
     print("=======")
@@ -66,14 +67,16 @@ def api_dms(company_info: dms.Company, api_setup: dms.ApiSetup, p_in_list: list)
     for p in p_in_list:
         data[p.P_Name] = p.Value
 
-    resp = send_data(url=api_setup.API_Address1, data=data, interface_instance=interface_instance)
-    print(resp.json())
-    code = resp.json()["Code"]
+    url = api_setup.API_Address1.format(dealer_group_code.lower())
+
+    resp = send_data(url, data=data, interface_instance=interface_instance).json()
+    print(resp)
+    code = resp["Code"] if "Code" in resp else resp["status"]
 
     # 开始取数并解析数据
-    if code != '200' or 'no' not in json.dumps(resp.json()["Data"]):
-        jsonresp = None
+    if code != '200':
+        jsonresp = resp['Message']
     else:
-        jsonresp = resp.json()["Data"]
+        jsonresp = resp["Data"]
 
-    return jsonresp
+    return code, jsonresp
