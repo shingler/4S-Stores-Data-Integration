@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
-# 用拼接sql的方式写入nav库
+# 用拼接sql的方式（非建模）写入nav库
 import datetime
 import threading
 import time
@@ -54,7 +54,7 @@ class NavDB:
             print(c, type(c))
 
     # 写入General部分
-    def insertGeneral(self, company_nav_code: str, data_dict: dict, api_p_out: ApiPOutSetup, Type: int = 0, Count: int = 0, XMLFile: str = "", **kwargs):
+    def insertGeneral(self, data_dict: dict, api_p_out: dict, Type: int = 0, Count: int = 0, XMLFile: str = "", **kwargs):
         # 需要转换中文编码的字段
         convert_chn_fields = ["DMSTitle", "CompanyTitle", "Creator"]
         # 非xml的数据
@@ -135,7 +135,7 @@ class NavDB:
         return max_entry_id + 1 if max_entry_id is not None else 1
 
     # 写入CV部分
-    def insertCV(self, company_nav_code: str, data_dict: dict, api_p_out: ApiPOutSetup, entry_no: int):
+    def insertCV(self, company_nav_code: str, data_dict: dict, api_p_out: dict, entry_no: int):
         # 需要转中文编码的字段
         convert_chn_fields = ["Name", "Address", "City", "Country", "Application_Method",
                               "PaymentTermsCode", "Address 2", "Email", "Cost Center Code", "ICPartnerCode"]
@@ -201,7 +201,7 @@ class NavDB:
             self.conn.execute(ins)
 
     # 写入FA部分
-    def insertFA(self, company_nav_code: str, data_dict: dict, api_p_out: ApiPOutSetup, entry_no: int):
+    def insertFA(self, company_nav_code: str, data_dict: dict, api_p_out: dict, entry_no: int):
         # 需要转中文编码的字段
         convert_chn_fields = ["Description", "SerialNo", "FAClassCode", "FASubclassCode", "FALocationCode",
                           "CostCenterCode"]
@@ -356,7 +356,7 @@ class NavDB:
             self.conn.execute(ins)
 
     # 写入other部分
-    def insertOther(self, company_nav_code: str, data_dict: dict, api_p_out: ApiPOutSetup, entry_no: int):
+    def insertOther(self, company_nav_code: str, data_dict: dict, api_p_out: dict, entry_no: int):
         # 需要转中文编码的字段
         convert_chn_fields = ["ExtDocumentNo_", "Description", "CostCenterCode", "VehicleSeries",
                               "WIP_No_", "FromCompanyName", "ToCompanyName", "VIN"]
@@ -371,8 +371,8 @@ class NavDB:
         # 写cv
         if type(data_dict) == OrderedDict:
             data_dict = [data_dict]
-        print("======")
-        print(api_p_out)
+        # print("======")
+        # print(api_p_out)
         for row_dict in data_dict:
             # 合并数据
             row_dict = {**row_dict, **other_data}
@@ -384,26 +384,24 @@ class NavDB:
             ins_data = {}
             for k in row_dict.keys():
                 v = row_dict[k]
-                if k in api_p_out["Daydook"]["Line"]:
-                    f = api_p_out["Daydook"]["Line"][k].Column_Name
+                if k in api_p_out:
+                    f = api_p_out[k].Column_Name
                     # 去掉方括号
                     if f.find("[") != -1:
                         f = f.replace("[", "").replace("]", "")
-                    if api_p_out["Daydook"]["Line"][k].Value_Type == 1 and f in convert_chn_fields:
+                    if api_p_out[k].Value_Type == 1 and f in convert_chn_fields:
                         v = cast_chinese_encode(v)
-                    elif api_p_out["Daydook"]["Line"][k].Value_Type == 2 and type(v) == str:
+                    elif api_p_out[k].Value_Type == 2 and type(v) == str:
                         v = true_or_false_to_tinyint(v)
-                    elif api_p_out["Daydook"]["Line"][k].Value_Type in [2, 3] and v is None:
+                    elif api_p_out[k].Value_Type in [2, 3] and v is None:
                         v = 0
-                    elif api_p_out["Daydook"]["Line"][k].Value_Type == 5:
+                    elif api_p_out[k].Value_Type == 5:
                         v = to_local_time(v)
                     ins_data[f] = v if v is not None else ""
                 else:
                     ins_data[k] = v if v is not None else ""
-            ins_data["DocumentNo_"] = ins_data["DaydookNo"]
-            del ins_data["DaydookNo"]
-            print(ins_data)
+
             FaTable = self.base.classes[table_name]
             ins = Insert(FaTable, values=ins_data)
-            print(ins, ins.compile().params)
+            # print(ins, ins.compile().params)
             self.conn.execute(ins)

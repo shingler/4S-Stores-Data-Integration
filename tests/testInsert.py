@@ -15,9 +15,9 @@ company_code = "K302ZH"
 check_repeat = False
 
 
-@pytest.mark.skip("先测别的")
+# @pytest.mark.skip("先测别的")
 def test_cv(init_app):
-    api_code = "CustVendInfo-xml-correct"
+    api_code = "CustVendInfo"
     app, db = init_app
     company_info = db.session.query(Company).filter(Company.Code == company_code).first()
 
@@ -27,22 +27,26 @@ def test_cv(init_app):
     app.config["SQLALCHEMY_BINDS"]["%s-nav" % company_info.NAV_Company_Code] = conn_str
 
     api_setup = Setup.load_api_setup(company_code, api_code)
+    assert api_setup is not None
 
     cv_obj = CustVend(company_info.NAV_Company_Code, check_repeat=check_repeat)
     path, data = cv_obj.load_data(api_setup)
 
-    general_node_dict = Setup.load_api_p_out_nodes(company_code, api_code, node_type="General")
     # custVend节点配置
-    custVend_node_dict = Setup.load_api_p_out_nodes(company_code, api_code, node_type="CustVendInfo")
+    node_dict = Setup.load_api_p_out(company_code, api_code)
+    assert node_dict is not None
+    general_node_dict = node_dict["General"]
+    custVend_node_dict = node_dict[cv_obj.BIZ_NODE_LV1]
     # print(custVend_node_dict)
     general_dict = cv_obj.splice_general_info(data, node_dict=general_node_dict)
 
     count = cv_obj.get_count_from_data(data["Transaction"], "CustVendInfo")
 
-    nav = navdb.NavDB('127.0.0.1', 'sa', '123', 'NAV')
+    nav = navdb.NavDB(db_host=company_info.NAV_DB_Address, db_user=company_info.NAV_DB_UserID,
+                      db_password=company_info.NAV_DB_Password, db_name=company_info.NAV_DB_Name,
+                      company_nav_code=company_info.NAV_Company_Code)
     nav.prepare()
-    entry_no = nav.insertGeneral(company_info.NAV_Company_Code, api_p_out=general_node_dict,
-                                        data_dict=general_dict, Type=0, Count=count, XMLFile=path)
+    entry_no = nav.insertGeneral(api_p_out=general_node_dict, data_dict=general_dict, Type=0, Count=count, XMLFile=path)
     assert entry_no is not None and entry_no != 0
     # 写cv数据
     # 拼接custVend数据
@@ -50,9 +54,10 @@ def test_cv(init_app):
 
     nav.insertCV(company_info.NAV_Company_Code, api_p_out=custVend_node_dict, data_dict=custVend_dict, entry_no=entry_no)
 
+
 @pytest.mark.skip("先测别的")
 def test_fa(init_app):
-    api_code = "FA-xml-correct"
+    api_code = "FA"
     app, db = init_app
     company_info = db.session.query(Company).filter(Company.Code == company_code).first()
 
@@ -62,22 +67,26 @@ def test_fa(init_app):
     app.config["SQLALCHEMY_BINDS"]["%s-nav" % company_info.NAV_Company_Code] = conn_str
 
     api_setup = Setup.load_api_setup(company_code, api_code)
+    assert api_setup is not None
 
     fa_obj = FA(company_info.NAV_Company_Code, check_repeat=check_repeat)
     path, data = fa_obj.load_data(api_setup)
 
-    general_node_dict = Setup.load_api_p_out_nodes(company_code, api_code, node_type="General")
     # 节点配置
-    fa_node_dict = Setup.load_api_p_out_nodes(company_code, api_code, node_type="FA")
-    # print(custVend_node_dict)
+    node_dict = Setup.load_api_p_out(company_code, api_code)
+    assert node_dict is not None
+    general_node_dict = node_dict['General']
+    fa_node_dict = node_dict[fa_obj.BIZ_NODE_LV1]
+
     general_dict = fa_obj.splice_general_info(data, node_dict=general_node_dict)
 
     count = fa_obj.get_count_from_data(data["Transaction"], "FA")
 
-    nav = navdb.NavDB('127.0.0.1', 'sa', '123', 'NAV')
+    nav = navdb.NavDB(db_host=company_info.NAV_DB_Address, db_user=company_info.NAV_DB_UserID,
+                      db_password=company_info.NAV_DB_Password, db_name=company_info.NAV_DB_Name,
+                      company_nav_code=company_info.NAV_Company_Code)
     nav.prepare()
-    entry_no = nav.insertGeneral(company_info.NAV_Company_Code, api_p_out=general_node_dict,
-                                 data_dict=general_dict, Type=1, Count=count, XMLFile=path)
+    entry_no = nav.insertGeneral(api_p_out=general_node_dict, data_dict=general_dict, Type=1, Count=count, XMLFile=path)
     assert entry_no is not None and entry_no != 0
     # 写cv数据
     # 拼接custVend数据
@@ -87,7 +96,7 @@ def test_fa(init_app):
                  entry_no=entry_no)
 
 
-# @pytest.mark.skip("先测别的")
+@pytest.mark.skip("先测别的")
 def test_inv(init_app):
     api_code = "Invoice"
     app, db = init_app
@@ -109,8 +118,8 @@ def test_inv(init_app):
     general_node_dict = inv_node_dict["General"]
     inv_header_node_dict = {**inv_node_dict[InvoiceHeader.BIZ_NODE_LV1], **inv_node_dict[InvoiceHeader.BIZ_NODE_LV2]}
     inv_line_node_dict = {**inv_node_dict[InvoiceLine.BIZ_NODE_LV1], **inv_node_dict[InvoiceLine.BIZ_NODE_LV2]}
-    print("======")
-    print(inv_line_node_dict)
+    # print("======")
+    # print(inv_line_node_dict)
     path, data = invh_obj.load_data(api_setup)
 
     general_dict = invh_obj.splice_general_info(data, node_dict=general_node_dict)
@@ -120,7 +129,7 @@ def test_inv(init_app):
     nav = navdb.NavDB('127.0.0.1', 'sa', 'msSqlServer2020', 'NAV', company_nav_code=company_info.NAV_Company_Code)
     nav.prepare()
     entry_no = nav.insertGeneral(company_info.NAV_Company_Code, api_p_out=general_node_dict,
-                                 data_dict=general_dict, Type=1, Count=count, XMLFile=path)
+                                 data_dict=general_dict, Type=2, Count=count, XMLFile=path)
     assert entry_no is not None and entry_no != 0
     # 写发票头数据
     invh_dict = invh_obj.splice_data_info(data, node_dict=inv_header_node_dict)
@@ -147,19 +156,21 @@ def test_other(init_app):
     other_obj = Other(company_info.NAV_Company_Code, check_repeat=check_repeat)
     path, data = other_obj.load_data(api_setup)
 
-    general_node_dict = Setup.load_api_p_out_nodes(company_code, api_code, node_type="General")
     # 节点配置
-    other_node_dict = other_obj.load_api_p_out_nodes(company_code, api_code, node_type="Daydook")
+    node_dict = Setup.load_api_p_out(company_code, api_code)
+    general_node_dict = node_dict["General"]
+    other_node_dict = {**node_dict[other_obj.BIZ_NODE_LV1], **node_dict[other_obj.BIZ_NODE_LV2]}
     # print(other_node_dict)
-    other_node_dict["Daydook"] = other_obj.load_api_p_out_nodes(company_code, api_code, node_type="Line")
     general_dict = other_obj.splice_general_info(data, node_dict=general_node_dict)
 
     count = other_obj.get_count_from_data(data["Transaction"], "Daydook")
 
-    nav = navdb.NavDB('127.0.0.1', 'sa', '123', 'NAV')
+    nav = navdb.NavDB(db_host=company_info.NAV_DB_Address, db_user=company_info.NAV_DB_UserID,
+                      db_password=company_info.NAV_DB_Password, db_name=company_info.NAV_DB_Name,
+                      company_nav_code=company_info.NAV_Company_Code)
     nav.prepare()
     entry_no = nav.insertGeneral(company_info.NAV_Company_Code, api_p_out=general_node_dict,
-                                 data_dict=general_dict, Type=1, Count=count, XMLFile=path)
+                                 data_dict=general_dict, Type=3, Count=count, XMLFile=path)
     assert entry_no is not None and entry_no != 0
     # 写cv数据
     # 拼接custVend数据
