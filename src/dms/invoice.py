@@ -21,14 +21,16 @@ class Invoice(DMSBase):
     _COMMON_FILED = "InvoiceType"
 
     # 读取出参配置配置
-    def load_api_p_out_nodes(self, company_code, api_code, node_type="general", depth=3):
-        node_dict = Setup.load_api_p_out_nodes(company_code, api_code, node_type, depth - 1)
-        if node_type == "general":
-            return node_dict
-
-        node_dict[node_type] = Setup.load_api_p_out_nodes(company_code, api_code, node_type=node_type, depth=depth)
-        # print(node_dict)
-        return node_dict
+    def load_api_p_out_nodes(self, company_code, api_code, is_General=True):
+        param_dict = Setup.load_api_p_out(company_code, api_code)
+        if is_General:
+            return param_dict["General"]
+        else:
+            return {
+                InvoiceHeader.BIZ_NODE_LV1: param_dict[InvoiceHeader.BIZ_NODE_LV1],
+                InvoiceHeader.BIZ_NODE_LV2: param_dict[InvoiceHeader.BIZ_NODE_LV2],
+                InvoiceLine.BIZ_NODE_LV2: param_dict[InvoiceLine.BIZ_NODE_LV2]
+            }
 
     # 从api_p_out获取数据
     def splice_data_info(self, data, node_dict):
@@ -127,9 +129,9 @@ class InvoiceHeader(Invoice):
             # 只有存在节点时才判断
 
             # 加载配置
-            inv_dict = self.load_api_p_out_nodes(company_code, api_code, node_type=self.BIZ_NODE_LV1, depth=2)
-            inv_header_dict = self.load_api_p_out_nodes(company_code, api_code, node_type=self.BIZ_NODE_LV2, depth=3)
-            inv_line_dict = self.load_api_p_out_nodes(company_code, api_code, node_type=InvoiceLine.BIZ_NODE_LV2, depth=3)
+            inv_dict = self.load_api_p_out_nodes(company_code, api_code, is_General=False)
+            inv_header_dict = inv_dict[InvoiceHeader.BIZ_NODE_LV2]
+            inv_line_dict = inv_dict[InvoiceLine.BIZ_NODE_LV2]
 
             data_list = data_dict["Transaction"][self.BIZ_NODE_LV1]
             if type(data_list) != list:
@@ -148,7 +150,7 @@ class InvoiceHeader(Invoice):
                 # 再检查发票头
                 inv_header_data = invoice[InvoiceHeader.BIZ_NODE_LV2]
                 # print(inv_header_dict)
-                for hd in inv_header_dict[InvoiceHeader.BIZ_NODE_LV2].values():
+                for hd in inv_header_dict.values():
                     if hd.Level == 2:
                         continue
                     if hd.P_Name not in inv_header_data:
@@ -156,6 +158,7 @@ class InvoiceHeader(Invoice):
                         miss_key = "%s.%s" % (self.BIZ_NODE_LV2, hd.P_Name)
                         if miss_key not in res_keys:
                             res_keys.append(miss_key)
+
                 # 再检查发票行
                 if res_bool:
                     # print(inv_line_dict, type(inv_line_dict))
@@ -165,15 +168,16 @@ class InvoiceHeader(Invoice):
 
                     for one_line in inv_lines_data:
                         one_line_keys = one_line.keys()
-
-                        for hd in inv_line_dict[InvoiceLine.BIZ_NODE_LV2].values():
-                            if hd.Level != 3:
+                        for ld in inv_line_dict.values():
+                            if ld.Level != 3:
                                 continue
-                            if hd.P_Name not in one_line_keys:
+                            if ld.P_Name not in one_line_keys:
                                 res_bool = False
-                                miss_key = "%s.%s" % (InvoiceLine.BIZ_NODE_LV2, hd.P_Name)
+                                miss_key = "%s.%s" % (InvoiceLine.BIZ_NODE_LV2, ld.P_Name)
                                 if miss_key not in res_keys:
                                     res_keys.append(miss_key)
+                                    # 本意是都报出来。但既然只要一个，就break吧。万一以后又都要呢
+                                    break
 
         return res_bool, res_keys
 

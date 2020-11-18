@@ -1356,6 +1356,14 @@ def test_data_for_out_param(company_code):
                 Table_Name="InvoiceLineBuffer", Column_Name="MovementType",
                 Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
             ),
+            ApiPOutSetup(
+                Company_Code=company_code, API_Code="Invoice",
+                Sequence=44, P_Code="OEMCode",
+                P_Name="OEMCode", Level=3,
+                Parent_Node_Name="INVLine", Value_Type=1,
+                Table_Name="InvoiceLineBuffer", Column_Name="OEMCode",
+                Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
+            ),
         ]
     other_p = [
             ApiPOutSetup(

@@ -15,7 +15,7 @@ company_code = "K302ZH"
 check_repeat = False
 
 
-# @pytest.mark.skip("先测别的")
+@pytest.mark.skip("先测别的")
 def test_cv(init_app):
     api_code = "CustVendInfo"
     app, db = init_app
@@ -128,8 +128,7 @@ def test_inv(init_app):
 
     nav = navdb.NavDB('127.0.0.1', 'sa', 'msSqlServer2020', 'NAV', company_nav_code=company_info.NAV_Company_Code)
     nav.prepare()
-    entry_no = nav.insertGeneral(company_info.NAV_Company_Code, api_p_out=general_node_dict,
-                                 data_dict=general_dict, Type=2, Count=count, XMLFile=path)
+    entry_no = nav.insertGeneral(api_p_out=general_node_dict, data_dict=general_dict, Type=2, Count=count, XMLFile=path)
     assert entry_no is not None and entry_no != 0
     # 写发票头数据
     invh_dict = invh_obj.splice_data_info(data, node_dict=inv_header_node_dict)
@@ -140,7 +139,7 @@ def test_inv(init_app):
     nav.insertInvLines(api_p_out=inv_line_node_dict, data_dict=invl_dict, entry_no=entry_no)
 
 
-@pytest.mark.skip("先测别的")
+# @pytest.mark.skip("先测别的")
 def test_other(init_app):
     api_code = "Other"
     app, db = init_app
@@ -169,8 +168,7 @@ def test_other(init_app):
                       db_password=company_info.NAV_DB_Password, db_name=company_info.NAV_DB_Name,
                       company_nav_code=company_info.NAV_Company_Code)
     nav.prepare()
-    entry_no = nav.insertGeneral(company_info.NAV_Company_Code, api_p_out=general_node_dict,
-                                 data_dict=general_dict, Type=3, Count=count, XMLFile=path)
+    entry_no = nav.insertGeneral(api_p_out=general_node_dict, data_dict=general_dict, Type=3, Count=count, XMLFile=path)
     assert entry_no is not None and entry_no != 0
     # 写cv数据
     # 拼接custVend数据
