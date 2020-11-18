@@ -5,7 +5,6 @@ from collections import OrderedDict
 from src import validator, words
 from src.dms.base import DMSBase
 from src.dms.setup import Setup
-from src.models import nav
 from src.error import InvoiceEmptyError
 
 
@@ -47,11 +46,6 @@ class Invoice(DMSBase):
 class InvoiceHeader(Invoice):
     BIZ_NODE_LV1 = "Invoice"
     BIZ_NODE_LV2 = "INVHeader"
-    TABLE_CLASS = None
-
-    def __init__(self, company_name, force_secondary=False, check_repeat=True):
-        super(__class__, self).__init__(company_name, force_secondary, check_repeat)
-        self.TABLE_CLASS = nav.invoiceHeaderBuffer(company_name)
 
     # 根据节点名处理二级/三级层级数据
     def _splice_field_by_name(self, data, node_dict):
@@ -185,11 +179,6 @@ class InvoiceHeader(Invoice):
 class InvoiceLine(Invoice):
     BIZ_NODE_LV1 = "Invoice"
     BIZ_NODE_LV2 = "INVLine"
-    TABLE_CLASS = None
-
-    def __init__(self, company_nav_code, force_secondary=False, check_repeat=True):
-        super(__class__, self).__init__(company_nav_code, force_secondary, check_repeat)
-        self.TABLE_CLASS = nav.invoiceLineBuffer(company_nav_code)
 
     # 根据节点名处理二级/三级层级数据
     def _splice_field_by_name(self, data, node_dict):

@@ -166,6 +166,8 @@ class ApiPOutSetup(db.Model):
     Last_Modified_DT = db.Column(db.DateTime, nullable=False, comment="最后修改时间")
     # 最后修改人
     Last_Modified_By = db.Column(db.String(20), nullable=False, comment="最后修改人")
+    # 内容长度
+    Value_Length = db.Column(db.Integer, nullable=True)
 
     apiSetup = db.relationship("ApiSetup",
                                primaryjoin=and_((foreign(Company_Code) == remote(ApiSetup.Company_Code)),

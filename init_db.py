@@ -563,7 +563,7 @@ def test_data_for_out_param(company_code):
             ApiPOutSetup(
                 Company_Code=company_code, API_Code="CustVendInfo",
                 Sequence=4, P_Code="DMSTitle",
-                P_Name="DMSTitle", Level=2,
+                P_Name="DMSTitle", Level=2, Value_Length=50,
                 Parent_Node_Name="General", Value_Type=1,
                 Table_Name="DMSInterfaceInfo", Column_Name="DMSTitle",
                 Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
@@ -579,7 +579,7 @@ def test_data_for_out_param(company_code):
             ApiPOutSetup(
                 Company_Code=company_code, API_Code="CustVendInfo",
                 Sequence=6, P_Code="CompanyTitle",
-                P_Name="CompanyTitle", Level=2,
+                P_Name="CompanyTitle", Level=2, Value_Length=50,
                 Parent_Node_Name="General", Value_Type=1,
                 Table_Name="DMSInterfaceInfo", Column_Name="CompanyTitle",
                 Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
@@ -627,7 +627,7 @@ def test_data_for_out_param(company_code):
             ApiPOutSetup(
                 Company_Code=company_code, API_Code="CustVendInfo",
                 Sequence=12, P_Code="Name",
-                P_Name="Name", Level=2,
+                P_Name="Name", Level=2, Value_Length=50,
                 Parent_Node_Name="CustVendInfo", Value_Type=1,
                 Table_Name="CustVendBuffer", Column_Name="Name",
                 Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
@@ -635,7 +635,7 @@ def test_data_for_out_param(company_code):
             ApiPOutSetup(
                 Company_Code=company_code, API_Code="CustVendInfo",
                 Sequence=13, P_Code="Address",
-                P_Name="Address", Level=2,
+                P_Name="Address", Level=2, Value_Length=50,
                 Parent_Node_Name="CustVendInfo", Value_Type=1,
                 Table_Name="CustVendBuffer", Column_Name="Address",
                 Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
@@ -643,7 +643,7 @@ def test_data_for_out_param(company_code):
             ApiPOutSetup(
                 Company_Code=company_code, API_Code="CustVendInfo",
                 Sequence=14, P_Code="Address2",
-                P_Name="Address2", Level=2,
+                P_Name="Address2", Level=2, Value_Length=50,
                 Parent_Node_Name="CustVendInfo", Value_Type=1,
                 Table_Name="CustVendBuffer", Column_Name="[Address 2]",
                 Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
@@ -829,7 +829,7 @@ def test_data_for_out_param(company_code):
             ApiPOutSetup(
                 Company_Code=company_code, API_Code="FA",
                 Sequence=4, P_Code="DMSTitle",
-                P_Name="DMSTitle", Level=2,
+                P_Name="DMSTitle", Level=2, Value_Length=50,
                 Parent_Node_Name="General", Value_Type=1,
                 Table_Name="DMSInterfaceInfo", Column_Name="DMSTitle",
                 Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
@@ -845,7 +845,7 @@ def test_data_for_out_param(company_code):
             ApiPOutSetup(
                 Company_Code=company_code, API_Code="FA",
                 Sequence=6, P_Code="CompanyTitle",
-                P_Name="CompanyTitle", Level=2,
+                P_Name="CompanyTitle", Level=2, Value_Length=50,
                 Parent_Node_Name="General", Value_Type=1,
                 Table_Name="DMSInterfaceInfo", Column_Name="CompanyTitle",
                 Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
@@ -885,7 +885,7 @@ def test_data_for_out_param(company_code):
             ApiPOutSetup(
                 Company_Code=company_code, API_Code="FA",
                 Sequence=11, P_Code="Description",
-                P_Name="Description", Level=2,
+                P_Name="Description", Level=2, Value_Length=30,
                 Parent_Node_Name="FA", Value_Type=1,
                 Table_Name="FABuffer", Column_Name="Description",
                 Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
@@ -893,7 +893,7 @@ def test_data_for_out_param(company_code):
             ApiPOutSetup(
                 Company_Code=company_code, API_Code="FA",
                 Sequence=12, P_Code="SerialNo",
-                P_Name="SerialNo", Level=2,
+                P_Name="SerialNo", Level=2, Value_Length=30,
                 Parent_Node_Name="FA", Value_Type=1,
                 Table_Name="FABuffer", Column_Name="SerialNo",
                 Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
@@ -1039,7 +1039,7 @@ def test_data_for_out_param(company_code):
             ApiPOutSetup(
                 Company_Code=company_code, API_Code="Invoice",
                 Sequence=4, P_Code="DMSTitle",
-                P_Name="DMSTitle", Level=2,
+                P_Name="DMSTitle", Level=2, Value_Length=50,
                 Parent_Node_Name="General", Value_Type=1,
                 Table_Name="DMSInterfaceInfo", Column_Name="DMSTitle",
                 Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
@@ -1055,7 +1055,7 @@ def test_data_for_out_param(company_code):
             ApiPOutSetup(
                 Company_Code=company_code, API_Code="Invoice",
                 Sequence=6, P_Code="CompanyTitle",
-                P_Name="CompanyTitle", Level=2,
+                P_Name="CompanyTitle", Level=2, Value_Length=50,
                 Parent_Node_Name="General", Value_Type=1,
                 Table_Name="DMSInterfaceInfo", Column_Name="CompanyTitle",
                 Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
@@ -1183,7 +1183,7 @@ def test_data_for_out_param(company_code):
             ApiPOutSetup(
                 Company_Code=company_code, API_Code="Invoice",
                 Sequence=22, P_Code="Description",
-                P_Name="Description", Level=3,
+                P_Name="Description", Level=3, Value_Length=100,
                 Parent_Node_Name="INVHeader", Value_Type=1,
                 Table_Name="InvoiceHeaderBuffer", Column_Name="Description",
                 Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
@@ -1231,7 +1231,7 @@ def test_data_for_out_param(company_code):
             ApiPOutSetup(
                 Company_Code=company_code, API_Code="Invoice",
                 Sequence=28, P_Code="Description",
-                P_Name="Description", Level=3,
+                P_Name="Description", Level=3, Value_Length=100,
                 Parent_Node_Name="INVLine", Value_Type=1,
                 Table_Name="InvoiceLineBuffer", Column_Name="Description",
                 Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
@@ -1393,7 +1393,7 @@ def test_data_for_out_param(company_code):
             ApiPOutSetup(
                 Company_Code=company_code, API_Code="Other",
                 Sequence=4, P_Code="DMSTitle",
-                P_Name="DMSTitle", Level=2,
+                P_Name="DMSTitle", Level=2, Value_Length=50,
                 Parent_Node_Name="General", Value_Type=1,
                 Table_Name="DMSInterfaceInfo", Column_Name="DMSTitle",
                 Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
@@ -1409,7 +1409,7 @@ def test_data_for_out_param(company_code):
             ApiPOutSetup(
                 Company_Code=company_code, API_Code="Other",
                 Sequence=6, P_Code="CompanyTitle",
-                P_Name="CompanyTitle", Level=2,
+                P_Name="CompanyTitle", Level=2, Value_Length=50,
                 Parent_Node_Name="General", Value_Type=1,
                 Table_Name="DMSInterfaceInfo", Column_Name="CompanyTitle",
                 Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
@@ -1513,7 +1513,7 @@ def test_data_for_out_param(company_code):
             ApiPOutSetup(
                 Company_Code=company_code, API_Code="Other",
                 Sequence=19, P_Code="Description",
-                P_Name="Description", Level=3,
+                P_Name="Description", Level=3, Value_Length=100,
                 Parent_Node_Name="Line", Value_Type=1,
                 Table_Name="OtherBuffer", Column_Name="Description",
                 Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""

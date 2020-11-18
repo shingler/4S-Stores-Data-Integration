@@ -7,7 +7,6 @@ from src.models import nav
 
 
 class Other(DMSBase):
-    TABLE_CLASS = None
     WS_METHOD = "HandleOtherWithEntryNo"
 
     # 数据一级节点
@@ -16,10 +15,6 @@ class Other(DMSBase):
     BIZ_NODE_LV2 = "Line"
     # 通用字段
     _COMMON_FILED = "DaydookNo"
-
-    def __init__(self, company_nav_code, force_secondary=False, check_repeat=True):
-        super(__class__, self).__init__(company_nav_code, force_secondary, check_repeat)
-        self.TABLE_CLASS = nav.otherBuffer(company_nav_code)
 
     # 读取出参配置配置
     def load_api_p_out_nodes(self, company_code, api_code, node_type="general"):

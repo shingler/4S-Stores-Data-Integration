@@ -3,17 +3,11 @@
 from src import validator
 from src.dms.base import DMSBase
 from src.dms.setup import Setup
-from src.models import nav
 
 
 class FA(DMSBase):
-    TABLE_CLASS = None
     BIZ_NODE_LV1 = "FA"
     WS_METHOD = "HandleFAWithEntryNo"
-
-    def __init__(self, company_nav_code, force_secondary=False, check_repeat=True):
-        super(__class__, self).__init__(company_nav_code, force_secondary, check_repeat)
-        self.TABLE_CLASS = nav.faBuffer(company_nav_code)
 
     # 从api_p_out获取数据
     def splice_data_info(self, data, node_dict):
