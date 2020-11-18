@@ -1,8 +1,8 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
-from src import validator
 from src.dms.base import DMSBase
 from src.dms.setup import Setup
+from src.validator import FAValidator
 
 
 class FA(DMSBase):
@@ -27,15 +27,17 @@ class FA(DMSBase):
             data_list = data_dict["Transaction"][self.BIZ_NODE_LV1]
             if type(data_list) != list:
                 data_list = [data_list]
+
+            validator = FAValidator(self.company_code, self.api_code)
             i = 0
             for line in data_list:
                 for k, v in line.items():
-                    is_valid = validator.FAValidator.check_chn_length(k, v)
+                    is_valid = validator.check_chn_length(k, v)
                     if not is_valid:
                         res_bool = False
                         res_keys = {
                             "key": "%s.%s" % (self.BIZ_NODE_LV1, k),
-                            "expect": validator.FAValidator.expect_length(k),
+                            "expect": validator.expect_length(k),
                             "content": v
                         }
                         return res_bool, res_keys

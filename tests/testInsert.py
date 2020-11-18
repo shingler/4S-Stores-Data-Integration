@@ -17,7 +17,7 @@ company_code = "K302ZH"
 check_repeat = False
 
 
-@pytest.mark.skip("先测别的")
+# @pytest.mark.skip("先测别的")
 def test_cv(init_app):
     api_code = "CustVendInfo"
     app, db = init_app
@@ -32,7 +32,7 @@ def test_cv(init_app):
     api_setup = Setup.load_api_setup(company_code, api_code)
     assert api_setup is not None
 
-    cv_obj = CustVend(company_info.Code, check_repeat=check_repeat)
+    cv_obj = CustVend(company_code, api_code, check_repeat=check_repeat)
     path, data = cv_obj.load_data(api_setup)
 
     # custVend节点配置
@@ -54,7 +54,7 @@ def test_cv(init_app):
     nav.insertCV(company_info.NAV_Company_Code, api_p_out=custVend_node_dict, data_dict=custVend_dict, entry_no=entry_no)
 
 
-@pytest.mark.skip("先测别的")
+# @pytest.mark.skip("先测别的")
 def test_fa(init_app):
     api_code = "FA"
     app, db = init_app
@@ -63,7 +63,7 @@ def test_fa(init_app):
     api_setup = Setup.load_api_setup(company_code, api_code)
     assert api_setup is not None
 
-    fa_obj = FA(company_info.Code, check_repeat=check_repeat)
+    fa_obj = FA(company_code, api_code, check_repeat=check_repeat)
     path, data = fa_obj.load_data(api_setup)
 
     # 节点配置
@@ -90,15 +90,15 @@ def test_fa(init_app):
                  entry_no=entry_no)
 
 
-@pytest.mark.skip("先测别的")
+# @pytest.mark.skip("先测别的")
 def test_inv(init_app):
     api_code = "Invoice"
     app, db = init_app
     company_info = db.session.query(Company).filter(Company.Code == company_code).first()
 
     api_setup = Setup.load_api_setup(company_code, api_code)
-    invh_obj = InvoiceHeader(company_info.Code, check_repeat=check_repeat)
-    invl_obj = InvoiceLine(company_info.Code, check_repeat=check_repeat)
+    invh_obj = InvoiceHeader(company_code, api_code, check_repeat=check_repeat)
+    invl_obj = InvoiceLine(company_code, api_code, check_repeat=check_repeat)
 
     # 节点配置
     # other_node_dict = inv_obj.load_api_p_out_nodes(company_code, api_code, node_type=InvoiceHeader.BIZ_NODE_LV1)
@@ -136,7 +136,7 @@ def test_other(init_app):
 
     api_setup = Setup.load_api_setup(company_code, api_code)
 
-    other_obj = Other(company_info.Code, check_repeat=check_repeat)
+    other_obj = Other(company_code, api_code, check_repeat=check_repeat)
     path, data = other_obj.load_data(api_setup)
 
     # 节点配置

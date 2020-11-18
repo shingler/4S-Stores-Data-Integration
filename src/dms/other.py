@@ -1,9 +1,8 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
-from src import validator
 from src.dms.base import DMSBase
 from src.dms.setup import Setup
-from src.models import nav
+from src.validator import OtherValidator
 
 
 class Other(DMSBase):
@@ -91,6 +90,7 @@ class Other(DMSBase):
             if type(data_list) != list:
                 data_list = [data_list]
             i = 0
+            validator = OtherValidator(self.company_code, self.api_code)
             for dd in data_list:
                 lines = dd[self.BIZ_NODE_LV2]
                 if type(lines) != list:
@@ -98,12 +98,12 @@ class Other(DMSBase):
                 j = 0
                 for line in lines:
                     for k, v in line.items():
-                        is_valid = validator.OtherValidator.check_chn_length(k, v)
+                        is_valid = validator.check_chn_length(k, v)
                         if not is_valid:
                             res_bool = False
                             res_keys = {
                                 "key": "%s.%s" % (self.BIZ_NODE_LV1, k),
-                                "expect": validator.OtherValidator.expect_length(k),
+                                "expect": validator.expect_length(k),
                                 "content": v
                             }
                             return res_bool, res_keys

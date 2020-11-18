@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
-from src import validator
 from src.dms.setup import Setup
+from src.validator import CustVendInfoValidator
 from .base import DMSBase
 
 
@@ -27,14 +27,16 @@ class CustVend(DMSBase):
             data_list = data_dict["Transaction"][self.BIZ_NODE_LV1]
             if type(data_list) != list:
                 data_list = [data_list]
+
+            validator = CustVendInfoValidator(self.company_code, self.api_code)
             i = 0
             for line in data_list:
                 for k, v in line.items():
-                    is_valid = validator.CustVendInfoValidator.check_chn_length(k, v)
+                    is_valid = validator.check_chn_length(k, v)
                     if not is_valid:
                         res_keys = {
                             "key": "%s.%s" % (self.BIZ_NODE_LV1, k),
-                            "expect": validator.CustVendInfoValidator.expect_length(k),
+                            "expect": validator.expect_length(k),
                             "content": v
                         }
                         res_bool = False

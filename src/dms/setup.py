@@ -59,3 +59,14 @@ class Setup:
 
         # print(node_dict)
         return node_dict
+
+    # 读取字段长度配置
+    @staticmethod
+    def load_api_p_out_value_length(company_code, api_code, table_name):
+        api_p_out_config = db.session.query(dms.ApiPOutSetup.P_Name, dms.ApiPOutSetup.Value_Length) \
+            .filter(dms.ApiPOutSetup.Company_Code == company_code) \
+            .filter(dms.ApiPOutSetup.API_Code == api_code) \
+            .filter(dms.ApiPOutSetup.Value_Length != None) \
+            .filter(dms.ApiPOutSetup.Table_Name == table_name) \
+            .order_by(dms.ApiPOutSetup.Sequence.asc()).all()
+        return api_p_out_config

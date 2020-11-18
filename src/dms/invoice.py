@@ -2,10 +2,11 @@
 # -*- coding:utf-8 -*-
 from collections import OrderedDict
 
-from src import validator, words
+from src import words
 from src.dms.base import DMSBase
 from src.dms.setup import Setup
 from src.error import InvoiceEmptyError
+from src.validator import InvoiceHeaderValidator, InvoiceLineValidator
 
 
 class Invoice(DMSBase):
@@ -80,16 +81,18 @@ class InvoiceHeader(Invoice):
             if type(data_list) != list:
                 data_list = [data_list]
             i = 0
+            header_validator = InvoiceHeaderValidator(self.company_code, self.api_code)
+            line_validator = InvoiceLineValidator(self.company_code, self.api_code)
             for invoice in data_list:
                 # 发票头
                 inv_header = invoice[InvoiceHeader.BIZ_NODE_LV2]
                 for k, v in inv_header.items():
-                    is_valid = validator.InvoiceHeaderValidator.check_chn_length(k, v)
+                    is_valid = header_validator.check_chn_length(k, v)
                     if not is_valid:
                         res_bool = False
                         res_keys = {
                             "key": "%s.%s" % (InvoiceHeader.BIZ_NODE_LV2, k),
-                            "expect": validator.InvoiceHeaderValidator.expect_length(k),
+                            "expect": header_validator.expect_length(k),
                             "content": v
                         }
                         return res_bool, res_keys
@@ -100,12 +103,12 @@ class InvoiceHeader(Invoice):
                     inv_line = [inv_line]
                 for line in inv_line:
                     for k, v in line.items():
-                        is_valid = validator.InvoiceLineValidator.check_chn_length(k, v)
+                        is_valid = line_validator.check_chn_length(k, v)
                         if not is_valid:
                             res_bool = False
                             res_keys = {
                                 "key": "%s.%s" % (InvoiceLine.BIZ_NODE_LV2, k),
-                                "expect": validator.InvoiceLineValidator.expect_length(k),
+                                "expect": line_validator.expect_length(k),
                                 "content": v
                             }
                             return res_bool, res_keys

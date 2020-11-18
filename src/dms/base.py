@@ -17,7 +17,7 @@ import xmltodict
 from requests_ntlm import HttpNtlmAuth
 from sqlalchemy.exc import InvalidRequestError
 
-from src import db, Company, ApiSetup, ApiPInSetup, validator
+from src import db, Company, ApiSetup, ApiPInSetup
 from src.dms import interface
 from src.dms.logger import Logger
 from src.dms.setup import Setup
@@ -25,11 +25,14 @@ from src.error import DataFieldEmptyError, DataLoadError, DataLoadTimeOutError, 
     DataContentTooBig, NodeNotExistError
 from src.models import to_local_time, dms, navdb
 from src import words
+from src.validator import DMSInterfaceInfoValidator
 
 
 class DMSBase:
-    # 公司代码（用于查询公司信息获取nav库连接信息）
+    # 公司代码
     company_code = ""
+    # API代码
+    api_code = ""
 
     # 强制启用备用地址
     force_secondary = False
@@ -68,8 +71,9 @@ class DMSBase:
     # 接口类型：文件
     TYPE_FILE = 2
 
-    def __init__(self, company_code, force_secondary=False, check_repeat=True):
+    def __init__(self, company_code, api_code, force_secondary=False, check_repeat=True):
         self.company_code = company_code
+        self.api_code = api_code
         self.force_secondary = force_secondary
         self.check_repeat = check_repeat
 
@@ -149,13 +153,14 @@ class DMSBase:
     # 校验数据长度合法性
     def is_valid(self, data_dict) -> (bool, dict):
         # 检查general
+        validator = DMSInterfaceInfoValidator(self.company_code, self.api_code)
         for k, v in data_dict["Transaction"]["General"].items():
-            is_valid = validator.DMSInterfaceInfoValidator.check_chn_length(k, v)
+            is_valid = validator.check_chn_length(k, v)
             if not is_valid:
                 res_bool = False
                 res_keys = {
                     "key": "%s.%s" % ("General", k),
-                    "expect": validator.DMSInterfaceInfoValidator.expect_length(k),
+                    "expect": validator.expect_length(k),
                     "content": v
                 }
                 return res_bool, res_keys

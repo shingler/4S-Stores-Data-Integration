@@ -1,23 +1,28 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
 # 用于做数据合法性校验
+from src.dms.setup import Setup
 
 
 class DMSInterfaceInfoValidator:
-    _chn_leng = {
-        "DMSTitle": 50,
-        "CompanyTitle": 50
-    }
+    _table_name = "DMSInterfaceInfo"
 
-    @classmethod
-    def expect_length(cls, key):
-        return cls._chn_leng.get(key, "")
+    def __init__(self, company_code, api_code):
+        conf = Setup.load_api_p_out_value_length(company_code, api_code, self._table_name)
+        self._chn_leng = {}
+        for item in conf:
+            self._chn_leng[item.P_Name] = item.Value_Length
+        print(self._chn_leng)
 
-    @classmethod
-    def check_chn_length(cls, key, value):
-        if key not in cls._chn_leng:
+    # 返回字段内容预期长度
+    def expect_length(self, key) -> int:
+        return self._chn_leng.get(key, 0)
+
+    # 检查value的长度是否符合key的长度配置
+    def check_chn_length(self, key, value):
+        if key not in self._chn_leng:
             return True
-        elif cls.chn_length(value) <= cls._chn_leng[key]:
+        elif self.chn_length(value) <= self._chn_leng[key]:
             # 按照旧版本的sql server的规定，一个汉字为两个字符
             return True
         else:
@@ -36,33 +41,20 @@ class DMSInterfaceInfoValidator:
 
 
 class CustVendInfoValidator(DMSInterfaceInfoValidator):
-    _chn_leng = {
-        "Name": 50,
-        "Address": 50,
-        "Address_2": 50
-    }
+    _table_name = "CustVendBuffer"
 
 
 class FAValidator(DMSInterfaceInfoValidator):
-    _chn_leng = {
-        "Description": 30,
-        "SerialNo": 30
-    }
+    _table_name = "FABuffer"
 
 
 class InvoiceHeaderValidator(DMSInterfaceInfoValidator):
-    _chn_leng = {
-        "Description": 100
-    }
+    _table_name = "InvoiceHeaderBuffer"
 
 
 class InvoiceLineValidator(DMSInterfaceInfoValidator):
-    _chn_leng = {
-        "Description": 100
-    }
+    _table_name = "InvoiceLineBuffer"
 
 
 class OtherValidator(DMSInterfaceInfoValidator):
-    _chn_leng = {
-        "Description": 100
-    }
+    _table_name = "OtherBuffer"
