@@ -10,9 +10,7 @@ import json
 import os
 import threading
 import time
-import urllib
 from collections import OrderedDict
-from urllib.parse import urlencode
 
 import requests
 import xmltodict
@@ -25,15 +23,14 @@ from src.dms.logger import Logger
 from src.dms.setup import Setup
 from src.error import DataFieldEmptyError, DataLoadError, DataLoadTimeOutError, DataImportRepeatError, \
     DataContentTooBig, NodeNotExistError
-from src.models import nav, to_local_time, dms
+from src.models import to_local_time, dms, navdb
 from src import words
 
 
 class DMSBase:
-    # 公司的NAV代码（作为nav表的前缀）
-    company_nav_code = ""
-    # General表模型
-    GENERAL_CLASS = None
+    # 公司代码（用于查询公司信息获取nav库连接信息）
+    company_code = ""
+
     # 强制启用备用地址
     force_secondary = False
     # 是否检查重复导入
@@ -71,15 +68,14 @@ class DMSBase:
     # 接口类型：文件
     TYPE_FILE = 2
 
-    def __init__(self, company_nav_code, force_secondary=False, check_repeat=True):
-        self.company_nav_code = company_nav_code
+    def __init__(self, company_code, force_secondary=False, check_repeat=True):
+        self.company_code = company_code
         self.force_secondary = force_secondary
         self.check_repeat = check_repeat
-        self.GENERAL_CLASS = nav.dmsInterfaceInfo(company_nav_code)
 
     # 拼接xml文件路径
     # @param src.models.dms.ApiSetup apiSetup
-    def _splice_xml_file_path(self, apiSetUp) -> str:
+    def _splice_xml_file_path(self, apiSetUp: dms.ApiSetup) -> str:
         if apiSetUp.API_Type == self.TYPE_API:
             return ""
 
@@ -129,8 +125,8 @@ class DMSBase:
             return InterfaceResult(status=self.STATUS_ERROR, error_msg=error_msg)
 
         # 重复性检查
-        repeated = db.session.query(self.GENERAL_CLASS).filter(self.GENERAL_CLASS.XMLFileName.like("%{0}".format(os.path.basename(path)))).first()
-        if self.check_repeat and repeated is not None:
+        repeated = self.checkRepeatImport(path)
+        if self.check_repeat and repeated:
             error_msg = words.DataImport.file_is_repeat(path)
             return InterfaceResult(status=self.STATUS_REPEAT, error_msg=error_msg)
 
@@ -250,6 +246,16 @@ class DMSBase:
             logger.update_api_log_when_finish(data=str(res.content), status=self.STATUS_FINISH)
             return path, res.data
 
+    # 根据文件名检查是否重复导入
+    def checkRepeatImport(self, path: str) -> bool:
+        company_info = db.session.query(Company).filter(Company.Code == self.company_code).first()
+        nav = navdb.NavDB(db_host=company_info.NAV_DB_Address, db_user=company_info.NAV_DB_UserID,
+                          db_password=company_info.NAV_DB_Password, db_name=company_info.NAV_DB_Name,
+                          company_nav_code=company_info.NAV_Company_Code, only_tables=["DMSInterfaceInfo"])
+        nav.prepare()
+        return nav.checkRepeatImport(path)
+
+
     # 获取指定节点的数量（xml可以节点同名。在json这里，则判断节点是否是数组。是，则返回长度；非，则返回1。
     def get_count_from_data(self, data, node_name) -> int:
         if node_name not in data:
@@ -284,7 +290,6 @@ class DMSBase:
                     list_node = [list_node, ]
 
                 for row in list_node:
-                    print(row, type(row))
                     data_dict = {}
                     for key, value in row.items():
                         if key in node_dict:
@@ -318,7 +323,7 @@ class DMSBase:
             FA_Total_Count=0,
             Invoice_Total_Count=0
         )
-        # print(self.company_nav_code, interfaceInfo.__bind_key__)
+
         # 再补充一些默认值
         interfaceInfo.DateTime_Imported = datetime.datetime.utcnow().isoformat(timespec="seconds")
 

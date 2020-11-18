@@ -3,12 +3,14 @@
 # 测试以sql的方式入库nav
 import pytest
 
-from src import Company
+from src import Company, words
+from src.dms.base import InterfaceResult
 from src.dms.custVend import CustVend
 from src.dms.fa import FA
 from src.dms.invoice import Invoice, InvoiceHeader, InvoiceLine
 from src.dms.other import Other
 from src.dms.setup import Setup
+from src.error import DataImportRepeatError
 from src.models import navdb
 
 company_code = "K302ZH"
@@ -21,15 +23,16 @@ def test_cv(init_app):
     app, db = init_app
     company_info = db.session.query(Company).filter(Company.Code == company_code).first()
 
-    # 修改bind
-    conn_str = company_info.get_nav_connection_string(app.config)
-    assert conn_str.startswith(app.config["DATABASE_ENGINE"])
-    app.config["SQLALCHEMY_BINDS"]["%s-nav" % company_info.NAV_Company_Code] = conn_str
+    # 连接nav库
+    nav = navdb.NavDB(db_host=company_info.NAV_DB_Address, db_user=company_info.NAV_DB_UserID,
+                      db_password=company_info.NAV_DB_Password, db_name=company_info.NAV_DB_Name,
+                      company_nav_code=company_info.NAV_Company_Code)
+    nav.prepare()
 
     api_setup = Setup.load_api_setup(company_code, api_code)
     assert api_setup is not None
 
-    cv_obj = CustVend(company_info.NAV_Company_Code, check_repeat=check_repeat)
+    cv_obj = CustVend(company_info.Code, check_repeat=check_repeat)
     path, data = cv_obj.load_data(api_setup)
 
     # custVend节点配置
@@ -42,10 +45,6 @@ def test_cv(init_app):
 
     count = cv_obj.get_count_from_data(data["Transaction"], "CustVendInfo")
 
-    nav = navdb.NavDB(db_host=company_info.NAV_DB_Address, db_user=company_info.NAV_DB_UserID,
-                      db_password=company_info.NAV_DB_Password, db_name=company_info.NAV_DB_Name,
-                      company_nav_code=company_info.NAV_Company_Code)
-    nav.prepare()
     entry_no = nav.insertGeneral(api_p_out=general_node_dict, data_dict=general_dict, Type=0, Count=count, XMLFile=path)
     assert entry_no is not None and entry_no != 0
     # 写cv数据
@@ -61,15 +60,10 @@ def test_fa(init_app):
     app, db = init_app
     company_info = db.session.query(Company).filter(Company.Code == company_code).first()
 
-    # 修改bind
-    conn_str = company_info.get_nav_connection_string(app.config)
-    assert conn_str.startswith(app.config["DATABASE_ENGINE"])
-    app.config["SQLALCHEMY_BINDS"]["%s-nav" % company_info.NAV_Company_Code] = conn_str
-
     api_setup = Setup.load_api_setup(company_code, api_code)
     assert api_setup is not None
 
-    fa_obj = FA(company_info.NAV_Company_Code, check_repeat=check_repeat)
+    fa_obj = FA(company_info.Code, check_repeat=check_repeat)
     path, data = fa_obj.load_data(api_setup)
 
     # 节点配置
@@ -102,14 +96,9 @@ def test_inv(init_app):
     app, db = init_app
     company_info = db.session.query(Company).filter(Company.Code == company_code).first()
 
-    # 修改bind
-    conn_str = company_info.get_nav_connection_string(app.config)
-    assert conn_str.startswith(app.config["DATABASE_ENGINE"])
-    app.config["SQLALCHEMY_BINDS"]["%s-nav" % company_info.NAV_Company_Code] = conn_str
-
     api_setup = Setup.load_api_setup(company_code, api_code)
-    invh_obj = InvoiceHeader(company_info.NAV_Company_Code, check_repeat=check_repeat)
-    invl_obj = InvoiceLine(company_info.NAV_Company_Code, check_repeat=check_repeat)
+    invh_obj = InvoiceHeader(company_info.Code, check_repeat=check_repeat)
+    invl_obj = InvoiceLine(company_info.Code, check_repeat=check_repeat)
 
     # 节点配置
     # other_node_dict = inv_obj.load_api_p_out_nodes(company_code, api_code, node_type=InvoiceHeader.BIZ_NODE_LV1)
@@ -145,14 +134,9 @@ def test_other(init_app):
     app, db = init_app
     company_info = db.session.query(Company).filter(Company.Code == company_code).first()
 
-    # 修改bind
-    conn_str = company_info.get_nav_connection_string(app.config)
-    assert conn_str.startswith(app.config["DATABASE_ENGINE"])
-    app.config["SQLALCHEMY_BINDS"]["%s-nav" % company_info.NAV_Company_Code] = conn_str
-
     api_setup = Setup.load_api_setup(company_code, api_code)
 
-    other_obj = Other(company_info.NAV_Company_Code, check_repeat=check_repeat)
+    other_obj = Other(company_info.Code, check_repeat=check_repeat)
     path, data = other_obj.load_data(api_setup)
 
     # 节点配置

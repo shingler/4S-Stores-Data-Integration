@@ -2,6 +2,7 @@
 # -*- coding:utf-8 -*-
 # 用拼接sql的方式（非建模）写入nav库
 import datetime
+import os
 import threading
 import time
 
@@ -29,7 +30,7 @@ class NavDB:
         "DMSInterfaceInfo": "DMSInterfaceInfo"
     }
 
-    def __init__(self, db_host, db_user, db_password, db_name, company_nav_code):
+    def __init__(self, db_host, db_user, db_password, db_name, company_nav_code, only_tables=[]):
         conn_str = "mssql+pyodbc://{1}:{2}@{0}:1401/{3}?driver=ODBC+Driver+17+for+SQL+Server".format(db_host, db_user, db_password, db_name)
         engine = create_engine(conn_str)
         DBSession = sessionmaker(bind=engine)
@@ -38,20 +39,32 @@ class NavDB:
         self.meta = MetaData()
         self.conn = engine.connect()
         # 建立反射模型
-        for t in self.tables:
-            self.tables[t] = self._getTableName(company_nav_code, t)
-        self.meta.reflect(bind=engine, only=list(self.tables.values()))
+        if len(only_tables) == 0:
+            for t in self.tables:
+                self.tables[t] = self._getTableName(company_nav_code, t)
+            self.meta.reflect(bind=engine, only=list(self.tables.values()))
+        else:
+            for i in range(len(only_tables)):
+                only_tables[i] = self._getTableName(company_nav_code, only_tables[i])
+            self.meta.reflect(bind=engine, only=only_tables)
 
     @staticmethod
     def _getTableName(company_nav_code: str, data_name) -> str:
         return "{0}${1}".format(company_nav_code, data_name)
 
+    # 根据文件名检查是否重复导入
+    def checkRepeatImport(self, path: str) -> bool:
+        table_name = self._getTableName(self.company_nav_code, "DMSInterfaceInfo")
+        General = self.base.classes[table_name]
+        res = self.dbo.query(General).filter(General.XMLFileName.like("%{0}".format(os.path.basename(path)))).first()
+        return True if res is not None else False
+
     def prepare(self):
         Base = automap_base(metadata=self.meta)
         Base.prepare()
         self.base = Base
-        for c in Base.classes:
-            print(c, type(c))
+        # for c in Base.classes:
+        #     print(c, type(c))
 
     # 写入General部分
     def insertGeneral(self, data_dict: dict, api_p_out: dict, Type: int = 0, Count: int = 0, XMLFile: str = "", **kwargs):
@@ -77,8 +90,7 @@ class NavDB:
         # 合并数据
         data_dict = {**data_dict, **other_data}
 
-        table_name = self.tables["DMSInterfaceInfo"]
-        print(self.base.classes)
+        table_name = self._getTableName(self.company_nav_code, "DMSInterfaceInfo")
         General = self.base.classes[table_name]
 
         # 获取entry_no
@@ -93,7 +105,6 @@ class NavDB:
         data_dict["Entry No_"] = entry_no
 
         i = 0
-        # print(fields, data_dict)
         for f in data_dict.keys():
             v = data_dict[f]
             if f in api_p_out:
@@ -118,7 +129,6 @@ class NavDB:
 
         ins = Insert(General, values=data_dict)
         # print(ins)
-        # print(ins.compile().params)
         self.conn.execute(ins)
         # print(result)
 
@@ -129,9 +139,9 @@ class NavDB:
     # 获取行数量然后+1
     def getLatestEntryNo(self, table_name, primary_key):
         sql = "SELECT MAX([{1}]) as pk FROM [{0}]".format(table_name, primary_key)
-        print(sql)
+        # print(sql)
         max_entry_id = self.conn.execute(sql).scalar()
-        print(max_entry_id)
+        # print(max_entry_id)
         return max_entry_id + 1 if max_entry_id is not None else 1
 
     # 写入CV部分
@@ -299,7 +309,7 @@ class NavDB:
             # print(ins_data)
             FaTable = self.base.classes[table_name]
             ins = Insert(FaTable, values=ins_data)
-            print(ins, ins.compile().params)
+            # print(ins, ins.compile().params)
             self.conn.execute(ins)
 
     # 写入发票行部分
@@ -348,11 +358,9 @@ class NavDB:
                     ins_data[f] = v if v is not None else ""
                 else:
                     ins_data[k] = v if v is not None else ""
-            print(ins_data)
+            # print(ins_data)
             FaTable = self.base.classes[table_name]
             ins = Insert(FaTable, values=ins_data)
-            print(FaTable, table_name)
-            print(ins, ins.compile().params)
             self.conn.execute(ins)
 
     # 写入other部分
@@ -371,8 +379,7 @@ class NavDB:
         # 写cv
         if type(data_dict) == OrderedDict:
             data_dict = [data_dict]
-        # print("======")
-        # print(api_p_out)
+
         for row_dict in data_dict:
             # 合并数据
             row_dict = {**row_dict, **other_data}
