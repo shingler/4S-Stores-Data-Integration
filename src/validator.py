@@ -7,12 +7,19 @@ from src.dms.setup import Setup
 class DMSInterfaceInfoValidator:
     _table_name = "DMSInterfaceInfo"
 
+    # 超长报警
+    OVERLENGTH_WARNING = 1
+    # 超长截断
+    OVERLENGTH_CUT = 2
+
     def __init__(self, company_code, api_code):
+        # 读取长度配置
         conf = Setup.load_api_p_out_value_length(company_code, api_code, self._table_name)
         self._chn_leng = {}
         for item in conf:
             self._chn_leng[item.P_Name] = item.Value_Length
-        print(self._chn_leng)
+        # 超长是报错还是截断
+        self._overlength_handle = Setup.load_system_Value_Overlenth_Handle()
 
     # 返回字段内容预期长度
     def expect_length(self, key) -> int:
@@ -38,6 +45,10 @@ class DMSInterfaceInfoValidator:
         # utf-8一个汉字占3个字符，减去原计数就是多出来的2/3，再除以2就是增量。再加回去即可
         size = int((lenTxt_utf8 - lenTxt) / 2 + lenTxt)
         return size
+
+    @property
+    def overleng_handle(self):
+        return self._overlength_handle
 
 
 class CustVendInfoValidator(DMSInterfaceInfoValidator):

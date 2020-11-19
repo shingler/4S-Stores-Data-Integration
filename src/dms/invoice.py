@@ -2,7 +2,7 @@
 # -*- coding:utf-8 -*-
 from collections import OrderedDict
 
-from src import words
+from src import words, validator
 from src.dms.base import DMSBase
 from src.dms.setup import Setup
 from src.error import InvoiceEmptyError
@@ -88,7 +88,7 @@ class InvoiceHeader(Invoice):
                 inv_header = invoice[InvoiceHeader.BIZ_NODE_LV2]
                 for k, v in inv_header.items():
                     is_valid = header_validator.check_chn_length(k, v)
-                    if not is_valid:
+                    if not is_valid and header_validator.overleng_handle == header_validator.OVERLENGTH_WARNING:
                         res_bool = False
                         res_keys = {
                             "key": "%s.%s" % (InvoiceHeader.BIZ_NODE_LV2, k),
@@ -96,6 +96,10 @@ class InvoiceHeader(Invoice):
                             "content": v
                         }
                         return res_bool, res_keys
+                    elif not is_valid and header_validator.overleng_handle == header_validator.OVERLENGTH_CUT:
+                        # 按长度截断
+                        inv_header[k] = v.encode("gbk")[0:header_validator.expect_length(k)].decode(
+                            "gbk")
                 # 发票明细
                 j = 0
                 inv_line = invoice[InvoiceLine.BIZ_NODE_LV2]
@@ -104,7 +108,7 @@ class InvoiceHeader(Invoice):
                 for line in inv_line:
                     for k, v in line.items():
                         is_valid = line_validator.check_chn_length(k, v)
-                        if not is_valid:
+                        if not is_valid and line_validator.overleng_handle == line_validator.OVERLENGTH_WARNING:
                             res_bool = False
                             res_keys = {
                                 "key": "%s.%s" % (InvoiceLine.BIZ_NODE_LV2, k),
@@ -112,6 +116,10 @@ class InvoiceHeader(Invoice):
                                 "content": v
                             }
                             return res_bool, res_keys
+                        elif not is_valid and line_validator.overleng_handle == line_validator.OVERLENGTH_CUT:
+                            # 按长度截断
+                            line[k] = v.encode("gbk")[0:line_validator.expect_length(k)].decode(
+                                "gbk")
                     j += 1
                 i += 1
 

@@ -33,7 +33,7 @@ class CustVend(DMSBase):
             for line in data_list:
                 for k, v in line.items():
                     is_valid = validator.check_chn_length(k, v)
-                    if not is_valid:
+                    if not is_valid and validator.overleng_handle == validator.OVERLENGTH_WARNING:
                         res_keys = {
                             "key": "%s.%s" % (self.BIZ_NODE_LV1, k),
                             "expect": validator.expect_length(k),
@@ -41,6 +41,11 @@ class CustVend(DMSBase):
                         }
                         res_bool = False
                         return res_bool, res_keys
+                    elif not is_valid and validator.overleng_handle == validator.OVERLENGTH_CUT:
+                        # 按长度截断
+                        line[k] = v.encode("gbk")[0:validator.expect_length(k)].decode(
+                            "gbk")
+
                 i += 1
 
         return res_bool, res_keys

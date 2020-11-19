@@ -3,7 +3,7 @@
 # 从数据库读取各种配置
 from sqlalchemy import and_
 
-from src import db
+from src import db, SystemSetup
 from src.models import dms
 
 
@@ -70,3 +70,8 @@ class Setup:
             .filter(dms.ApiPOutSetup.Table_Name == table_name) \
             .order_by(dms.ApiPOutSetup.Sequence.asc()).all()
         return api_p_out_config
+
+    # 读取系统设置里对超长内容的判断
+    @staticmethod
+    def load_system_Value_Overlenth_Handle():
+        return db.session.query(SystemSetup.Value_Overlenth_Handle).first().Value_Overlenth_Handle

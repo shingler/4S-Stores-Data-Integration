@@ -40,7 +40,7 @@ class Task:
     @staticmethod
     def load_tasks() -> list:
         return db.session.query(ApiTaskSetup).join(Company, ApiTaskSetup.Company_Code == Company.Code).join(ApiSetup, ApiSetup.API_Code == ApiTaskSetup.API_Code)\
-            .filter(and_(Company.DMS_Interface_Activated == 1, ApiSetup.Activated == 1))\
+            .filter(and_(ApiTaskSetup.Activated == 1, Company.DMS_Interface_Activated == 1, ApiSetup.Activated == 1))\
             .order_by(asc(ApiTaskSetup.Company_Code), asc(ApiTaskSetup.Execute_Time), asc(ApiTaskSetup.Sequence))\
             .all()
 

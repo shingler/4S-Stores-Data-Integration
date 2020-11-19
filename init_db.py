@@ -64,7 +64,8 @@ def test_data_for_task():
             Last_Modified_DT=datetime.datetime.now().isoformat(timespec="milliseconds"),
             Last_Modified_By="",
             Recurrence_Day=1,
-            Last_Executed_Time=""
+            Last_Executed_Time="",
+            Activated=1
         ),
         ApiTaskSetup(
             Company_Code="K302ZH",
@@ -76,7 +77,8 @@ def test_data_for_task():
             Last_Modified_DT=datetime.datetime.now().isoformat(timespec="milliseconds"),
             Last_Modified_By="",
             Recurrence_Day=1,
-            Last_Executed_Time=""
+            Last_Executed_Time="",
+            Activated=1
         ),
         ApiTaskSetup(
             Company_Code="K302ZH",
@@ -88,7 +90,8 @@ def test_data_for_task():
             Last_Modified_DT=datetime.datetime.now().isoformat(timespec="milliseconds"),
             Last_Modified_By="",
             Recurrence_Day=1,
-            Last_Executed_Time=""
+            Last_Executed_Time="",
+            Activated=1
         ),
         ApiTaskSetup(
             Company_Code="K302ZH",
@@ -100,7 +103,8 @@ def test_data_for_task():
             Last_Modified_DT=datetime.datetime.now().isoformat(timespec="milliseconds"),
             Last_Modified_By="",
             Recurrence_Day=1,
-            Last_Executed_Time=""
+            Last_Executed_Time="",
+            Activated=1
         )
     ]
     # dms api的任务
@@ -1687,7 +1691,14 @@ def test_data_for_notification():
             Email_UserID="singlerwong@163.com",
             Email_Password="XJZDDLHZYACGJVWM",
             Last_Modified_DT=datetime.datetime.now().isoformat(timespec="seconds"),
-            Last_Modified_By=""
+            Last_Modified_By="",
+            System_URL="",
+            Use_SSL=1,
+            Page_Cnt=20,
+            Email_SenderName="系统",
+            Temp_Path="",
+            Manual_Call_URL="",
+            Value_Overlenth_Handle=1
         )
     ]
     return notification_users, user_it, setup
@@ -1738,5 +1749,10 @@ if __name__ == '__main__':
         db.session.add_all(fa_p_retry)
         db.session.add_all(inv_p_retry)
         db.session.add_all(other_p_retry)
+
+        notification_users, user_it, setup = test_data_for_notification()
+        db.session.add_all(notification_users)
+        db.session.add_all(user_it)
+        db.session.add_all(setup)
 
         db.session.commit()

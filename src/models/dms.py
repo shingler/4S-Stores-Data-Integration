@@ -218,6 +218,8 @@ class ApiTaskSetup(db.Model):
     Recurrence_Day = db.Column(db.Integer, nullable=False, comment="重复时间间隔（每天，每2天，每7天等等，e.g. 值为3, 意思是每3天执行一次）")
     # 上次成功执行时间
     Last_Executed_Time = db.Column(db.DateTime, nullable=False, comment="上次成功执行时间")
+    # 启用任务(1-是,0-否)
+    Activated = db.Column(db.Integer, default=1)
 
     setup = db.relationship("ApiSetup", primaryjoin=foreign(Company_Code) == remote(ApiSetup.Company_Code), backref="task")
 

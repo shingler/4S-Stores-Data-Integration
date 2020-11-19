@@ -156,7 +156,7 @@ class DMSBase:
         validator = DMSInterfaceInfoValidator(self.company_code, self.api_code)
         for k, v in data_dict["Transaction"]["General"].items():
             is_valid = validator.check_chn_length(k, v)
-            if not is_valid:
+            if not is_valid and validator.overleng_handle == validator.OVERLENGTH_WARNING:
                 res_bool = False
                 res_keys = {
                     "key": "%s.%s" % ("General", k),
@@ -164,6 +164,9 @@ class DMSBase:
                     "content": v
                 }
                 return res_bool, res_keys
+            elif not is_valid and validator.overleng_handle == validator.OVERLENGTH_CUT:
+                # 按长度截断
+                data_dict["Transaction"]["General"][k] = v.encode("gbk")[0:validator.expect_length(k)].decode("gbk")
 
         # 检查具体部分，由子类实现
         res_bool2, res_keys2 = self._is_valid(data_dict)
