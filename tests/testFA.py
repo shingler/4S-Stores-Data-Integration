@@ -3,7 +3,7 @@ import pytest
 from src import Company
 from src.dms.base import WebServiceHandler
 from src.dms.fa import FA
-from src.models import nav
+from src.models import navdb
 from src.dms.setup import Setup
 
 company_code = "K302ZH"
@@ -11,6 +11,7 @@ api_code = "FA"
 check_repeat = False
 global_vars = {}
 fa_obj = None
+nav = None
 
 
 # 根据公司列表和接口设置确定数据源
@@ -19,14 +20,15 @@ def test_1_dms_source(init_app):
     app, db = init_app
     company_info = db.session.query(Company).filter(Company.Code == company_code).first()
     assert company_info is not None
+    global_vars["company_info"] = company_info
     # 将公司名给与全局变量fa_obj
-    globals()["fa_obj"] = FA(company_info.NAV_Company_Code, check_repeat=check_repeat)
+    globals()["fa_obj"] = FA(company_code, api_code, check_repeat=check_repeat)
 
-    # 修改bind
-    conn_str = company_info.get_nav_connection_string(app.config)
-    assert conn_str.startswith(app.config["DATABASE_ENGINE"])
-    app.config["SQLALCHEMY_BINDS"][
-        "%s-nav" % company_info.NAV_Company_Code] = conn_str
+    # 连接nav库
+    globals()["nav"] = navdb.NavDB(db_host=company_info.NAV_DB_Address, db_user=company_info.NAV_DB_UserID,
+                                   db_password=company_info.NAV_DB_Password, db_name=company_info.NAV_DB_Name,
+                                   company_nav_code=company_info.NAV_Company_Code)
+    globals()["nav"].prepare()
 
     api_setup = Setup.load_api_setup(company_code, api_code)
     assert api_setup is not None
@@ -50,7 +52,9 @@ def test_2_load_from_dms(init_app):
 # 写入interfaceinfo获得entry_no
 # @pytest.mark.skip("先跑通app上下文")
 def test_3_save_interface(init_app):
-    general_node_dict = Setup.load_api_p_out_nodes(company_code, api_code, node_type="General")
+    node_dict = Setup.load_api_p_out(company_code, api_code)
+    assert node_dict is not None
+    general_node_dict = node_dict['General']
     assert len(general_node_dict) > 0
     assert "DMSCode" in general_node_dict
 
@@ -61,9 +65,8 @@ def test_3_save_interface(init_app):
 
     count = fa_obj.get_count_from_data(data["Transaction"], "FA")
     global_vars["count"] = count
-    entry_no = fa_obj.save_data_to_interfaceinfo(
-        general_data=general_dict, Type=1, Count=count,
-        XMLFile=global_vars["path"] if global_vars["path"] else "")
+    entry_no = nav.insertGeneral(api_p_out=general_node_dict, data_dict=general_dict,
+                                 Type=nav.DATA_TYPE_FA, Count=count, XMLFile=global_vars["path"])
     assert entry_no != 0
 
     global_vars["entry_no"] = entry_no
@@ -76,13 +79,15 @@ def test_4_save_FA(init_app):
     entry_no = global_vars["entry_no"]
 
     # FA节点配置
-    fa_node_dict = Setup.load_api_p_out_nodes(company_code, api_code, node_type="FA")
+    node_dict = Setup.load_api_p_out(company_code, api_code)
+    assert node_dict is not None
+    fa_node_dict = node_dict[fa_obj.BIZ_NODE_LV1]
     # 拼接fa数据
     fa_dict = fa_obj.splice_data_info(data, node_dict=fa_node_dict)
     assert len(fa_dict) == global_vars["count"]
     if global_vars["count"] > 0:
         assert "FANo" in fa_dict[0]
-        fa_obj.save_data_to_nav(nav_data=fa_dict, entry_no=entry_no, TABLE_CLASS=fa_obj.TABLE_CLASS)
+        nav.insertFA(api_p_out=fa_node_dict, data_dict=fa_dict, entry_no=entry_no)
     # 读取文件，文件归档
     # 环境不同，归档路径不同
     app, db = init_app
@@ -96,19 +101,16 @@ def test_4_save_FA(init_app):
 # 检查数据正确性
 # @pytest.mark.skip(reason="调通了上一步再说")
 def test_5_valid_data(init_app):
-    app, db = init_app
     entry_no = global_vars["entry_no"]
 
-    interfaceInfoClass = fa_obj.GENERAL_CLASS
-    interfaceInfo = db.session.query(interfaceInfoClass).filter(interfaceInfoClass.Entry_No_ == entry_no).first()
-    faList = db.session.query(fa_obj.TABLE_CLASS).filter(fa_obj.TABLE_CLASS.Entry_No_ == entry_no).all()
+    interfaceInfo = nav.getNavDataByEntryNo(entry_no, table_name="DMSInterfaceInfo", return_list=False)
+    faList = nav.getNavDataByEntryNo(entry_no, table_name="FABuffer", return_list=True)
 
     # 检查数据正确性
-    # assert interfaceInfo.DMSCode == "28976"
-    assert interfaceInfo.FA_Total_Count == global_vars["count"]
+    assert interfaceInfo is not None
+    assert faList is not None
+    assert interfaceInfo["FA Total Count"] == global_vars["count"]
     assert len(faList) == global_vars["count"]
-    # if global_vars["count"] > 0:
-    #     assert faList[0].FANo_ == "FA0001"
 
 
 # 将entry_no作为参数写入指定的ws

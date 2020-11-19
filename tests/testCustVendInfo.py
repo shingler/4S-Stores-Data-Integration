@@ -66,7 +66,7 @@ def test_3_save_interface(init_app):
     count = cv_obj.get_count_from_data(data["Transaction"], "CustVendInfo")
     global_vars["count"] = count
     entry_no = nav.insertGeneral(api_p_out=general_node_dict, data_dict=general_dict,
-                                 Type=0, Count=count, XMLFile=global_vars["path"])
+                                 Type=nav.DATA_TYPE_CV, Count=count, XMLFile=global_vars["path"])
     assert entry_no != 0
 
     global_vars["entry_no"] = entry_no

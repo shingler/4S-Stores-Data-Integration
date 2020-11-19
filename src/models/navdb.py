@@ -6,7 +6,7 @@ import os
 import threading
 import time
 
-from sqlalchemy import MetaData, create_engine, select, text
+from sqlalchemy import MetaData, create_engine, select, text, and_
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import Insert
@@ -29,6 +29,11 @@ class NavDB:
         "OtherBuffer": "OtherBuffer",
         "DMSInterfaceInfo": "DMSInterfaceInfo"
     }
+
+    DATA_TYPE_CV = 0
+    DATA_TYPE_FA = 1
+    DATA_TYPE_INV = 2
+    DATA_TYPE_OTHER = 3
 
     def __init__(self, db_host, db_user, db_password, db_name, company_nav_code, only_tables=None):
         if only_tables is None:
@@ -429,3 +434,11 @@ class NavDB:
             return self.conn.execute(s, x=entry_no).fetchall()
         else:
             return self.conn.execute(s, x=entry_no).fetchone()
+
+    # 用于验证的查询
+    def getInvoiceLines(self, entry_no, invoice_no):
+        table_name = self._getTableName(self.company_nav_code, "InvoiceLineBuffer")
+        TABLE_CLASS = self.base.classes[table_name]
+        s = select([TABLE_CLASS]).where(and_(text("[Entry No_] = :x"), text("InvoiceNo = :y")))
+
+        return self.conn.execute(s, x=entry_no, y=invoice_no).fetchall()
