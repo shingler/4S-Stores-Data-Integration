@@ -6,7 +6,7 @@ import os
 import threading
 import time
 
-from sqlalchemy import MetaData, create_engine
+from sqlalchemy import MetaData, create_engine, select, text
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import Insert
@@ -30,7 +30,10 @@ class NavDB:
         "DMSInterfaceInfo": "DMSInterfaceInfo"
     }
 
-    def __init__(self, db_host, db_user, db_password, db_name, company_nav_code, only_tables=[]):
+    def __init__(self, db_host, db_user, db_password, db_name, company_nav_code, only_tables=None):
+        if only_tables is None:
+            only_tables = []
+
         conn_str = "mssql+pyodbc://{1}:{2}@{0}:1401/{3}?driver=ODBC+Driver+17+for+SQL+Server".format(db_host, db_user, db_password, db_name)
         engine = create_engine(conn_str)
         DBSession = sessionmaker(bind=engine)
@@ -40,10 +43,12 @@ class NavDB:
         self.conn = engine.connect()
         # 建立反射模型
         if len(only_tables) == 0:
+            # 将反射模型存入类字典
             for t in self.tables:
                 self.tables[t] = self._getTableName(company_nav_code, t)
             self.meta.reflect(bind=engine, only=list(self.tables.values()))
         else:
+            # 自定义加载类，只能以后通过_getTableName来拿
             for i in range(len(only_tables)):
                 only_tables[i] = self._getTableName(company_nav_code, only_tables[i])
             self.meta.reflect(bind=engine, only=only_tables)
@@ -145,7 +150,7 @@ class NavDB:
         return max_entry_id + 1 if max_entry_id is not None else 1
 
     # 写入CV部分
-    def insertCV(self, company_nav_code: str, data_dict: dict, api_p_out: dict, entry_no: int):
+    def insertCV(self, data_dict: dict, api_p_out: dict, entry_no: int):
         # 需要转中文编码的字段
         convert_chn_fields = ["Name", "Address", "City", "Country", "Application_Method",
                               "PaymentTermsCode", "Address 2", "Email", "Cost Center Code", "ICPartnerCode"]
@@ -155,7 +160,7 @@ class NavDB:
                       "Error Message": "", "DateTime Imported": datetime.datetime.utcnow().isoformat(timespec="seconds"),
                       "DateTime Handled": "1753-01-01 00:00:00.000", "Handled by": "''"}
 
-        table_name = self._getTableName(company_nav_code, "CustVendBuffer")
+        table_name = self._getTableName(self.company_nav_code, "CustVendBuffer")
 
         # 写cv
         if type(data_dict) == OrderedDict:
@@ -211,7 +216,7 @@ class NavDB:
             self.conn.execute(ins)
 
     # 写入FA部分
-    def insertFA(self, company_nav_code: str, data_dict: dict, api_p_out: dict, entry_no: int):
+    def insertFA(self, data_dict: dict, api_p_out: dict, entry_no: int):
         # 需要转中文编码的字段
         convert_chn_fields = ["Description", "SerialNo", "FAClassCode", "FASubclassCode", "FALocationCode",
                           "CostCenterCode"]
@@ -223,7 +228,7 @@ class NavDB:
                       "NextServiceDate": "1753-01-01 00:00:00.000", "WarrantyDate": "1753-01-01 00:00:00.000",
                       "DepreciationStartingDate": datetime.datetime.utcnow().isoformat(timespec="seconds")}
 
-        table_name = self._getTableName(company_nav_code, "FABuffer")
+        table_name = self._getTableName(self.company_nav_code, "FABuffer")
 
         # 写cv
         if type(data_dict) == OrderedDict:
@@ -364,7 +369,7 @@ class NavDB:
             self.conn.execute(ins)
 
     # 写入other部分
-    def insertOther(self, company_nav_code: str, data_dict: dict, api_p_out: dict, entry_no: int):
+    def insertOther(self, data_dict: dict, api_p_out: dict, entry_no: int):
         # 需要转中文编码的字段
         convert_chn_fields = ["ExtDocumentNo_", "Description", "CostCenterCode", "VehicleSeries",
                               "WIP_No_", "FromCompanyName", "ToCompanyName", "VIN"]
@@ -374,7 +379,7 @@ class NavDB:
                       "DateTime handled": "1753-01-01 00:00:00.000", "Handled by": "",
                       "NotDuplicated": 0, "NAVDocumentNo_": ""}
 
-        table_name = self._getTableName(company_nav_code, "OtherBuffer")
+        table_name = self._getTableName(self.company_nav_code, "OtherBuffer")
 
         # 写cv
         if type(data_dict) == OrderedDict:
@@ -412,3 +417,15 @@ class NavDB:
             ins = Insert(FaTable, values=ins_data)
             # print(ins, ins.compile().params)
             self.conn.execute(ins)
+
+    # 用于验证的查询
+    def getNavDataByEntryNo(self, entry_no, table_name="DMSInterfaceInfo", return_list=True):
+        if table_name not in self.tables:
+            return None
+        table_name = self._getTableName(self.company_nav_code, table_name)
+        TABLE_CLASS = self.base.classes[table_name]
+        s = select([TABLE_CLASS]).where(text("[Entry No_] = :x"))
+        if return_list:
+            return self.conn.execute(s, x=entry_no).fetchall()
+        else:
+            return self.conn.execute(s, x=entry_no).fetchone()

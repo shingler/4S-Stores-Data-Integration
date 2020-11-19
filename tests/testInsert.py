@@ -51,7 +51,7 @@ def test_cv(init_app):
     # 拼接custVend数据
     custVend_dict = cv_obj.splice_data_info(data, node_dict=custVend_node_dict)
 
-    nav.insertCV(company_info.NAV_Company_Code, api_p_out=custVend_node_dict, data_dict=custVend_dict, entry_no=entry_no)
+    nav.insertCV(api_p_out=custVend_node_dict, data_dict=custVend_dict, entry_no=entry_no)
 
 
 # @pytest.mark.skip("先测别的")
@@ -86,7 +86,7 @@ def test_fa(init_app):
     # 拼接custVend数据
     fa_dict = fa_obj.splice_data_info(data, node_dict=fa_node_dict)
 
-    nav.insertFA(company_info.NAV_Company_Code, api_p_out=fa_node_dict, data_dict=fa_dict,
+    nav.insertFA(api_p_out=fa_node_dict, data_dict=fa_dict,
                  entry_no=entry_no)
 
 
@@ -158,7 +158,7 @@ def test_other(init_app):
     # 拼接custVend数据
     other_dict = other_obj.splice_data_info(data, node_dict=other_node_dict)
 
-    nav.insertOther(company_info.NAV_Company_Code, api_p_out=other_node_dict, data_dict=other_dict,
+    nav.insertOther(api_p_out=other_node_dict, data_dict=other_dict,
                  entry_no=entry_no)
 
 
