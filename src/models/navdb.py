@@ -6,7 +6,8 @@ import os
 import threading
 import time
 
-from sqlalchemy import MetaData, create_engine, select, text, and_
+from sqlalchemy import MetaData, create_engine, select, text, and_, Table
+from sqlalchemy.engine import reflection
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import Insert
@@ -17,6 +18,7 @@ from src import to_local_time, true_or_false_to_tinyint
 
 
 class NavDB:
+    engine = None
     dbo = None
     conn = None
     meta = None
@@ -39,13 +41,15 @@ class NavDB:
         if only_tables is None:
             only_tables = []
 
-        conn_str = "mssql+pyodbc://{1}:{2}@{0}:1401/{3}?driver=ODBC+Driver+17+for+SQL+Server".format(db_host, db_user, db_password, db_name)
+        conn_str = "mssql+pyodbc://{1}:{2}@{0}:1433/{3}?driver=ODBC+Driver+17+for+SQL+Server".format(db_host, db_user, db_password, db_name)
+        # conn_str = "mssql+pyodbc://{1}:{2}@{0}:1401/{3}?driver=ODBC+Driver+17+for+SQL+Server".format(db_host, db_user, db_password, db_name)
         engine = create_engine(conn_str)
         DBSession = sessionmaker(bind=engine)
         self.dbo = DBSession()
         self.company_nav_code = company_nav_code
         self.meta = MetaData()
         self.conn = engine.connect()
+        self.engine = engine
         # 建立反射模型
         if len(only_tables) == 0:
             # 将反射模型存入类字典
@@ -75,6 +79,18 @@ class NavDB:
         self.base = Base
         # for c in Base.classes:
         #     print(c, type(c))
+
+    # 检查数据是否存在不合法的字段名
+    def checkFields(self, data_dict, table_name):
+        insp = reflection.Inspector.from_engine(self.engine)
+        columns = insp.get_columns(table_name)
+        checked_dict = {}
+        for dk in data_dict.keys():
+            if dk in map(lambda x: x["name"], columns):
+                checked_dict[dk] = data_dict[dk]
+        # print("======")
+        # print(checked_dict)
+        return checked_dict
 
     # 写入General部分
     def insertGeneral(self, data_dict: dict, api_p_out: dict, Type: int = 0, Count: int = 0, XMLFile: str = "", **kwargs):
@@ -163,7 +179,7 @@ class NavDB:
         other_data = {"Gen_ Bus_ Posting Group": "", "VAT Bus_ Posting Group": "",
                       "Cust_VendPostingGroup": "", "Entry No_": entry_no,
                       "Error Message": "", "DateTime Imported": datetime.datetime.utcnow().isoformat(timespec="seconds"),
-                      "DateTime Handled": "1753-01-01 00:00:00.000", "Handled by": "''"}
+                      "DateTime Handled": "1753-01-01 00:00:00.000", "Handled by": ""}
 
         table_name = self._getTableName(self.company_nav_code, "CustVendBuffer")
 
@@ -215,6 +231,7 @@ class NavDB:
                 else:
                     ins_data[k] = v if v is not None else ""
             # print(ins_data)
+            ins_data = self.checkFields(ins_data, table_name)
             CustVendTable = self.base.classes[table_name]
             ins = Insert(CustVendTable, values=ins_data)
             # print(ins, ins.compile().params)
@@ -268,6 +285,7 @@ class NavDB:
                 else:
                     ins_data[k] = v if v is not None else ""
             # print(ins_data)
+            ins_data = self.checkFields(ins_data, table_name)
             FaTable = self.base.classes[table_name]
             ins = Insert(FaTable, values=ins_data)
             # print(ins, ins.compile().params)
@@ -317,6 +335,7 @@ class NavDB:
                 else:
                     ins_data[k] = v if v is not None else ""
             # print(ins_data)
+            ins_data = self.checkFields(ins_data, table_name)
             FaTable = self.base.classes[table_name]
             ins = Insert(FaTable, values=ins_data)
             # print(ins, ins.compile().params)
@@ -369,6 +388,7 @@ class NavDB:
                 else:
                     ins_data[k] = v if v is not None else ""
             # print(ins_data)
+            ins_data = self.checkFields(ins_data, table_name)
             FaTable = self.base.classes[table_name]
             ins = Insert(FaTable, values=ins_data)
             self.conn.execute(ins)
@@ -417,10 +437,11 @@ class NavDB:
                     ins_data[f] = v if v is not None else ""
                 else:
                     ins_data[k] = v if v is not None else ""
-
+            # print(ins_data)
+            ins_data = self.checkFields(ins_data, table_name)
             FaTable = self.base.classes[table_name]
             ins = Insert(FaTable, values=ins_data)
-            # print(ins, ins.compile().params)
+            print(ins, ins.compile().params)
             self.conn.execute(ins)
 
     # 用于验证的查询

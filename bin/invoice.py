@@ -2,13 +2,10 @@
 # -*- coding:utf-8 -*-
 import os
 import sys
-
-from src.models import navdb
-
 curPath = os.path.abspath(os.path.dirname(__file__))
 rootPath = os.path.split(curPath)[0]
 sys.path.append(rootPath)
-
+from src.models import navdb
 from src.dms.base import WebServiceHandler
 from bin import app, db
 from src.dms.invoice import InvoiceHeader, InvoiceLine
@@ -29,7 +26,9 @@ def main(company_code, api_code, retry=False, file_path=None, async_ws=False):
     api_setup = Setup.load_api_setup(company_code, api_code)
 
     # 连接nav数据库
-    nav = navdb.NavDB('127.0.0.1', 'sa', 'msSqlServer2020', 'NAV', company_nav_code=company_info.NAV_Company_Code)
+    nav = navdb.NavDB(db_host=company_info.NAV_DB_Address, db_user=company_info.NAV_DB_UserID,
+                      db_password=company_info.NAV_DB_Password, db_name=company_info.NAV_DB_Name,
+                      company_nav_code=company_info.NAV_Company_Code)
     nav.prepare()
 
     invh_obj = InvoiceHeader(company_code, api_code, force_secondary=retry)
