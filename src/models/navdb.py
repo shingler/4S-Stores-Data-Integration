@@ -441,7 +441,7 @@ class NavDB:
             ins_data = self.checkFields(ins_data, table_name)
             FaTable = self.base.classes[table_name]
             ins = Insert(FaTable, values=ins_data)
-            print(ins, ins.compile().params)
+            # print(ins, ins.compile().params)
             self.conn.execute(ins)
 
     # 用于验证的查询
