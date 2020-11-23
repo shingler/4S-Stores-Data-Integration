@@ -34,6 +34,7 @@ class DataImport:
     _load_timeout = "Timeout for reading file:{0}"
     _content_is_too_big = "The length of content (field:{0} \"{3}\" ) exceeds the max length {1} in file: {2}"
     _node_not_exists = "Node:{0} is missing!"
+    _json_is_empty = "JSON API return nothing"
 
     @classmethod
     def field_is_empty(cls, field):
@@ -61,6 +62,10 @@ class DataImport:
     def node_not_exists(cls, nodes):
         message = cls._node_not_exists.format(','.join(nodes))
         return message
+
+    @classmethod
+    def json_is_empty(cls):
+        return cls._json_is_empty
 
 
 # 程序运行时报错消息模板

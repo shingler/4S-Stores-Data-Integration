@@ -113,11 +113,13 @@ class DMSBase:
     def _load_data_from_dms_interface(self, apiSetup: dms.ApiSetup):
         p_in_list = Setup.load_api_p_in(apiSetup.Company_Code, apiSetup.API_Code)
         company_info = db.session.query(Company).filter(Company.Code == apiSetup.Company_Code).first()
-        res = interface.api_dms(company_info, api_setup=apiSetup, p_in_list=p_in_list)
+        code, res = interface.api_dms(company_info, api_setup=apiSetup, p_in_list=p_in_list)
         if res is None:
-            return InterfaceResult(status=self.STATUS_ERROR, content="")
+            return InterfaceResult(status=self.STATUS_ERROR, content=res["Message"])
+        elif len(res) == 0:
+            return InterfaceResult(status=self.STATUS_ERROR, error_msg=words.DataImport.json_is_empty())
         else:
-            return InterfaceResult(status=self.STATUS_FINISH, content=res, data=json.loads(res, encoding="UTF-8"))
+            return InterfaceResult(status=self.STATUS_FINISH, content=res, data=json.dumps(res, ensure_ascii=True))
 
     # 读取xml,返回InterfaceResult对象
     # @param string format 数据解析格式（JSON | XML）
@@ -208,7 +210,7 @@ class DMSBase:
         res = None
         if apiSetup.API_Type == self.TYPE_API:
             # 读取JSON API
-            path = ""
+            path = apiSetup.API_Address1
             res = self._load_data_from_dms_interface(apiSetup)
         elif apiSetup.API_Type == self.TYPE_FILE and file_path is not None:
             # 直接提供XML地址
@@ -216,7 +218,12 @@ class DMSBase:
             res = self._load_data_from_file(file_path, format=apiSetup.Data_Format, time_out=apiSetup.Time_out * 60)
         elif apiSetup.API_Type == self.TYPE_FILE:
             # 使用当天的XML文件
-            path = self._splice_xml_file_path(apiSetup)
+            try:
+                path = self._splice_xml_file_path(apiSetup)
+            except DataFieldEmptyError as dfe:
+                # 记录错误日志并再次抛出异常
+                logger.update_api_log_when_finish(status=self.STATUS_ERROR, error_msg=str(dfe))
+                raise DataFieldEmptyError(str(dfe))
             res = self._load_data_from_file(path, format=apiSetup.Data_Format, time_out=apiSetup.Time_out * 60)
         # print(res)
 
