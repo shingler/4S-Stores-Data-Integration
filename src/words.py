@@ -74,8 +74,8 @@ class RunResult:
     _fail = "Task failed, reason is {0}"
     _retry = "According to system setting, the task will be tried again"
     _send_notify = "According to system setting, the task will send notification email"
-    _task_start = "Task<%s, %s> is running"
-    _task_not_reach_time = "The Time for Task<%s, %s> is not arrived"
+    _task_start = "Task<{0}, {1}> is running"
+    _task_not_reach_time = "The Time for Task<{0}, {1}> is not arrived"
 
     @classmethod
     def success(cls, entry_no):

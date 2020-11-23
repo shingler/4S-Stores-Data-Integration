@@ -8,12 +8,14 @@ monkey.patch_all()
 
 import threading
 import time
-
+import logging
 from bin import app
 from bin.task import Handler
 from src import ApiTaskSetup, words
 from src.dms.task import Task
 
+logging.basicConfig(filename="%s.log" % __file__, level=logging.INFO,
+                    format='%(asctime)s - %(filename)s - %(levelname)s - %(message)s')
 
 # 处理任务的线程
 # @param ApiTaskSetup one_task 一个任务设置
@@ -24,8 +26,10 @@ def do(one_task: ApiTaskSetup, time_check=False):
 
     if time_check and not handler.check_task():
         print(words.RunResult.task_not_reach_time(one_task.Company_Code, one_task.API_Code))
+        logging.getLogger(__name__).info(words.RunResult.task_not_reach_time(one_task.Company_Code, one_task.API_Code))
     else:
         print(words.RunResult.task_start(one_task.Company_Code, one_task.API_Code))
+        logging.getLogger(__name__).info(words.RunResult.task_start(one_task.Company_Code, one_task.API_Code))
         res = handler.run_task()
         if not res and handler.notify:
             handler.send_notification()

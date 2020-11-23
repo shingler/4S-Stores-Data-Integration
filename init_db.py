@@ -70,8 +70,8 @@ def test_data_for_task():
         ApiTaskSetup(
             Company_Code="K302ZH",
             Sequence=2,
-            Task_Name="FA-xml",
-            API_Code="FA-xml",
+            Task_Name="FA",
+            API_Code="FA",
             Execute_Time=datetime.time.fromisoformat("11:00:00.000"),
             Fail_Handle=4,
             Last_Modified_DT=datetime.datetime.now().isoformat(timespec="milliseconds"),
