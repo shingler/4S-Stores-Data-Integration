@@ -5,7 +5,7 @@ import sys
 curPath = os.path.abspath(os.path.dirname(__file__))
 rootPath = os.path.split(curPath)[0]
 sys.path.append(rootPath)
-
+from src.models import navdb
 from src.dms.base import WebServiceHandler
 from bin import app, db
 from src.dms.fa import FA
@@ -21,37 +21,35 @@ from src.models.dms import Company
 def main(company_code, api_code, retry=False, file_path=None, async_ws=False):
     # 读取公司信息，创建业务对象
     company_info = db.session.query(Company).filter(Company.Code == company_code).first()
-    fa_obj = FA(company_info.NAV_Company_Code, force_secondary=retry)
-
-    # 保存数据到nav，需要修改数据库连接设置
-    conn_str = company_info.get_nav_connection_string(app.config)
-    app.config["SQLALCHEMY_BINDS"][
-        "%s-nav" % company_info.NAV_Company_Code] = conn_str
-
-    # 读取API设置，拿到数据
+    # 读取api设置
     api_setup = Setup.load_api_setup(company_code, api_code)
-    xml_src_path, data = fa_obj.load_data(api_setup, file_path=file_path)
+    # 连接nav数据库
+    nav = navdb.NavDB(db_host=company_info.NAV_DB_Address, db_user=company_info.NAV_DB_UserID,
+                      db_password=company_info.NAV_DB_Password, db_name=company_info.NAV_DB_Name,
+                      company_nav_code=company_info.NAV_Company_Code)
+    nav.prepare()
 
-    # 读取输出设置，保存General
-    general_node_dict = Setup.load_api_p_out_nodes(company_code, api_code, node_type="General")
+    fa_obj = FA(company_code, api_code, force_secondary=retry)
+    path, data = fa_obj.load_data(api_setup, file_path=file_path)
+
+    # 节点配置
+    node_dict = Setup.load_api_p_out(company_code, api_code)
+    general_node_dict = node_dict['General']
+    fa_node_dict = node_dict[fa_obj.BIZ_NODE_LV1]
+
+    # 拼接数据
     general_dict = fa_obj.splice_general_info(data, node_dict=general_node_dict)
-
-    entry_no = fa_obj.save_data_to_interfaceinfo(
-        general_data=general_dict,
-        Type=1,
-        Count=fa_obj.get_count_from_data(data["Transaction"], fa_obj.BIZ_NODE_LV1),
-        XMLFile=xml_src_path if xml_src_path else "")
-
-    # FA节点配置
-    fa_node_dict = Setup.load_api_p_out_nodes(company_code, api_code, node_type=fa_obj.BIZ_NODE_LV1)
-    # 拼接fa数据
     fa_dict = fa_obj.splice_data_info(data, node_dict=fa_node_dict)
+    count = fa_obj.get_count_from_data(data["Transaction"], "FA")
 
+    # 写入数据
+    entry_no = nav.insertGeneral(api_p_out=general_node_dict, data_dict=general_dict, Type=1, Count=count, XMLFile=path)
     if len(fa_dict) > 0:
-        fa_obj.save_data_to_nav(nav_data=fa_dict, entry_no=entry_no, TABLE_CLASS=fa_obj.TABLE_CLASS)
+        nav.insertFA(api_p_out=fa_node_dict, data_dict=fa_dict,
+                 entry_no=entry_no)
 
     # 读取文件，文件归档
-    fa_obj.archive_xml(xml_src_path, api_setup.Archived_Path)
+    fa_obj.archive_xml(path, api_setup.Archived_Path)
 
     # 读取web service
     wsh = WebServiceHandler(api_setup, soap_username=company_info.NAV_WEB_UserID,

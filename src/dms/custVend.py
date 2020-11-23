@@ -1,21 +1,14 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
-from src import validator
 from src.dms.setup import Setup
+from src.validator import CustVendInfoValidator
 from .base import DMSBase
-from src.models import nav
 
 
 class CustVend(DMSBase):
-    TABLE_CLASS = None
     # 数据一级节点名
     BIZ_NODE_LV1 = "CustVendInfo"
     WS_METHOD = "HandleCVInfoWithEntryNo"
-
-    def __init__(self, company_nav_code, force_secondary=False, check_repeat=True):
-        super(__class__, self).__init__(company_nav_code, force_secondary, check_repeat)
-        # 根据公司名动态获得nav表名
-        self.TABLE_CLASS = nav.custVendBuffer(company_nav_code)
 
     # 从api_p_out获取数据
     def splice_data_info(self, data, node_dict):
@@ -34,18 +27,25 @@ class CustVend(DMSBase):
             data_list = data_dict["Transaction"][self.BIZ_NODE_LV1]
             if type(data_list) != list:
                 data_list = [data_list]
+
+            validator = CustVendInfoValidator(self.company_code, self.api_code)
             i = 0
             for line in data_list:
                 for k, v in line.items():
-                    is_valid = validator.CustVendInfoValidator.check_chn_length(k, v)
-                    if not is_valid:
+                    is_valid = validator.check_chn_length(k, v)
+                    if not is_valid and validator.overleng_handle == validator.OVERLENGTH_WARNING:
                         res_keys = {
                             "key": "%s.%s" % (self.BIZ_NODE_LV1, k),
-                            "expect": validator.CustVendInfoValidator.expect_length(k),
+                            "expect": validator.expect_length(k),
                             "content": v
                         }
                         res_bool = False
                         return res_bool, res_keys
+                    elif not is_valid and validator.overleng_handle == validator.OVERLENGTH_CUT:
+                        # 按长度截断
+                        line[k] = v.encode("gbk")[0:validator.expect_length(k)].decode(
+                            "gbk")
+
                 i += 1
 
         return res_bool, res_keys

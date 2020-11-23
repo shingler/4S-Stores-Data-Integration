@@ -48,7 +48,12 @@ class SystemSetup(db.Model):
     Page_Cnt = db.Column(db.Integer, default=1)
     # 发件人名称
     Email_SenderName = db.Column(db.String(50))
-
+    # 临时文件存储路径
+    Temp_Path = db.Column(db.String(50))
+    # 手动调用接口地址
+    Manual_Call_URL = db.Column(db.String(500))
+    # 内容超长处理方式(1-报错,2-截断)
+    Value_Overlenth_Handle = db.Column(db.Integer, default=1)
 
 
 class NAVTableFieldSetup(db.Model):

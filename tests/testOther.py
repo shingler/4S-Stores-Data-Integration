@@ -3,7 +3,7 @@ import pytest
 from src import Company
 from src.dms.base import WebServiceHandler
 from src.dms.other import Other
-from src.models import nav
+from src.models import navdb
 from src.dms.setup import Setup
 
 company_code = "K302ZH"
@@ -11,6 +11,7 @@ api_code = "Other"
 check_repeat = False
 global_vars = {}
 other_obj = None
+nav = None
 
 
 # 根据公司列表和接口设置确定数据源
@@ -19,13 +20,14 @@ def test_1_dms_source(init_app):
     app, db = init_app
     company_info = db.session.query(Company).filter(Company.Code == company_code).first()
     assert company_info is not None
-    globals()["other_obj"] = Other(company_info.NAV_Company_Code, check_repeat=check_repeat)
+    global_vars["company_info"] = company_info
+    globals()["other_obj"] = Other(company_code, api_code, check_repeat=check_repeat)
 
-    # 修改bind
-    conn_str = company_info.get_nav_connection_string(app.config)
-    assert conn_str.startswith(app.config["DATABASE_ENGINE"])
-    app.config["SQLALCHEMY_BINDS"][
-        "%s-nav" % company_info.NAV_Company_Code] = conn_str
+    # 连接nav库
+    globals()["nav"] = navdb.NavDB(db_host=company_info.NAV_DB_Address, db_user=company_info.NAV_DB_UserID,
+                                   db_password=company_info.NAV_DB_Password, db_name=company_info.NAV_DB_Name,
+                                   company_nav_code=company_info.NAV_Company_Code)
+    globals()["nav"].prepare()
 
     api_setup = Setup.load_api_setup(company_code, api_code)
     assert api_setup is not None
@@ -49,7 +51,9 @@ def test_2_load_from_dms(init_app):
 # 写入interfaceinfo获得entry_no
 # @pytest.mark.skip("先跑通app上下文")
 def test_3_save_interface(init_app):
-    general_node_dict = other_obj.load_api_p_out_nodes(company_code, api_code, node_type="General")
+    node_dict = Setup.load_api_p_out(company_code, api_code)
+    assert node_dict is not None
+    general_node_dict = node_dict["General"]
     assert len(general_node_dict) > 0
     assert "DMSCode" in general_node_dict
 
@@ -61,9 +65,8 @@ def test_3_save_interface(init_app):
     count = other_obj.get_count_from_data(data["Transaction"], "Daydook")
     global_vars["count"] = count
 
-    entry_no = other_obj.save_data_to_interfaceinfo(
-        general_data=general_dict, Type=3, Count=count,
-        XMLFile=global_vars["path"] if global_vars["path"] else "")
+    entry_no = nav.insertGeneral(api_p_out=general_node_dict, data_dict=general_dict,
+                                 Type=nav.DATA_TYPE_OTHER, Count=count, XMLFile=global_vars["path"])
     assert entry_no != 0
 
     global_vars["entry_no"] = entry_no
@@ -76,7 +79,9 @@ def test_4_save_Other(init_app):
     entry_no = global_vars["entry_no"]
 
     # FA节点配置
-    other_node_dict = other_obj.load_api_p_out_nodes(company_code, api_code, node_type="Daydook")
+    node_dict = Setup.load_api_p_out(company_code, api_code)
+    other_node_dict = {**node_dict[other_obj.BIZ_NODE_LV1], **node_dict[other_obj.BIZ_NODE_LV2]}
+
     # 拼接fa数据
     other_dict = other_obj.splice_data_info(data, node_dict=other_node_dict)
     # assert len(other_dict) == global_vars["count"]
@@ -84,8 +89,7 @@ def test_4_save_Other(init_app):
     if global_vars["count"] > 0:
         assert "DaydookNo" in other_dict[0]
         assert "SourceNo" in other_dict[0]
-        # with pytest.raises():
-        other_obj.save_data_to_nav(nav_data=other_dict, entry_no=entry_no, TABLE_CLASS=other_obj.TABLE_CLASS)
+        nav.insertOther(api_p_out=other_node_dict, data_dict=other_dict, entry_no=entry_no)
     # 读取文件，文件归档
     # 环境不同，归档路径不同
     app, db = init_app
@@ -102,19 +106,14 @@ def test_5_valid_data(init_app):
     app, db = init_app
     entry_no = global_vars["entry_no"]
 
-    interfaceInfoClass = other_obj.GENERAL_CLASS
-    interfaceInfo = db.session.query(interfaceInfoClass).filter(interfaceInfoClass.Entry_No_ == entry_no).first()
-    lineList = db.session.query(other_obj.TABLE_CLASS).filter(other_obj.TABLE_CLASS.Entry_No_ == entry_no).all()
+    interfaceInfo = nav.getNavDataByEntryNo(entry_no, table_name="DMSInterfaceInfo", return_list=False)
+    lineList = nav.getNavDataByEntryNo(entry_no, table_name="OtherBuffer", return_list=True)
 
     # 检查数据正确性
-    # assert interfaceInfo.DMSCode == "7000320"
-    assert interfaceInfo.Other_Transaction_Total_Count == global_vars["count"]
+    assert interfaceInfo is not None
+    assert lineList is not None
+    assert interfaceInfo["Other Transaction Total Count"] == global_vars["count"]
     assert len(lineList) == global_vars["count"]
-
-    # if global_vars["count"] > 0:
-    #     assert lineList[0].DocumentNo_ == "XXXXX"
-    #     assert lineList[0].SourceNo == "C0000001"
-    #     assert lineList[1].SourceNo == "BNK_320_11_00003"
 
 
 # 将entry_no作为参数写入指定的ws

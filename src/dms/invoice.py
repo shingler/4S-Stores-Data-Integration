@@ -2,11 +2,11 @@
 # -*- coding:utf-8 -*-
 from collections import OrderedDict
 
-from src import validator, words
+from src import words, validator
 from src.dms.base import DMSBase
 from src.dms.setup import Setup
-from src.models import nav
 from src.error import InvoiceEmptyError
+from src.validator import InvoiceHeaderValidator, InvoiceLineValidator
 
 
 class Invoice(DMSBase):
@@ -21,14 +21,16 @@ class Invoice(DMSBase):
     _COMMON_FILED = "InvoiceType"
 
     # 读取出参配置配置
-    def load_api_p_out_nodes(self, company_code, api_code, node_type="general", depth=3):
-        node_dict = Setup.load_api_p_out_nodes(company_code, api_code, node_type, depth - 1)
-        if node_type == "general":
-            return node_dict
-
-        node_dict[node_type] = Setup.load_api_p_out_nodes(company_code, api_code, node_type=node_type, depth=depth)
-        # print(node_dict)
-        return node_dict
+    def load_api_p_out_nodes(self, company_code, api_code, is_General=True):
+        param_dict = Setup.load_api_p_out(company_code, api_code)
+        if is_General:
+            return param_dict["General"]
+        else:
+            return {
+                InvoiceHeader.BIZ_NODE_LV1: param_dict[InvoiceHeader.BIZ_NODE_LV1],
+                InvoiceHeader.BIZ_NODE_LV2: param_dict[InvoiceHeader.BIZ_NODE_LV2],
+                InvoiceLine.BIZ_NODE_LV2: param_dict[InvoiceLine.BIZ_NODE_LV2]
+            }
 
     # 从api_p_out获取数据
     def splice_data_info(self, data, node_dict):
@@ -45,11 +47,6 @@ class Invoice(DMSBase):
 class InvoiceHeader(Invoice):
     BIZ_NODE_LV1 = "Invoice"
     BIZ_NODE_LV2 = "INVHeader"
-    TABLE_CLASS = None
-
-    def __init__(self, company_name, force_secondary=False, check_repeat=True):
-        super(__class__, self).__init__(company_name, force_secondary, check_repeat)
-        self.TABLE_CLASS = nav.invoiceHeaderBuffer(company_name)
 
     # 根据节点名处理二级/三级层级数据
     def _splice_field_by_name(self, data, node_dict):
@@ -66,7 +63,8 @@ class InvoiceHeader(Invoice):
             if type(inv[InvoiceLine.BIZ_NODE_LV2]) != list:
                 inv[InvoiceLine.BIZ_NODE_LV2] = [inv[InvoiceLine.BIZ_NODE_LV2]]
             line_count = len(inv[InvoiceLine.BIZ_NODE_LV2])
-            one_header["Line_Total_Count"] = line_count
+            # one_header["Line_Total_Count"] = line_count
+            one_header["Line Total Count"] = line_count
 
             data_list.append(one_header)
 
@@ -83,19 +81,25 @@ class InvoiceHeader(Invoice):
             if type(data_list) != list:
                 data_list = [data_list]
             i = 0
+            header_validator = InvoiceHeaderValidator(self.company_code, self.api_code)
+            line_validator = InvoiceLineValidator(self.company_code, self.api_code)
             for invoice in data_list:
                 # 发票头
                 inv_header = invoice[InvoiceHeader.BIZ_NODE_LV2]
                 for k, v in inv_header.items():
-                    is_valid = validator.InvoiceHeaderValidator.check_chn_length(k, v)
-                    if not is_valid:
+                    is_valid = header_validator.check_chn_length(k, v)
+                    if not is_valid and header_validator.overleng_handle == header_validator.OVERLENGTH_WARNING:
                         res_bool = False
                         res_keys = {
                             "key": "%s.%s" % (InvoiceHeader.BIZ_NODE_LV2, k),
-                            "expect": validator.InvoiceHeaderValidator.expect_length(k),
+                            "expect": header_validator.expect_length(k),
                             "content": v
                         }
                         return res_bool, res_keys
+                    elif not is_valid and header_validator.overleng_handle == header_validator.OVERLENGTH_CUT:
+                        # 按长度截断
+                        inv_header[k] = v.encode("gbk")[0:header_validator.expect_length(k)].decode(
+                            "gbk")
                 # 发票明细
                 j = 0
                 inv_line = invoice[InvoiceLine.BIZ_NODE_LV2]
@@ -103,15 +107,19 @@ class InvoiceHeader(Invoice):
                     inv_line = [inv_line]
                 for line in inv_line:
                     for k, v in line.items():
-                        is_valid = validator.InvoiceLineValidator.check_chn_length(k, v)
-                        if not is_valid:
+                        is_valid = line_validator.check_chn_length(k, v)
+                        if not is_valid and line_validator.overleng_handle == line_validator.OVERLENGTH_WARNING:
                             res_bool = False
                             res_keys = {
                                 "key": "%s.%s" % (InvoiceLine.BIZ_NODE_LV2, k),
-                                "expect": validator.InvoiceLineValidator.expect_length(k),
+                                "expect": line_validator.expect_length(k),
                                 "content": v
                             }
                             return res_bool, res_keys
+                        elif not is_valid and line_validator.overleng_handle == line_validator.OVERLENGTH_CUT:
+                            # 按长度截断
+                            line[k] = v.encode("gbk")[0:line_validator.expect_length(k)].decode(
+                                "gbk")
                     j += 1
                 i += 1
 
@@ -126,9 +134,9 @@ class InvoiceHeader(Invoice):
             # 只有存在节点时才判断
 
             # 加载配置
-            inv_dict = self.load_api_p_out_nodes(company_code, api_code, node_type=self.BIZ_NODE_LV1, depth=2)
-            inv_header_dict = self.load_api_p_out_nodes(company_code, api_code, node_type=self.BIZ_NODE_LV2, depth=3)
-            inv_line_dict = self.load_api_p_out_nodes(company_code, api_code, node_type=InvoiceLine.BIZ_NODE_LV2, depth=3)
+            inv_dict = self.load_api_p_out_nodes(company_code, api_code, is_General=False)
+            inv_header_dict = inv_dict[InvoiceHeader.BIZ_NODE_LV2]
+            inv_line_dict = inv_dict[InvoiceLine.BIZ_NODE_LV2]
 
             data_list = data_dict["Transaction"][self.BIZ_NODE_LV1]
             if type(data_list) != list:
@@ -147,7 +155,7 @@ class InvoiceHeader(Invoice):
                 # 再检查发票头
                 inv_header_data = invoice[InvoiceHeader.BIZ_NODE_LV2]
                 # print(inv_header_dict)
-                for hd in inv_header_dict[InvoiceHeader.BIZ_NODE_LV2].values():
+                for hd in inv_header_dict.values():
                     if hd.Level == 2:
                         continue
                     if hd.P_Name not in inv_header_data:
@@ -155,6 +163,7 @@ class InvoiceHeader(Invoice):
                         miss_key = "%s.%s" % (self.BIZ_NODE_LV2, hd.P_Name)
                         if miss_key not in res_keys:
                             res_keys.append(miss_key)
+
                 # 再检查发票行
                 if res_bool:
                     # print(inv_line_dict, type(inv_line_dict))
@@ -164,15 +173,16 @@ class InvoiceHeader(Invoice):
 
                     for one_line in inv_lines_data:
                         one_line_keys = one_line.keys()
-
-                        for hd in inv_line_dict[InvoiceLine.BIZ_NODE_LV2].values():
-                            if hd.Level != 3:
+                        for ld in inv_line_dict.values():
+                            if ld.Level != 3:
                                 continue
-                            if hd.P_Name not in one_line_keys:
+                            if ld.P_Name not in one_line_keys:
                                 res_bool = False
-                                miss_key = "%s.%s" % (InvoiceLine.BIZ_NODE_LV2, hd.P_Name)
+                                miss_key = "%s.%s" % (InvoiceLine.BIZ_NODE_LV2, ld.P_Name)
                                 if miss_key not in res_keys:
                                     res_keys.append(miss_key)
+                                    # 本意是都报出来。但既然只要一个，就break吧。万一以后又都要呢
+                                    break
 
         return res_bool, res_keys
 
@@ -180,11 +190,6 @@ class InvoiceHeader(Invoice):
 class InvoiceLine(Invoice):
     BIZ_NODE_LV1 = "Invoice"
     BIZ_NODE_LV2 = "INVLine"
-    TABLE_CLASS = None
-
-    def __init__(self, company_nav_code, force_secondary=False, check_repeat=True):
-        super(__class__, self).__init__(company_nav_code, force_secondary, check_repeat)
-        self.TABLE_CLASS = nav.invoiceLineBuffer(company_nav_code)
 
     # 根据节点名处理二级/三级层级数据
     def _splice_field_by_name(self, data, node_dict):

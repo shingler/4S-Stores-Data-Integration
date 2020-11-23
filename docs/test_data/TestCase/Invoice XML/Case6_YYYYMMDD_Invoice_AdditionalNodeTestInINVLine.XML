@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Transaction>
+  <General>
+    <DMSCode>SA32041</DMSCode>
+    <DMSTitle>苏州奥保行汽车销售服务有限公司</DMSTitle>
+    <CompanyCode>SA32041</CompanyCode>
+    <CompanyTitle>苏州奥保行汽车销售服务有限公司</CompanyTitle>
+    <CreateDateTime>2020-10-09T13:10:47.47+8</CreateDateTime>
+    <Creator>FI_GRACE</Creator>
+  </General>
+   <Invoice>
+    <InvoiceType>ARINV</InvoiceType>
+    <INVHeader>
+      <InvoiceNo>PVI_950_18_00001</InvoiceNo>
+      <PostingDate>2018-08-09</PostingDate>
+      <DocumentDate>2018-08-09</DocumentDate>
+      <DueDate>2018-08-09</DueDate>
+      <PayToBillToNo>C_950_18_00038</PayToBillToNo>
+      <SellToBuyFromNo>C_950_18_00038</SellToBuyFromNo>
+      <CostCenterCode />
+      <VehicleSeries>991110</VehicleSeries>
+      <ExtDocumentNo>02428707</ExtDocumentNo>
+      <PriceIncludeVAT>FALSE</PriceIncludeVAT>
+      <Description>911 Carrera</Description>
+      <Location></Location>
+    </INVHeader>
+    <INVLine>
+      <LineNo>20000</LineNo>
+      <DMSItemType />
+      <GLAccount>6001010101</GLAccount>
+      <Description>911 Carrera</Description>
+      <CostCenterCode>S_NCS_01</CostCenterCode>
+      <VehicleSeries>991110</VehicleSeries>
+      <VINNo>WP0AA2995JS105699</VINNo>
+      <QTY>1</QTY>
+      <LineAmount>1153793</LineAmount>
+      <LineCost />
+      <LineDiscountAmount>11551.62</LineDiscountAmount>
+      <LineVATAmount />
+      <LineVATRate />
+      <TransactionType />
+      <OEMCode />
+      <WIPNo />
+      <FromCompanyName />
+      <ToCompanyName />
+      <Location></Location>
+      <MovementType></MovementType>
+      <Test>Additional Node</Test>
+    </INVLine>
+  </Invoice>
+  <Invoice>
+    <InvoiceType>ARINV</InvoiceType>
+    <INVHeader>
+      <InvoiceNo>SIV_950_18_00001</InvoiceNo>
+      <PostingDate>2018-08-09</PostingDate>
+      <DocumentDate>2018-08-09</DocumentDate>
+      <DueDate>2018-08-09</DueDate>
+      <PayToBillToNo>C_950_18_00024</PayToBillToNo>
+      <SellToBuyFromNo>C_950_18_00024</SellToBuyFromNo>
+      <CostCenterCode>AS_ST_01</CostCenterCode>
+      <VehicleSeries>95BAA1</VehicleSeries>
+      <ExtDocumentNo>04664156</ExtDocumentNo>
+      <PriceIncludeVAT>FALSE</PriceIncludeVAT>
+      <Description>911 Carrera</Description>
+      <Location></Location>
+    </INVHeader>
+    <INVLine>
+      <LineNo>30000</LineNo>
+      <DMSItemType />
+      <GLAccount>605110</GLAccount>
+      <Description>Cayman 1Y - 超过 1Y </Description>
+      <CostCenterCode>AS_ST_01</CostCenterCode>
+      <VehicleSeries>95BAA1</VehicleSeries>
+      <VINNo>WP1AA2954FLB03780</VINNo>
+      <QTY>1</QTY>
+      <LineAmount>7554.7</LineAmount>
+      <LineCost />
+      <LineDiscountAmount>0.01</LineDiscountAmount>
+      <LineVATAmount />
+      <LineVATRate />
+      <TransactionType />
+      <OEMCode />
+      <WIPNo>SRV_950_18_000007</WIPNo>
+      <FromCompanyName />
+      <ToCompanyName />
+      <Location></Location>
+      <MovementType></MovementType>
+      <Test>Additional Node</Test>
+    </INVLine>
+    <INVLine>
+      <LineNo>80000</LineNo>
+      <DMSItemType />
+      <GLAccount>6001040101</GLAccount>
+      <Description>111项检查PAW延长保修</Description>
+      <CostCenterCode>AS_ST_01</CostCenterCode>
+      <VehicleSeries>95BAA1</VehicleSeries>
+      <VINNo>WP1AA2954FLB03780</VINNo>
+      <QTY>1</QTY>
+      <LineAmount>556</LineAmount>
+      <LineCost />
+      <LineDiscountAmount>0.34</LineDiscountAmount>
+      <LineVATAmount />
+      <LineVATRate />
+      <TransactionType />
+      <OEMCode />
+      <WIPNo>SRV_950_18_000007</WIPNo>
+      <FromCompanyName />
+      <ToCompanyName />
+      <Location></Location>
+      <MovementType></MovementType>
+      <Test>Additional Node</Test>
+    </INVLine>
+    <INVLine>
+      <LineNo>90000</LineNo>
+      <DMSItemType />
+      <GLAccount>6001040101</GLAccount>
+      <Description>长期车况检查</Description>
+      <CostCenterCode>AS_ST_01</CostCenterCode>
+      <VehicleSeries>95BAA1</VehicleSeries>
+      <VINNo>WP1AA2954FLB03780</VINNo>
+      <QTY>1</QTY>
+      <LineAmount>111.2</LineAmount>
+      <LineCost />
+      <LineDiscountAmount>0</LineDiscountAmount>
+      <LineVATAmount />
+      <LineVATRate />
+      <TransactionType />
+      <OEMCode />
+      <WIPNo>SRV_950_18_000007</WIPNo>
+      <FromCompanyName />
+      <ToCompanyName />
+      <Location></Location>
+      <MovementType></MovementType>
+      <Test>Additional Node</Test>
+    </INVLine>
+  </Invoice>
+</Transaction>

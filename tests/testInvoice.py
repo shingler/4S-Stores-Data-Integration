@@ -5,7 +5,7 @@ from sqlalchemy import and_
 from src import Company
 from src.dms.base import WebServiceHandler
 from src.dms.invoice import InvoiceHeader, InvoiceLine
-from src.models import nav
+from src.models import navdb
 from src.dms.setup import Setup
 
 company_code = "K302ZH"
@@ -14,6 +14,7 @@ check_repeat = False
 global_vars = {}
 invoiceHeader_obj = None
 invoiceLine_obj = None
+nav = None
 
 
 # 根据公司列表和接口设置确定数据源
@@ -22,14 +23,15 @@ def test_1_dms_source(init_app):
     app, db = init_app
     company_info = db.session.query(Company).filter(Company.Code == company_code).first()
     assert company_info is not None
-    globals()["invoiceHeader_obj"] = InvoiceHeader(company_info.NAV_Company_Code, check_repeat=check_repeat)
-    globals()["invoiceLine_obj"] = InvoiceLine(company_info.NAV_Company_Code, check_repeat=check_repeat)
+    global_vars["company_info"] = company_info
+    globals()["invoiceHeader_obj"] = InvoiceHeader(company_code, api_code, check_repeat=check_repeat)
+    globals()["invoiceLine_obj"] = InvoiceLine(company_code, api_code, check_repeat=check_repeat)
 
-    # 修改bind
-    conn_str = company_info.get_nav_connection_string(app.config)
-    assert conn_str.startswith(app.config["DATABASE_ENGINE"])
-    app.config["SQLALCHEMY_BINDS"][
-        "%s-nav" % company_info.NAV_Company_Code] = conn_str
+    # 连接nav库
+    globals()["nav"] = navdb.NavDB(db_host=company_info.NAV_DB_Address, db_user=company_info.NAV_DB_UserID,
+                                   db_password=company_info.NAV_DB_Password, db_name=company_info.NAV_DB_Name,
+                                   company_nav_code=company_info.NAV_Company_Code)
+    globals()["nav"].prepare()
 
     api_setup = Setup.load_api_setup(company_code, api_code)
     assert api_setup is not None
@@ -53,7 +55,8 @@ def test_2_load_from_dms(init_app):
 # 写入interfaceinfo获得entry_no
 # @pytest.mark.skip("先跑通app上下文")
 def test_3_save_interface(init_app):
-    general_node_dict = invoiceHeader_obj.load_api_p_out_nodes(company_code, api_code, node_type="General")
+    inv_node_dict = Setup.load_api_p_out(company_code, api_code)
+    general_node_dict = inv_node_dict["General"]
     assert len(general_node_dict) > 0
     assert "DMSCode" in general_node_dict
 
@@ -64,9 +67,9 @@ def test_3_save_interface(init_app):
 
     count = invoiceHeader_obj.get_count_from_data(data["Transaction"], "Invoice")
     global_vars["count"] = count
-    entry_no = invoiceHeader_obj.save_data_to_interfaceinfo(
-        general_data=general_dict, Type=2, Count=count,
-        XMLFile=global_vars["path"] if global_vars["path"] else "")
+    entry_no = nav.insertGeneral(api_p_out=general_node_dict, data_dict=general_dict,
+                                 Type=nav.DATA_TYPE_INV, Count=count, XMLFile=global_vars["path"])
+
     assert entry_no != 0
 
     global_vars["entry_no"] = entry_no
@@ -79,16 +82,18 @@ def test_4_save_InvoiceHeader(init_app):
     entry_no = global_vars["entry_no"]
 
     # 节点配置
-    ih_node_dict = invoiceHeader_obj.load_api_p_out_nodes(company_code, api_code, node_type=invoiceHeader_obj.BIZ_NODE_LV1)
+    inv_node_dict = Setup.load_api_p_out(company_code, api_code)
+    inv_header_node_dict = {**inv_node_dict[InvoiceHeader.BIZ_NODE_LV1], **inv_node_dict[InvoiceHeader.BIZ_NODE_LV2]}
+
     # 拼接fa数据
-    ih_dict = invoiceHeader_obj.splice_data_info(data, node_dict=ih_node_dict)
+    ih_dict = invoiceHeader_obj.splice_data_info(data, node_dict=inv_header_node_dict)
     assert len(ih_dict) == global_vars["count"]
 
     if global_vars["count"] > 0:
         assert "InvoiceType" in ih_dict[0]
         assert "InvoiceNo" in ih_dict[0]
         print(invoiceHeader_obj.TABLE_CLASS)
-        invoiceHeader_obj.save_data_to_nav(nav_data=ih_dict, entry_no=entry_no, TABLE_CLASS=invoiceHeader_obj.TABLE_CLASS)
+        nav.insertInvHeader(api_p_out=inv_header_node_dict, data_dict=ih_dict, entry_no=entry_no)
         global_vars["invoice_no"] = [ih["InvoiceNo"] for ih in ih_dict]
 
 
@@ -99,14 +104,15 @@ def test_5_save_InvoiceLine(init_app):
     entry_no = global_vars["entry_no"]
 
     # FA节点配置
-    il_node_dict = invoiceLine_obj.load_api_p_out_nodes(company_code, api_code, node_type=invoiceLine_obj.BIZ_NODE_LV1)
+    inv_node_dict = Setup.load_api_p_out(company_code, api_code)
+    inv_line_node_dict = {**inv_node_dict[InvoiceLine.BIZ_NODE_LV1], **inv_node_dict[InvoiceLine.BIZ_NODE_LV2]}
+
     # 拼接fa数据
-    il_dict = invoiceLine_obj.splice_data_info(data, node_dict=il_node_dict)
+    il_dict = invoiceLine_obj.splice_data_info(data, node_dict=inv_line_node_dict)
     if len(il_dict) > 0:
         assert "InvoiceType" in il_dict[0]
         assert "InvoiceNo" in il_dict[0]
-        # with pytest.raises():
-        invoiceLine_obj.save_data_to_nav(nav_data=il_dict, entry_no=entry_no, TABLE_CLASS=invoiceLine_obj.TABLE_CLASS)
+        nav.insertInvLines(api_p_out=inv_line_node_dict, data_dict=il_dict, entry_no=entry_no)
     # 读取文件，文件归档
     # 环境不同，归档路径不同
     app, db = init_app
@@ -120,22 +126,19 @@ def test_5_save_InvoiceLine(init_app):
 # 检查数据正确性
 # @pytest.mark.skip(reason="数据文件变更导致具体判断不适用")
 def test_6_valid_data(init_app):
-    app, db = init_app
     entry_no = global_vars["entry_no"]
 
-    interfaceInfoClass = invoiceHeader_obj.GENERAL_CLASS
-    interfaceInfo = db.session.query(interfaceInfoClass).filter(interfaceInfoClass.Entry_No_ == entry_no).first()
-    headerList = db.session.query(invoiceHeader_obj.TABLE_CLASS).filter(invoiceHeader_obj.TABLE_CLASS.Entry_No_ == entry_no).all()
+    interfaceInfo = nav.getNavDataByEntryNo(entry_no, table_name="DMSInterfaceInfo", return_list=False)
+    headerList = nav.getNavDataByEntryNo(entry_no, table_name="InvoiceHeaderBuffer", return_list=True)
 
     # 检查数据正确性
-    assert interfaceInfo.Invoice_Total_Count == len(headerList)
+    assert interfaceInfo["Invoice Total Count"] == len(headerList)
 
     for h in headerList:
-        lineList = db.session.query(invoiceLine_obj.TABLE_CLASS).filter(
-            and_(invoiceLine_obj.TABLE_CLASS.Entry_No_ == entry_no, invoiceLine_obj.TABLE_CLASS.InvoiceNo == h.InvoiceNo)).all()
+        lineList = nav.getInvoiceLines(entry_no, h.InvoiceNo)
 
         # 检查发票数据正确性
-        assert h.Line_Total_Count == len(lineList)
+        assert h["Line Total Count"] == len(lineList)
 
 
 # 将entry_no作为参数写入指定的ws

@@ -1,6 +1,7 @@
 import argparse
 import os
 import sys
+import logging
 curPath = os.path.abspath(os.path.dirname(__file__))
 rootPath = os.path.split(curPath)[0]
 sys.path.append(rootPath)
@@ -22,6 +23,7 @@ class Handler:
 
     def __init__(self, task: ApiTaskSetup):
         self.current_task = Task(task)
+        self.logger = logging.getLogger(__name__)
 
     # 检查这个任务是否可用
     def check_task(self) -> bool:
@@ -33,7 +35,6 @@ class Handler:
     def run_task(self):
         company_code = self.current_task.Company_Code
         api_code = self.current_task.API_Code
-
         try:
             if self.current_task.API_Command_Code == "01":
                 self.runner = cust_vend
@@ -46,6 +47,7 @@ class Handler:
 
             self.entry_no = self.runner.main(company_code=company_code, api_code=api_code)
             print(words.RunResult.success(self.entry_no))
+            self.logger.info(words.RunResult.success(self.entry_no))
             # 更新成功执行时间
             self.current_task.update_execute_time()
 
@@ -57,6 +59,7 @@ class Handler:
             if not self.retry and self.current_task.api_task_setup.Fail_Handle == 1:
                 # 第一次执行失败了，且不重试
                 print(words.RunResult.fail(ex))
+                self.logger.error(words.RunResult.fail(ex))
                 self.retry = False
                 self.notify = False
                 return False
@@ -64,6 +67,8 @@ class Handler:
                 # 第一次执行失败了，且不重试
                 print(words.RunResult.fail(ex))
                 print(words.RunResult.send_notify())
+                self.logger.error(words.RunResult.fail(ex))
+                self.logger.info(words.RunResult.send_notify())
                 self.notify = True
                 self.retry = False
                 self.load_error = ex
@@ -72,6 +77,8 @@ class Handler:
                 # 仍然是第一次执行，失败将重试
                 print(words.RunResult.fail(ex))
                 print(words.RunResult.retry())
+                self.logger.error(words.RunResult.fail(ex))
+                self.logger.warning(words.RunResult.retry())
                 self.retry = True
                 self.notify = False
                 self.run_task()
@@ -81,6 +88,8 @@ class Handler:
                 # 重试后依然失败，如果Fail_Handle=3则发送提醒邮件
                 print(words.RunResult.fail(ex))
                 print(words.RunResult.send_notify())
+                self.logger.error(words.RunResult.fail(ex))
+                self.logger.info(words.RunResult.send_notify())
                 self.notify = True
                 self.load_error = ex
                 return False
@@ -98,12 +107,13 @@ class Handler:
                         or (isinstance(r, UserList) and r.Receive_Notification):
                     notify_obj.add_receiver(r.Email_Address)
 
-            email_title, email_content = notify_obj.get_notification_content(one_task.Task_Name, one_task.Company_Code,
-                                                                             one_task.API_Code,
+            email_title, email_content = notify_obj.get_notification_content(self.current_task.Task_Name,
+                                                                             self.current_task.Company_Code,
+                                                                             self.current_task.API_Code,
                                                                              error_message=self.load_error)
 
             result = notify_obj.send_mail(email_title, email_content)
-            print(result)
+            # print(result)
             # 写入提醒日志
             if result:
                 notify_obj.save_notification_log(",".join(notify_obj.receivers), email_title, email_content)
@@ -124,21 +134,22 @@ if __name__ == '__main__':
         exit(1)
 
     # 业务调用
-    # task_list = Task.load_tasks()
-    # # one_task = random.choice(task_list)
-    # one_task = task_list[9]
     one_task = Task.get_task(args.company_code, args.sequence)
+    logger = logging.getLogger(__name__)
     
     if one_task is None:
         print("there is no such a task.")
+        logger.error("there is no such a task.")
         exit(1)
 
     handler = Handler(one_task)
     time_check = args.time_check
     if time_check and not handler.check_task():  # 检查任务的开始时间是否符合
         print(words.RunResult.task_not_reach_time(one_task.Company_Code, one_task.API_Code))
+        logger.info(words.RunResult.task_not_reach_time(one_task.Company_Code, one_task.API_Code))
     else:
         print(words.RunResult.task_start(one_task.Company_Code, one_task.API_Code))
+        logger.info(words.RunResult.task_start(one_task.Company_Code, one_task.API_Code))
         res = handler.run_task()
         if not res and handler.notify:
             handler.send_notification()

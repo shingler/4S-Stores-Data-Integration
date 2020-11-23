@@ -1,4 +1,6 @@
 # 任务运行的测试用例
+import gevent.monkey
+gevent.monkey.patch_all()
 import random
 import pytest
 
@@ -23,8 +25,8 @@ global_vars = {
 # 从数据库随机读取一个任务
 def test_1_load_task(init_app):
     task_list = Task.load_tasks()
-    # one_task = random.choice(task_list)
-    one_task = task_list[0]
+    one_task = random.choice(task_list)
+    # one_task = task_list[0]
     assert one_task.Company_Code != ""
     assert one_task.API_Code != ""
     assert type(one_task.Fail_Handle) == int
@@ -117,7 +119,7 @@ def test_4_send_notification(init_app):
         print(receivers)
         assert type(receivers) == list
         assert len(receivers) != 0
-        assert receivers[0].Activated or receivers[0].Receive_Notification
+        # assert receivers[0].Activated or receivers[0].Receive_Notification
         # 发送邮件
         smtp_config = notify_obj.smtp_config
         assert smtp_config is not None

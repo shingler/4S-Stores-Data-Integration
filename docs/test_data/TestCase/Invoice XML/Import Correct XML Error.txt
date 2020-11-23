@@ -1,0 +1,30 @@
+Microsoft Windows [版本 6.3.9600]
+(c) 2013 Microsoft Corporation。保留所有权利。
+
+C:\Users\Administrator>cd C:\PHDMSInterface
+
+C:\PHDMSInterface>python bin\invoice_K302ZH.py
+C:\Program Files\Python38\lib\site-packages\grequests.py:22: MonkeyPatchWarning:
+ Monkey-patching ssl after ssl has already been imported may lead to errors, inc
+luding RecursionError on Python 3.6. It may also silently lead to incorrect beha
+viour on Python 3.7. Please monkey-patch earlier. See https://github.com/gevent/
+gevent/issues/1016. Modules that had direct imports (NOT patched): ['urllib3.uti
+l (C:\\Program Files\\Python38\\lib\\site-packages\\urllib3\\util\\__init__.py)'
+, 'urllib3.util.ssl_ (C:\\Program Files\\Python38\\lib\\site-packages\\urllib3\\
+util\\ssl_.py)'].
+  curious_george.patch_all(thread=False, select=False)
+C:\Program Files\Python38\lib\site-packages\sqlalchemy\ext\declarative\clsregist
+ry.py:125: SAWarning: This declarative base already contains a class with the sa
+me class name and module name as src.models.nav.K302 Zhuhai JJ$DMSInterfaceInfo,
+ and will be replaced in the string-lookup table.
+  util.warn(
+True []
+Traceback (most recent call last):
+  File "bin\invoice_K302ZH.py", line 81, in <module>
+    entry_no = main(company_code, api_code, retry=False)
+  File "bin\invoice_K302ZH.py", line 61, in main
+    il_dict = invoiceLine_obj.splice_data_info(data, node_dict=il_node_dict, inv
+oice_no=invoice_no)
+TypeError: splice_data_info() got an unexpected keyword argument 'invoice_no'
+
+C:\PHDMSInterface>
