@@ -37,9 +37,13 @@ def dms_interface_api():
     command_code = request.form.get("command_code", "01")
     retry = request.form.get("retry", 0)
     api_type = request.form.get("api_type", 0)
-    options = request.form.get("options", "")
-    if len(options) > 0:
-        options = json.loads(options, encoding="UTF-8")
+    option_str = request.form.get("options", "")
+
+    try:
+        options = json.loads(option_str, encoding="UTF-8") if len(option_str) > 0 else None
+    except json.decoder.JSONDecodeError:
+        # json格式不正确
+        return jsonify({"status": 40002, "error_message": words.WebApi.invalid_value("options", option_str)})
 
     # 参数检查
     if company_code == "":
@@ -50,6 +54,9 @@ def dms_interface_api():
         return jsonify({"status": 40002, "error_message": words.WebApi.invalid_value("command_code", command_code)})
     if api_type not in ["1", "2"]:
         return jsonify({"status": 40003, "error_message": words.WebApi.api_type_not_support(api_type)})
+    if api_type == "2" and (options is None or "file_path" not in options):
+        # xml模式下没提供file_path
+        return jsonify({"status": 40002, "error_message": words.WebApi.filed_empty("file_path in options")})
 
     if api_type == "1":
         # 解析JSON API

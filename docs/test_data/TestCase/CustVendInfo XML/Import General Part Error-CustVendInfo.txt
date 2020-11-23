@@ -1,0 +1,31 @@
+Microsoft Windows [版本 6.3.9600]
+(c) 2013 Microsoft Corporation。保留所有权利。
+
+C:\Users\Administrator>cd C:\PHDMSInterface
+
+C:\PHDMSInterface>python bin\cust_vend_K302ZH.py
+C:\Program Files\Python38\lib\site-packages\grequests.py:22: MonkeyPatchWarning:
+ Monkey-patching ssl after ssl has already been imported may lead to errors, inc
+luding RecursionError on Python 3.6. It may also silently lead to incorrect beha
+viour on Python 3.7. Please monkey-patch earlier. See https://github.com/gevent/
+gevent/issues/1016. Modules that had direct imports (NOT patched): ['urllib3.uti
+l.ssl_ (C:\\Program Files\\Python38\\lib\\site-packages\\urllib3\\util\\ssl_.py)
+', 'urllib3.util (C:\\Program Files\\Python38\\lib\\site-packages\\urllib3\\util
+\\__init__.py)'].
+  curious_george.patch_all(thread=False, select=False)
+Traceback (most recent call last):
+  File "bin\cust_vend_K302ZH.py", line 67, in <module>
+    entry_no = main(company_code, api_code, retry=False)
+  File "bin\cust_vend_K302ZH.py", line 33, in main
+    xml_src_path, data = cv_obj.load_data(api_setup, file_path=file_path)
+  File "C:\PHDMSInterface\src\dms\base.py", line 220, in load_data
+    is_integrity, keys = self.is_integrity(res.data, apiSetup.Company_Code, apiS
+etup.API_Code)
+  File "C:\PHDMSInterface\src\dms\base.py", line 174, in is_integrity
+    res_bool2, res_keys2 = self._is_integrity(data_dict, company_code, api_code)
+
+  File "C:\PHDMSInterface\src\dms\custVend.py", line 49, in _is_integrity
+    data_list = data_dict["Transaction"][self.BIZ_NODE_LV1]
+KeyError: 'CustVendInfo'
+
+C:\PHDMSInterface>

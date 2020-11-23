@@ -10,29 +10,30 @@ import json
 import os
 import threading
 import time
-import urllib
 from collections import OrderedDict
-from urllib.parse import urlencode
 
 import requests
 import xmltodict
 from requests_ntlm import HttpNtlmAuth
 from sqlalchemy.exc import InvalidRequestError
 
-from src import db, Company, ApiSetup, ApiPInSetup, validator
+from src import db, Company, ApiSetup, ApiPInSetup
+from src.dms import interface
 from src.dms.logger import Logger
 from src.dms.setup import Setup
 from src.error import DataFieldEmptyError, DataLoadError, DataLoadTimeOutError, DataImportRepeatError, \
     DataContentTooBig, NodeNotExistError
-from src.models import nav, to_local_time
+from src.models import to_local_time, dms, navdb
 from src import words
+from src.validator import DMSInterfaceInfoValidator
 
 
 class DMSBase:
-    # 公司的NAV代码（作为nav表的前缀）
-    company_nav_code = ""
-    # General表模型
-    GENERAL_CLASS = None
+    # 公司代码
+    company_code = ""
+    # API代码
+    api_code = ""
+
     # 强制启用备用地址
     force_secondary = False
     # 是否检查重复导入
@@ -70,15 +71,15 @@ class DMSBase:
     # 接口类型：文件
     TYPE_FILE = 2
 
-    def __init__(self, company_nav_code, force_secondary=False, check_repeat=True):
-        self.company_nav_code = company_nav_code
+    def __init__(self, company_code, api_code, force_secondary=False, check_repeat=True):
+        self.company_code = company_code
+        self.api_code = api_code
         self.force_secondary = force_secondary
         self.check_repeat = check_repeat
-        self.GENERAL_CLASS = nav.dmsInterfaceInfo(company_nav_code)
 
     # 拼接xml文件路径
     # @param src.models.dms.ApiSetup apiSetup
-    def _splice_xml_file_path(self, apiSetUp) -> str:
+    def _splice_xml_file_path(self, apiSetUp: dms.ApiSetup) -> str:
         if apiSetUp.API_Type == self.TYPE_API:
             return ""
 
@@ -109,8 +110,16 @@ class DMSBase:
     # 读取接口
     # @param string format 数据解析格式（JSON | XML）
     # @param int time_out 超时时间，单位为秒。为0表示不判断超时
-    def _load_data_from_dms_interface(self, path, format="json", time_out=0):
-        return InterfaceResult(status=self.STATUS_FINISH, content="")
+    def _load_data_from_dms_interface(self, apiSetup: dms.ApiSetup):
+        p_in_list = Setup.load_api_p_in(apiSetup.Company_Code, apiSetup.API_Code)
+        company_info = db.session.query(Company).filter(Company.Code == apiSetup.Company_Code).first()
+        code, res = interface.api_dms(company_info, api_setup=apiSetup, p_in_list=p_in_list)
+        if res is None:
+            return InterfaceResult(status=self.STATUS_ERROR, content=res["Message"])
+        elif len(res) == 0:
+            return InterfaceResult(status=self.STATUS_ERROR, error_msg=words.DataImport.json_is_empty())
+        else:
+            return InterfaceResult(status=self.STATUS_FINISH, content=res, data=json.dumps(res, ensure_ascii=True))
 
     # 读取xml,返回InterfaceResult对象
     # @param string format 数据解析格式（JSON | XML）
@@ -122,8 +131,8 @@ class DMSBase:
             return InterfaceResult(status=self.STATUS_ERROR, error_msg=error_msg)
 
         # 重复性检查
-        repeated = db.session.query(self.GENERAL_CLASS).filter(self.GENERAL_CLASS.XMLFileName == path).all()
-        if self.check_repeat and len(repeated) > 0:
+        repeated = self.checkRepeatImport(path)
+        if self.check_repeat and repeated:
             error_msg = words.DataImport.file_is_repeat(path)
             return InterfaceResult(status=self.STATUS_REPEAT, error_msg=error_msg)
 
@@ -146,16 +155,20 @@ class DMSBase:
     # 校验数据长度合法性
     def is_valid(self, data_dict) -> (bool, dict):
         # 检查general
+        validator = DMSInterfaceInfoValidator(self.company_code, self.api_code)
         for k, v in data_dict["Transaction"]["General"].items():
-            is_valid = validator.DMSInterfaceInfoValidator.check_chn_length(k, v)
-            if not is_valid:
+            is_valid = validator.check_chn_length(k, v)
+            if not is_valid and validator.overleng_handle == validator.OVERLENGTH_WARNING:
                 res_bool = False
                 res_keys = {
                     "key": "%s.%s" % ("General", k),
-                    "expect": validator.DMSInterfaceInfoValidator.expect_length(k),
+                    "expect": validator.expect_length(k),
                     "content": v
                 }
                 return res_bool, res_keys
+            elif not is_valid and validator.overleng_handle == validator.OVERLENGTH_CUT:
+                # 按长度截断
+                data_dict["Transaction"]["General"][k] = v.encode("gbk")[0:validator.expect_length(k)].decode("gbk")
 
         # 检查具体部分，由子类实现
         res_bool2, res_keys2 = self._is_valid(data_dict)
@@ -197,15 +210,20 @@ class DMSBase:
         res = None
         if apiSetup.API_Type == self.TYPE_API:
             # 读取JSON API
-            path = ""
-            res = self._load_data_from_dms_interface(path, format=apiSetup.Data_Format, time_out=apiSetup.Time_out * 60)
+            path = apiSetup.API_Address1
+            res = self._load_data_from_dms_interface(apiSetup)
         elif apiSetup.API_Type == self.TYPE_FILE and file_path is not None:
             # 直接提供XML地址
             path = file_path
             res = self._load_data_from_file(file_path, format=apiSetup.Data_Format, time_out=apiSetup.Time_out * 60)
         elif apiSetup.API_Type == self.TYPE_FILE:
             # 使用当天的XML文件
-            path = self._splice_xml_file_path(apiSetup)
+            try:
+                path = self._splice_xml_file_path(apiSetup)
+            except DataFieldEmptyError as dfe:
+                # 记录错误日志并再次抛出异常
+                logger.update_api_log_when_finish(status=self.STATUS_ERROR, error_msg=str(dfe))
+                raise DataFieldEmptyError(str(dfe))
             res = self._load_data_from_file(path, format=apiSetup.Data_Format, time_out=apiSetup.Time_out * 60)
         # print(res)
 
@@ -243,6 +261,16 @@ class DMSBase:
             logger.update_api_log_when_finish(data=str(res.content), status=self.STATUS_FINISH)
             return path, res.data
 
+    # 根据文件名检查是否重复导入
+    def checkRepeatImport(self, path: str) -> bool:
+        company_info = db.session.query(Company).filter(Company.Code == self.company_code).first()
+        nav = navdb.NavDB(db_host=company_info.NAV_DB_Address, db_user=company_info.NAV_DB_UserID,
+                          db_password=company_info.NAV_DB_Password, db_name=company_info.NAV_DB_Name,
+                          company_nav_code=company_info.NAV_Company_Code, only_tables=["DMSInterfaceInfo"])
+        nav.prepare()
+        return nav.checkRepeatImport(path)
+
+
     # 获取指定节点的数量（xml可以节点同名。在json这里，则判断节点是否是数组。是，则返回长度；非，则返回1。
     def get_count_from_data(self, data, node_name) -> int:
         if node_name not in data:
@@ -255,26 +283,28 @@ class DMSBase:
     从api_p_out获取数据
         @param dict data 要处理的源数据
         @param dict node_dict 要处理的数据字段字典
-        @param str node_lv0 顶部节点名
-        @param str node_lv1 一级节点名
+        @param str node_lv0 顶部节点名 Transaction
+        @param str node_lv1 一级节点名 General/CustVend/Invoice等等
         @param str node_type 节点类型，node=对象节点，list=数组节点
     '''
 
     def _splice_field(self, data, node_dict, node_lv0, node_lv1, node_type="node"):
         if node_type == "node":
+            # 按单节点（对象）取值
             data_dict = {}
             for key, value in data[node_lv0][node_lv1].items():
                 if key in node_dict:
                     data_dict[key] = value
             return data_dict
         else:
+            # 按多节点（数组）取值
             data_dict_list = []
             if node_lv1 in data[node_lv0]:
                 list_node = data[node_lv0][node_lv1]
-                data[node_lv0][node_lv1] = list_node if type(list_node) == list else [list_node, ]
+                if type(list_node) != list:
+                    list_node = [list_node, ]
 
-                for row in data[node_lv0][node_lv1]:
-                    # print(row, type(row))
+                for row in list_node:
                     data_dict = {}
                     for key, value in row.items():
                         if key in node_dict:
@@ -308,7 +338,7 @@ class DMSBase:
             FA_Total_Count=0,
             Invoice_Total_Count=0
         )
-        # print(self.company_nav_code, interfaceInfo.__bind_key__)
+
         # 再补充一些默认值
         interfaceInfo.DateTime_Imported = datetime.datetime.utcnow().isoformat(timespec="seconds")
 

@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Transaction>
+  <General>
+    <DMSCode>SA32041</DMSCode>
+    <DMSTitle>苏州奥保行汽车销售服务有限公司</DMSTitle>
+    <CompanyCode>SA32041</CompanyCode>
+    <CompanyTitle>苏州奥保行汽车销售服务有限公司</CompanyTitle>
+    <CreateDateTime>2020-10-09T13:10:47.47+8</CreateDateTime>
+    <Creator>FI_GRACE</Creator>
+  </General>
+  <Daydook>
+    <DaydookNo>CRRP_950_18_00055</DaydookNo>
+    <Line>
+      <TransactionType>Default</TransactionType>
+      <LineNo>1</LineNo>
+      <PostingDate>2018-08-11</PostingDate>
+      <DocumentDate>2018-08-11</DocumentDate>
+      <ExtDocumentNo />
+      <AccountType>G/L Account</AccountType>
+      <AccountNo>12210902</AccountNo>
+      <Description>徐科军 SRV_950_18_000030</Description>
+      <DebitValue>2087</DebitValue>
+      <CreditValue>0</CreditValue>
+      <CostCenterCode />
+      <VehicleSeries />
+      <VINNo />
+      <WIPNo />
+      <FAPostingType />
+      <EntryType>Normal</EntryType>
+      <FromCompanyName />
+      <ToCompanyName />
+      <SourceType />
+      <SourceNo />
+      <DMSItemType />
+      <DMSItemTransType />
+      <Location />
+      <Test>Additional Node</Test>
+    </Line>
+    <Line>
+      <TransactionType>Default</TransactionType>
+      <LineNo>2</LineNo>
+      <PostingDate>2018-08-11</PostingDate>
+      <DocumentDate>2018-08-11</DocumentDate>
+      <ExtDocumentNo />
+      <AccountType>G/L Account</AccountType>
+      <AccountNo>220301</AccountNo>
+      <Description>徐科军 SRV_950_18_000030</Description>
+      <DebitValue>0</DebitValue>
+      <CreditValue>2087</CreditValue>
+      <CostCenterCode />
+      <VehicleSeries />
+      <VINNo />
+      <WIPNo />
+      <FAPostingType />
+      <EntryType>Normal</EntryType>
+      <FromCompanyName />
+      <ToCompanyName />
+      <SourceType>Customer</SourceType>
+      <SourceNo>C_950_18_00054</SourceNo>
+      <DMSItemType />
+      <DMSItemTransType />
+      <Location />
+      <Test>Additional Node</Test>
+    </Line>
+  </Daydook>
+  <Daydook>
+    <DaydookNo>CRRP_950_18_00057</DaydookNo>
+    <Line>
+      <TransactionType>Default</TransactionType>
+      <LineNo>3</LineNo>
+      <PostingDate>2018-08-08</PostingDate>
+      <DocumentDate>2018-08-08</DocumentDate>
+      <ExtDocumentNo />
+      <AccountType>G/L Account</AccountType>
+      <AccountNo>12210902</AccountNo>
+      <Description>徐科军 SRV_950_18_000030</Description>
+      <DebitValue>1500</DebitValue>
+      <CreditValue>0</CreditValue>
+      <CostCenterCode />
+      <VehicleSeries />
+      <VINNo />
+      <WIPNo />
+      <FAPostingType />
+      <EntryType>Normal</EntryType>
+      <FromCompanyName />
+      <ToCompanyName />
+      <SourceType />
+      <SourceNo />
+      <DMSItemType />
+      <DMSItemTransType />
+      <Location />
+      <Test>Additional Node</Test>
+    </Line>
+    <Line>
+      <TransactionType>Default</TransactionType>
+      <LineNo>4</LineNo>
+      <PostingDate>2018-08-08</PostingDate>
+      <DocumentDate>2018-08-08</DocumentDate>
+      <ExtDocumentNo />
+      <AccountType>G/L Account</AccountType>
+      <AccountNo>220301</AccountNo>
+      <Description>徐科军 SRV_950_18_000030</Description>
+      <DebitValue>0</DebitValue>
+      <CreditValue>1500</CreditValue>
+      <CostCenterCode />
+      <VehicleSeries />
+      <VINNo />
+      <WIPNo />
+      <FAPostingType />
+      <EntryType>Normal</EntryType>
+      <FromCompanyName />
+      <ToCompanyName />
+      <SourceType>Customer</SourceType>
+      <SourceNo>C_950_18_00054</SourceNo>
+      <DMSItemType />
+      <DMSItemTransType />
+      <Location />
+      <Test>Additional Node</Test>
+    </Line>
+  </Daydook>
+</Transaction>

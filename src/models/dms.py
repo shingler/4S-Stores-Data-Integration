@@ -67,6 +67,8 @@ class ApiSetup(db.Model):
     API_Address1 = db.Column(db.String(500), nullable=False, comment="接口地址(主)")
     # 接口地址(备), 如果接口类型为2 - XML File, 该字段内容为XML文件的存储路径
     API_Address2 = db.Column(db.String(500), nullable=False, comment="接口地址(备)")
+    # 接口版本号
+    API_Version = db.Column(db.String(50), nullable=False, default="v1", comment="接口版本号")
     # 命令代码
     Command_Code = db.Column(db.String(20), nullable=True, comment="命令代码")
     # 数据格式(1 - JSON, 2 - XML)
@@ -164,6 +166,8 @@ class ApiPOutSetup(db.Model):
     Last_Modified_DT = db.Column(db.DateTime, nullable=False, comment="最后修改时间")
     # 最后修改人
     Last_Modified_By = db.Column(db.String(20), nullable=False, comment="最后修改人")
+    # 内容长度
+    Value_Length = db.Column(db.Integer, nullable=True)
 
     apiSetup = db.relationship("ApiSetup",
                                primaryjoin=and_((foreign(Company_Code) == remote(ApiSetup.Company_Code)),
@@ -214,6 +218,8 @@ class ApiTaskSetup(db.Model):
     Recurrence_Day = db.Column(db.Integer, nullable=False, comment="重复时间间隔（每天，每2天，每7天等等，e.g. 值为3, 意思是每3天执行一次）")
     # 上次成功执行时间
     Last_Executed_Time = db.Column(db.DateTime, nullable=False, comment="上次成功执行时间")
+    # 启用任务(1-是,0-否)
+    Activated = db.Column(db.Integer, default=1)
 
     setup = db.relationship("ApiSetup", primaryjoin=foreign(Company_Code) == remote(ApiSetup.Company_Code), backref="task")
 

@@ -34,6 +34,7 @@ class DataImport:
     _load_timeout = "Timeout for reading file:{0}"
     _content_is_too_big = "The length of content (field:{0} \"{3}\" ) exceeds the max length {1} in file: {2}"
     _node_not_exists = "Node:{0} is missing!"
+    _json_is_empty = "JSON API return nothing"
 
     @classmethod
     def field_is_empty(cls, field):
@@ -62,6 +63,10 @@ class DataImport:
         message = cls._node_not_exists.format(','.join(nodes))
         return message
 
+    @classmethod
+    def json_is_empty(cls):
+        return cls._json_is_empty
+
 
 # 程序运行时报错消息模板
 class RunResult:
@@ -69,8 +74,8 @@ class RunResult:
     _fail = "Task failed, reason is {0}"
     _retry = "According to system setting, the task will be tried again"
     _send_notify = "According to system setting, the task will send notification email"
-    _task_start = "Task<%s, %s> is running"
-    _task_not_reach_time = "The Time for Task<%s, %s> is not arrived"
+    _task_start = "Task<{0}, {1}> is running"
+    _task_not_reach_time = "The Time for Task<{0}, {1}> is not arrived"
 
     @classmethod
     def success(cls, entry_no):

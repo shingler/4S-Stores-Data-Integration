@@ -13,8 +13,11 @@ def to_local_time(dt_str):
         dt_str = dt_str.replace("T ", "T")
     # # YYYY-mm-ddTHH:MM:SS
     dt_str = dt_str[:19]
-    dt = datetime.datetime.fromisoformat(dt_str)
-    return dt.strftime('%Y-%m-%dT%H:%M:%S')
+    try:
+        dt = datetime.datetime.fromisoformat(dt_str)
+        return dt.strftime('%Y-%m-%dT%H:%M:%S')
+    except ValueError:
+        return dt_str
 
 
 # 将字符串true或false转成1或0
@@ -24,7 +27,7 @@ def true_or_false_to_tinyint(bool_str):
     elif bool_str.lower() == 'false':
         return 0
     else:
-        return -1
+        return 0
 
 
 # 用cast函数进行中文的编码和解码

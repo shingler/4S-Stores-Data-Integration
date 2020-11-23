@@ -1,0 +1,55 @@
+﻿<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<Transaction>
+  <General>
+    <DMSCode>7000490</DMSCode>
+    <DMSTitle>SIT PCCZ</DMSTitle>
+    <CompanyCode>7000490</CompanyCode>
+    <CompanyTitle>SIT PCCZ</CompanyTitle>
+    <CreateDateTime>2020-11-03T14:48:36.927Z</CreateDateTime>
+    <Creator>PCN-DMS\DCNTECA010</Creator>
+  </General>
+  <CustVendInfo>
+    <Type>Customer</Type>
+    <No>C_490_13_00072</No>
+    <Name>沈</Name>
+    <Address>湟里镇桃园路28号 </Address>
+    <Address2>桃园路28号</Address2>
+    <PhoneNo />
+    <FaxNo />
+    <Blocked></Blocked>
+    <Postcode>213000</Postcode>
+    <City>常州市</City>
+    <Country>CN</Country>
+    <Currency />
+    <ARAPAccountNo>11220101-N</ARAPAccountNo>
+    <PricesIncludingVAT>FALSE</PricesIncludingVAT>
+    <ApplicationMethod>Manual</ApplicationMethod>
+    <PaymentTermsCode></PaymentTermsCode>
+    <PaymentMethodCode></PaymentMethodCode>
+    <CostCenterCode />
+    <Template />
+    <ICPartnerCode />
+  </CustVendInfo>
+  <CustVendInfo>
+    <Type>Customer</Type>
+    <No>C_490_18_00364</No>
+    <Name>Jiejun Automobile Sales &amp; Service Co., Lt</Name>
+    <Address>Jiejun Automobile</Address>
+    <Address2 />
+    <PhoneNo />
+    <FaxNo />
+    <Blocked></Blocked>
+    <Postcode>215021</Postcode>
+    <City>苏州市</City>
+    <Country>CN</Country>
+    <Currency />
+    <ARAPAccountNo></ARAPAccountNo>
+    <PricesIncludingVAT>FALSE</PricesIncludingVAT>
+    <ApplicationMethod>Manual</ApplicationMethod>
+    <PaymentTermsCode></PaymentTermsCode>
+    <PaymentMethodCode></PaymentMethodCode>
+    <CostCenterCode />
+    <Template />
+    <ICPartnerCode />
+  </CustVendInfo>
+</Transaction>
