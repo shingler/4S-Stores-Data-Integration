@@ -6,7 +6,7 @@ import os
 import threading
 import time
 
-from sqlalchemy import MetaData, create_engine, select, text, and_, Table
+from sqlalchemy import MetaData, create_engine, select, text, and_, Table, Numeric
 from sqlalchemy.engine import reflection
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import sessionmaker
@@ -85,9 +85,17 @@ class NavDB:
         insp = reflection.Inspector.from_engine(self.engine)
         columns = insp.get_columns(table_name)
         checked_dict = {}
+        # 去掉表结构不存在的字段
         for dk in data_dict.keys():
             if dk in map(lambda x: x["name"], columns):
                 checked_dict[dk] = data_dict[dk]
+        # 为表结构存在但数据里没有的字段设置默认值
+        for field in columns:
+            # print(field["name"], field["type"], field["type"] == Numeric, isinstance(field["type"], Numeric))
+            if field["name"] not in checked_dict and isinstance(field["type"], Numeric):
+                checked_dict[field["name"]] = 0
+            elif field["name"] not in checked_dict:
+                checked_dict[field["name"]] = ""
         # print("======")
         # print(checked_dict)
         return checked_dict
@@ -243,12 +251,12 @@ class NavDB:
         convert_chn_fields = ["Description", "SerialNo", "FAClassCode", "FASubclassCode", "FALocationCode",
                           "CostCenterCode"]
         # 非xml的数据
-        other_data = {"UnderMaintenance": "", "Entry No_": entry_no, "DepreciationPeriod": 0,
+        other_data = {"UnderMaintenance": "", "Entry No_": entry_no,
                       "Error Message": "", "CostCenterCode": "",
                       "DateTime Imported": datetime.datetime.utcnow().isoformat(timespec="seconds"),
                       "DateTime Handled": "1753-01-01 00:00:00.000", "Handled by": "",
                       "NextServiceDate": "1753-01-01 00:00:00.000", "WarrantyDate": "1753-01-01 00:00:00.000",
-                      "DepreciationStartingDate": datetime.datetime.utcnow().isoformat(timespec="seconds")}
+                      }
 
         table_name = self._getTableName(self.company_nav_code, "FABuffer")
 
