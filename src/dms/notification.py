@@ -51,7 +51,7 @@ class Notification:
     def get_notification_content(self, data_type, company_code, api_code, error_message="") -> (str, str):
         title = words.Notice.title
         content = words.Notice.content
-        return title.format(data_type), content.format(data_type, company_code, api_code, error_message, self.smtp_config.System_URL)
+        return title.format(company_code, data_type), content.format(data_type, company_code, api_code, error_message, self.smtp_config.System_URL)
 
     # 获取smtp设置
     def _get_smtp_setup(self):
