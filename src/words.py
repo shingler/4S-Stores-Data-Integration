@@ -6,7 +6,7 @@
 # 提醒邮件话术模板
 class Notice:
     # 提醒邮件标题模板
-    title = 'DMS Interface Error (Data Type: {0} )'
+    title = 'DMS Interface Error (Company Code: {0}, Data Type: {1} )'
     # 提醒邮件内容模板
     # 0=data_type; 1=company_code; 2=api_code; 3=error_message; 4=url
     content = '''<html>
