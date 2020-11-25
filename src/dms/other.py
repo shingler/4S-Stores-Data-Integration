@@ -39,7 +39,9 @@ class Other(DMSBase):
             for one in lines:
                 one_dict = {self._COMMON_FILED: day_dook[self._COMMON_FILED]}
                 for key, value in one.items():
-                    one_dict[key] = value
+                    # 多了一级，需要自己过滤一下
+                    if key in node_dict:
+                        one_dict[key] = value
                 data_list.append(one_dict)
         return data_list
 

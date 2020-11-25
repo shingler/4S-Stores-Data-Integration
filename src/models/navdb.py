@@ -6,7 +6,7 @@ import os
 import threading
 import time
 
-from sqlalchemy import MetaData, create_engine, select, text, and_, Table, Numeric
+from sqlalchemy import MetaData, create_engine, select, text, and_, Table, Numeric, DateTime
 from sqlalchemy.engine import reflection
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import sessionmaker
@@ -96,6 +96,8 @@ class NavDB:
             # print(field["name"], field["type"], field["type"] == Numeric, isinstance(field["type"], Numeric))
             if field["name"] not in checked_dict and isinstance(field["type"], Numeric):
                 checked_dict[field["name"]] = 0
+            elif field["name"] not in checked_dict and isinstance(field["type"], DateTime):
+                checked_dict[field["name"]] = "1753-01-01 00:00:00.000"
             elif field["name"] not in checked_dict and field["name"] != "timestamp":
                 checked_dict[field["name"]] = ""
         # print("======")
@@ -258,7 +260,6 @@ class NavDB:
         other_data = {"UnderMaintenance": "", "Entry No_": entry_no, "Error Message": "",
                       "DateTime Imported": datetime.datetime.utcnow().isoformat(timespec="seconds"),
                       "DateTime Handled": "1753-01-01 00:00:00.000", "Handled by": "",
-                      "NextServiceDate": "1753-01-01 00:00:00.000", "WarrantyDate": "1753-01-01 00:00:00.000",
                       }
 
         table_name = self._getTableName(self.company_nav_code, "FABuffer")
@@ -307,7 +308,7 @@ class NavDB:
         # 需要转中文编码的字段
         convert_chn_fields = ["CostCenterCode", "VehicleSeries", "ExtDocumentNo", "Description"]
         # 非xml的数据
-        other_data = {"Entry No_": entry_no, "Error Message": "", "CostCenterCode": "",
+        other_data = {"Entry No_": entry_no, "Error Message": "",
                       "DateTime Imported": datetime.datetime.utcnow().isoformat(timespec="seconds"),
                       "DateTime handled": "1753-01-01 00:00:00.000", "Handled by": ""}
 
@@ -347,6 +348,7 @@ class NavDB:
                     ins_data[k] = v if v is not None else ""
             # print(ins_data)
             ins_data = self.checkFields(ins_data, table_name)
+            # print(ins_data)
             FaTable = self.base.classes[table_name]
             ins = Insert(FaTable, values=ins_data)
             # print(ins, ins.compile().params)
@@ -388,7 +390,7 @@ class NavDB:
                         f = f.replace("[", "").replace("]", "")
                     if api_p_out[k].Value_Type == 1 and f in convert_chn_fields:
                         v = cast_chinese_encode(v)
-                    elif api_p_out[k].Value_Type in [2, 3] and type(v) == str:
+                    elif api_p_out[k].Value_Type == 2 and type(v) == str:
                         v = true_or_false_to_tinyint(v)
                     elif api_p_out[k].Value_Type in [2, 3] and v is None:
                         # 数字类型的无值节点
