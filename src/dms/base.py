@@ -84,11 +84,18 @@ class DMSBase:
             return ""
 
         cur_date = datetime.datetime.now().strftime("%Y%m%d")
+        last_date = (datetime.date.today() + datetime.timedelta(-1)).strftime("%Y%m%d")
         if apiSetUp.File_Name_Format == "":
             raise DataFieldEmptyError(words.DataImport.field_is_empty("File_Name_Format"))
 
-        # 文件名格式支持“YYYYMMDD”、“YYYY.MM.DD”，“YYYY-MM-DD”
-        if apiSetUp.File_Name_Format.startswith("YYYYMMDD"):
+        # 文件名格式支持“PYYYYMMDD”、“PYYYY.MM.DD”，“PYYYY-MM-DD”取前一天日期，不带P取当天日期
+        if apiSetUp.File_Name_Format.startswith("PYYYYMMDD"):
+            file_name = apiSetUp.File_Name_Format.replace("PYYYYMMDD", last_date)
+        elif apiSetUp.File_Name_Format.startswith("PYYYY.MM.DD"):
+            file_name = apiSetUp.File_Name_Format.replace("PYYYYMMDD", last_date)
+        elif apiSetUp.File_Name_Format.startswith("PYYYY-MM-DD"):
+            file_name = apiSetUp.File_Name_Format.replace("PYYYYMMDD", last_date)
+        elif apiSetUp.File_Name_Format.startswith("YYYYMMDD"):
             file_name = apiSetUp.File_Name_Format.replace("YYYYMMDD", cur_date)
         elif apiSetUp.File_Name_Format.startswith("YYYY.MM.DD"):
             file_name = apiSetUp.File_Name_Format.replace("YYYYMMDD", cur_date)

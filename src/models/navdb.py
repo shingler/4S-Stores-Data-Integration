@@ -6,7 +6,7 @@ import os
 import threading
 import time
 
-from sqlalchemy import MetaData, create_engine, select, text, and_, Table, Numeric
+from sqlalchemy import MetaData, create_engine, select, text, and_, Table, Numeric, DateTime
 from sqlalchemy.engine import reflection
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import sessionmaker
@@ -41,7 +41,9 @@ class NavDB:
         if only_tables is None:
             only_tables = []
 
-        conn_str = "mssql+pyodbc://{1}:{2}@{0}:1433/{3}?driver=ODBC+Driver+17+for+SQL+Server".format(db_host, db_user, db_password, db_name)
+        conn_str = "mssql+pyodbc://{1}:{2}@{0}:1433/{3}?driver=ODBC+Driver+17+for+SQL+Server".format(db_host, db_user,
+                                                                                                     db_password,
+                                                                                                     db_name)
         # conn_str = "mssql+pyodbc://{1}:{2}@{0}:1401/{3}?driver=ODBC+Driver+17+for+SQL+Server".format(db_host, db_user, db_password, db_name)
         engine = create_engine(conn_str)
         DBSession = sessionmaker(bind=engine)
@@ -89,19 +91,22 @@ class NavDB:
         for dk in data_dict.keys():
             if dk in map(lambda x: x["name"], columns):
                 checked_dict[dk] = data_dict[dk]
-        # 为表结构存在但数据里没有的字段设置默认值
+        # 为表结构存在但数据里没有的字段设置默认值（timestamp除外）
         for field in columns:
             # print(field["name"], field["type"], field["type"] == Numeric, isinstance(field["type"], Numeric))
             if field["name"] not in checked_dict and isinstance(field["type"], Numeric):
                 checked_dict[field["name"]] = 0
-            elif field["name"] not in checked_dict:
+            elif field["name"] not in checked_dict and isinstance(field["type"], DateTime):
+                checked_dict[field["name"]] = "1753-01-01 00:00:00.000"
+            elif field["name"] not in checked_dict and field["name"] != "timestamp":
                 checked_dict[field["name"]] = ""
         # print("======")
         # print(checked_dict)
         return checked_dict
 
     # 写入General部分
-    def insertGeneral(self, data_dict: dict, api_p_out: dict, Type: int = 0, Count: int = 0, XMLFile: str = "", **kwargs):
+    def insertGeneral(self, data_dict: dict, api_p_out: dict, Type: int = 0, Count: int = 0, XMLFile: str = "",
+                      **kwargs):
         # 需要转换中文编码的字段
         convert_chn_fields = ["DMSTitle", "CompanyTitle", "Creator"]
         # 非xml的数据
@@ -186,7 +191,8 @@ class NavDB:
         # 非xml的数据
         other_data = {"Gen_ Bus_ Posting Group": "", "VAT Bus_ Posting Group": "",
                       "Cust_VendPostingGroup": "", "Entry No_": entry_no,
-                      "Error Message": "", "DateTime Imported": datetime.datetime.utcnow().isoformat(timespec="seconds"),
+                      "Error Message": "",
+                      "DateTime Imported": datetime.datetime.utcnow().isoformat(timespec="seconds"),
                       "DateTime Handled": "1753-01-01 00:00:00.000", "Handled by": ""}
 
         table_name = self._getTableName(self.company_nav_code, "CustVendBuffer")
@@ -249,13 +255,11 @@ class NavDB:
     def insertFA(self, data_dict: dict, api_p_out: dict, entry_no: int):
         # 需要转中文编码的字段
         convert_chn_fields = ["Description", "SerialNo", "FAClassCode", "FASubclassCode", "FALocationCode",
-                          "CostCenterCode"]
+                              "CostCenterCode"]
         # 非xml的数据
-        other_data = {"UnderMaintenance": "", "Entry No_": entry_no,
-                      "Error Message": "", "CostCenterCode": "",
+        other_data = {"UnderMaintenance": "", "Entry No_": entry_no, "Error Message": "",
                       "DateTime Imported": datetime.datetime.utcnow().isoformat(timespec="seconds"),
                       "DateTime Handled": "1753-01-01 00:00:00.000", "Handled by": "",
-                      "NextServiceDate": "1753-01-01 00:00:00.000", "WarrantyDate": "1753-01-01 00:00:00.000",
                       }
 
         table_name = self._getTableName(self.company_nav_code, "FABuffer")
@@ -304,7 +308,7 @@ class NavDB:
         # 需要转中文编码的字段
         convert_chn_fields = ["CostCenterCode", "VehicleSeries", "ExtDocumentNo", "Description"]
         # 非xml的数据
-        other_data = {"Entry No_": entry_no, "Error Message": "", "CostCenterCode": "",
+        other_data = {"Entry No_": entry_no, "Error Message": "",
                       "DateTime Imported": datetime.datetime.utcnow().isoformat(timespec="seconds"),
                       "DateTime handled": "1753-01-01 00:00:00.000", "Handled by": ""}
 
@@ -344,6 +348,7 @@ class NavDB:
                     ins_data[k] = v if v is not None else ""
             # print(ins_data)
             ins_data = self.checkFields(ins_data, table_name)
+            # print(ins_data)
             FaTable = self.base.classes[table_name]
             ins = Insert(FaTable, values=ins_data)
             # print(ins, ins.compile().params)
@@ -353,7 +358,7 @@ class NavDB:
     def insertInvLines(self, data_dict: dict, api_p_out: dict, entry_no: int):
         # 需要转中文编码的字段
         convert_chn_fields = ["Description", "CostCenterCode", "VehicleSeries", "VIN", "WIP_No_",
-                          "FromCompanyName", "ToCompanyName"]
+                              "FromCompanyName", "ToCompanyName"]
         # 非xml的数据
         other_data = {"Entry No_": entry_no, "Error Message": "",
                       "DateTime Imported": datetime.datetime.utcnow().isoformat(timespec="seconds"),
@@ -385,7 +390,7 @@ class NavDB:
                         f = f.replace("[", "").replace("]", "")
                     if api_p_out[k].Value_Type == 1 and f in convert_chn_fields:
                         v = cast_chinese_encode(v)
-                    elif api_p_out[k].Value_Type in [2, 3] and type(v) == str:
+                    elif api_p_out[k].Value_Type == 2 and type(v) == str:
                         v = true_or_false_to_tinyint(v)
                     elif api_p_out[k].Value_Type in [2, 3] and v is None:
                         # 数字类型的无值节点

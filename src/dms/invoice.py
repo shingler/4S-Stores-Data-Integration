@@ -56,7 +56,11 @@ class InvoiceHeader(Invoice):
         data_list = []
         for inv in data_dict_list:
             # 获取INVHeader
-            one_header = inv[self.BIZ_NODE_LV2]
+            one_header = {}
+            # 因为多了一级，所以需要做二次数据拼接处理
+            for key, value in inv[self.BIZ_NODE_LV2].items():
+                if key in node_dict:
+                    one_header[key] = value
             # 将InvoiceType与INVHeader合并
             one_header[self._COMMON_FILED] = inv[self._COMMON_FILED]
             # 统计发票行数量
@@ -204,7 +208,12 @@ class InvoiceLine(Invoice):
             # print(inv[self.BIZ_NODE_LV2])
             if type(inv[self.BIZ_NODE_LV2]) == OrderedDict:
                 # 单个发票行数据对象INVLine
-                one_dict = inv[self.BIZ_NODE_LV2]
+                one_dict = {}
+                # 因为多了一级，所以需要做二次数据过滤拼接处理
+                for key, value in inv[self.BIZ_NODE_LV2].items():
+                    if key in node_dict:
+                        one_dict[key] = value
+
                 # 将InvoiceType放入INVLine
                 one_dict[self._COMMON_FILED] = inv[self._COMMON_FILED]
                 # 将发票号放入INVLine
@@ -216,7 +225,8 @@ class InvoiceLine(Invoice):
                     one_dict = {self._COMMON_FILED: inv[self._COMMON_FILED]}
                     # print(type(one))
                     for key, value in one.items():
-                        one_dict[key] = value
+                        if key in node_dict:
+                            one_dict[key] = value
                         # 将发票号放入INVLine
                         one_dict["InvoiceNo"] = inv[InvoiceHeader.BIZ_NODE_LV2]["InvoiceNo"]
                     data_list.append(one_dict)
