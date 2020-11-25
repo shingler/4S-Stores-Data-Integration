@@ -26,6 +26,8 @@ def true_or_false_to_tinyint(bool_str):
         return 1
     elif bool_str.lower() == 'false':
         return 0
+    elif len(bool_str) > 0:
+        return int(bool_str)
     else:
         return 0
 
