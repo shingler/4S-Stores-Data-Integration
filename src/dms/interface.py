@@ -79,4 +79,8 @@ def api_dms(company_info: dms.Company, api_setup: dms.ApiSetup, p_in_list: list)
     else:
         jsonresp = resp["Data"]
 
+    # 为兼容XML格式，增加Transaction根节点
+    if "Transaction" not in jsonresp:
+        jsonresp = {"Transaction": jsonresp}
+
     return code, jsonresp

@@ -92,12 +92,14 @@ def test_4_save_Other(init_app):
         nav.insertOther(api_p_out=other_node_dict, data_dict=other_dict, entry_no=entry_no)
     # 读取文件，文件归档
     # 环境不同，归档路径不同
-    app, db = init_app
-    if app.config["ENV"] == "Development":
-        global_vars["api_setup"].Archived_Path = "/Users/shingler/PycharmProjects/platform20200916/archive/K302ZH"
-    other_obj.archive_xml(global_vars["path"], global_vars["api_setup"].Archived_Path)
-    assert os.path.exists(global_vars["path"]) == False
-    assert os.path.exists(global_vars["api_setup"].Archived_Path) == True
+    api_setup = global_vars["api_setup"]
+    if api_setup.API_Type == other_obj.TYPE_FILE or api_setup.Archived_Path != "":
+        app, db = init_app
+        if app.config["ENV"] == "Development":
+            global_vars["api_setup"].Archived_Path = "/Users/shingler/PycharmProjects/platform20200916/archive/K302ZH"
+        other_obj.archive_xml(global_vars["path"], global_vars["api_setup"].Archived_Path)
+        assert os.path.exists(global_vars["path"]) == False
+        assert os.path.exists(global_vars["api_setup"].Archived_Path) == True
 
 
 # 检查数据正确性

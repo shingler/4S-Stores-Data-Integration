@@ -1,3 +1,5 @@
+from gevent import monkey
+monkey.patch_all()
 import os
 import pytest
 from src import Company
@@ -6,7 +8,7 @@ from src.dms.custVend import CustVend
 from src.models import navdb
 from src.dms.base import WebServiceHandler
 
-company_code = "K302ZH"
+company_code = "K302ZS"
 api_code = "CustVendInfo"
 check_repeat = False
 global_vars = {}
@@ -91,12 +93,14 @@ def test_4_save_custVendInfo(init_app):
         nav.insertCV(api_p_out=custVend_node_dict, data_dict=custVend_dict, entry_no=entry_no)
         # 读取文件，文件归档
     # 环境不同，归档路径不同
-    app, db = init_app
-    if app.config["ENV"] == "Development":
-        global_vars["api_setup"].Archived_Path = "/Users/shingler/PycharmProjects/platform20200916/archive/K302ZH"
-    cv_obj.archive_xml(global_vars["path"], global_vars["api_setup"].Archived_Path)
-    assert os.path.exists(global_vars["path"]) == False
-    assert os.path.exists(global_vars["api_setup"].Archived_Path) == True
+    api_setup = global_vars["api_setup"]
+    if api_setup.API_Type == cv_obj.TYPE_FILE or api_setup.Archived_Path != "":
+        app, db = init_app
+        if app.config["ENV"] == "Development":
+            global_vars["api_setup"].Archived_Path = "/Users/shingler/PycharmProjects/platform20200916/archive/K302ZH"
+        cv_obj.archive_xml(global_vars["path"], global_vars["api_setup"].Archived_Path)
+        assert os.path.exists(global_vars["path"]) == False
+        assert os.path.exists(global_vars["api_setup"].Archived_Path) == True
 
 
 # 检查数据正确性

@@ -121,12 +121,13 @@ class DMSBase:
         p_in_list = Setup.load_api_p_in(apiSetup.Company_Code, apiSetup.API_Code)
         company_info = db.session.query(Company).filter(Company.Code == apiSetup.Company_Code).first()
         code, res = interface.api_dms(company_info, api_setup=apiSetup, p_in_list=p_in_list)
+
         if res is None:
             return InterfaceResult(status=self.STATUS_ERROR, content=res["Message"])
         elif len(res) == 0:
             return InterfaceResult(status=self.STATUS_ERROR, error_msg=words.DataImport.json_is_empty())
         else:
-            return InterfaceResult(status=self.STATUS_FINISH, content=res, data=json.dumps(res, ensure_ascii=True))
+            return InterfaceResult(status=self.STATUS_FINISH, content=json.dumps(res, ensure_ascii=True), data=res)
 
     # 读取xml,返回InterfaceResult对象
     # @param string format 数据解析格式（JSON | XML）

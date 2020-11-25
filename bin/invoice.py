@@ -60,7 +60,8 @@ def main(company_code, api_code, retry=False, file_path=None, async_ws=False):
         nav.insertInvLines(api_p_out=inv_line_node_dict, data_dict=invl_dict, entry_no=entry_no)
 
     # 读取文件，文件归档
-    invh_obj.archive_xml(path, api_setup.Archived_Path)
+    if api_setup.API_Type == invh_obj.TYPE_FILE or api_setup.Archived_Path != "":
+        invh_obj.archive_xml(path, api_setup.Archived_Path)
 
     # 读取web service
     wsh = WebServiceHandler(api_setup, soap_username=company_info.NAV_WEB_UserID,
