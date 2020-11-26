@@ -6,7 +6,7 @@ from src.dms.other import Other
 from src.models import navdb
 from src.dms.setup import Setup
 
-company_code = "K302ZH"
+company_code = "K302ZS"
 api_code = "Other"
 check_repeat = False
 global_vars = {}
@@ -62,7 +62,7 @@ def test_3_save_interface(init_app):
     assert len(general_dict) > 0
     assert "DMSCode" in general_dict
 
-    count = other_obj.get_count_from_data(data["Transaction"], "Daydook")
+    count = other_obj.get_count_from_data(data["Transaction"], other_obj.BIZ_NODE_LV1)
     global_vars["count"] = count
 
     entry_no = nav.insertGeneral(api_p_out=general_node_dict, data_dict=general_dict,

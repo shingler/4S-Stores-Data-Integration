@@ -6,7 +6,7 @@ from src.dms.fa import FA
 from src.models import navdb
 from src.dms.setup import Setup
 
-company_code = "K302ZH"
+company_code = "K302ZS"
 api_code = "FA"
 check_repeat = False
 global_vars = {}
