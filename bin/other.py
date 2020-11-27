@@ -2,6 +2,10 @@
 # -*- coding:utf-8 -*-
 import os
 import sys
+
+from src import words
+from src.error import ObjectNotFoundError
+
 curPath = os.path.abspath(os.path.dirname(__file__))
 rootPath = os.path.split(curPath)[0]
 sys.path.append(rootPath)
@@ -21,8 +25,14 @@ from src.models.dms import Company
 def main(company_code, api_code, retry=False, file_path=None, async_ws=False):
     # 读取公司信息，创建业务对象
     company_info = db.session.query(Company).filter(Company.Code == company_code).first()
+    if company_info is None:
+        raise ObjectNotFoundError(words.WebApi.company_not_found(company_code))
+
     # 读取api设置
     api_setup = Setup.load_api_setup(company_code, api_code)
+    if api_setup is None:
+        raise ObjectNotFoundError(words.WebApi.api_not_found(company_code, api_code))
+
     # 连接nav数据库
     nav = navdb.NavDB(db_host=company_info.NAV_DB_Address, db_user=company_info.NAV_DB_UserID,
                       db_password=company_info.NAV_DB_Password, db_name=company_info.NAV_DB_Name,

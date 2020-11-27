@@ -70,7 +70,7 @@ def api_dms(company_info: dms.Company, api_setup: dms.ApiSetup, p_in_list: list)
     url = api_setup.API_Address1.format(dealer_group_code.lower())
 
     resp = send_data(url, data=data, interface_instance=interface_instance).json()
-    print(resp)
+    # print(resp)
     code = resp["Code"] if "Code" in resp else resp["status"]
 
     # 开始取数并解析数据
@@ -79,12 +79,13 @@ def api_dms(company_info: dms.Company, api_setup: dms.ApiSetup, p_in_list: list)
     else:
         jsonresp = resp["Data"]
 
-    # 为兼容XML格式，增加Transaction根节点
-    if "Transaction" not in jsonresp:
-        jsonresp = {"Transaction": jsonresp}
-    # other接口返回有错误，手动修正
-    if "Daybook" in jsonresp["Transaction"]:
-        jsonresp["Transaction"]["Daydook"] = jsonresp["Transaction"]["Daybook"]
-        del jsonresp["Transaction"]["Daybook"]
+    if len(jsonresp) > 0:
+        # 为兼容XML格式，增加Transaction根节点
+        if "Transaction" not in jsonresp:
+            jsonresp = {"Transaction": jsonresp}
+        # other接口返回有错误，手动修正
+        if "Daybook" in jsonresp["Transaction"]:
+            jsonresp["Transaction"]["Daydook"] = jsonresp["Transaction"]["Daybook"]
+            del jsonresp["Transaction"]["Daybook"]
 
     return code, jsonresp

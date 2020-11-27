@@ -109,6 +109,8 @@ class WebApi:
     _api_type_not_support = "the {0} is not supported"
     _other_error = "there's something wrong, please contact us."
     _method_error = "Request method is incorrect, please retry with POST"
+    _company_not_found = "The company code \"{0}\" is not found"
+    _api_not_found = "The company code \"{0}\" with api code \"{1}\" is not found"
 
     @classmethod
     def filed_empty(cls, field):
@@ -129,3 +131,11 @@ class WebApi:
     @classmethod
     def method_error(cls):
         return cls._method_error
+
+    @classmethod
+    def company_not_found(cls, company_code):
+        return cls._company_not_found.format(company_code)
+
+    @classmethod
+    def api_not_found(cls, company_code, api_code):
+        return cls._api_not_found.format(company_code, api_code)

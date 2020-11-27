@@ -29,3 +29,7 @@ class DataContentTooBig(Exception):
 
 class NodeNotExistError(Exception):
     pass
+
+
+class ObjectNotFoundError(Exception):
+    pass
