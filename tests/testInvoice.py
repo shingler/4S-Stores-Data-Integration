@@ -8,7 +8,7 @@ from src.dms.invoice import InvoiceHeader, InvoiceLine
 from src.models import navdb
 from src.dms.setup import Setup
 
-company_code = "K302ZS"
+company_code = "K302ZH"
 api_code = "Invoice"
 check_repeat = False
 global_vars = {}
@@ -83,6 +83,9 @@ def test_4_save_InvoiceHeader(init_app):
 
     # 节点配置
     inv_node_dict = Setup.load_api_p_out(company_code, api_code)
+    assert invoiceHeader_obj.BIZ_NODE_LV1 in inv_node_dict
+    assert invoiceHeader_obj.BIZ_NODE_LV2 in inv_node_dict
+
     inv_header_node_dict = {**inv_node_dict[InvoiceHeader.BIZ_NODE_LV1], **inv_node_dict[InvoiceHeader.BIZ_NODE_LV2]}
 
     # 拼接fa数据
@@ -105,6 +108,9 @@ def test_5_save_InvoiceLine(init_app):
 
     # FA节点配置
     inv_node_dict = Setup.load_api_p_out(company_code, api_code)
+    assert invoiceLine_obj.BIZ_NODE_LV1 in inv_node_dict
+    assert invoiceLine_obj.BIZ_NODE_LV2 in inv_node_dict
+
     inv_line_node_dict = {**inv_node_dict[InvoiceLine.BIZ_NODE_LV1], **inv_node_dict[InvoiceLine.BIZ_NODE_LV2]}
 
     # 拼接fa数据

@@ -71,6 +71,9 @@ class DMSBase:
     # 接口类型：文件
     TYPE_FILE = 2
 
+    # 根节点名
+    NODE_LV0 = "Transaction"
+
     def __init__(self, company_code, api_code, force_secondary=False, check_repeat=True):
         self.company_code = company_code
         self.api_code = api_code

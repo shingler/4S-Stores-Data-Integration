@@ -2,10 +2,6 @@
 # -*- coding:utf-8 -*-
 import os
 import sys
-
-from src import words
-from src.error import ObjectNotFoundError
-
 curPath = os.path.abspath(os.path.dirname(__file__))
 rootPath = os.path.split(curPath)[0]
 sys.path.append(rootPath)
@@ -15,6 +11,8 @@ from bin import app, db
 from src.dms.other import Other
 from src.dms.setup import Setup
 from src.models.dms import Company
+from src import words
+from src.error import ObjectNotFoundError
 
 
 # @param string company_code 公司代码
@@ -73,7 +71,7 @@ def main(company_code, api_code, retry=False, file_path=None, async_ws=False):
 
 if __name__ == '__main__':
     # 应由task提供
-    company_code = "K302ZH"
+    company_code = "K302ZS"
     api_code = "Other"
     entry_no = main(company_code, api_code, retry=False)
     print("脚本运行成功，EntryNo=%s" % entry_no)

@@ -2,10 +2,6 @@
 # -*- coding:utf-8 -*-
 import os
 import sys
-
-from src import words
-from src.error import ObjectNotFoundError
-
 curPath = os.path.abspath(os.path.dirname(__file__))
 rootPath = os.path.split(curPath)[0]
 sys.path.append(rootPath)
@@ -15,6 +11,8 @@ from bin import app, db
 from src.dms.invoice import InvoiceHeader, InvoiceLine
 from src.dms.setup import Setup
 from src.models.dms import Company
+from src import words
+from src.error import ObjectNotFoundError
 
 
 # @param string company_code 公司代码

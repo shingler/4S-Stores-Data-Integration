@@ -1,12 +1,13 @@
 import os
 import pytest
-from src import Company
+from src import Company, words
 from src.dms.base import WebServiceHandler
 from src.dms.other import Other
+from src.error import NodeNotExistError
 from src.models import navdb
 from src.dms.setup import Setup
 
-company_code = "K302ZS"
+company_code = "K302ZH"
 api_code = "Other"
 check_repeat = False
 global_vars = {}
@@ -77,9 +78,15 @@ def test_3_save_interface(init_app):
 def test_4_save_Other(init_app):
     data = global_vars["data"]
     entry_no = global_vars["entry_no"]
+    print(other_obj.BIZ_NODE_LV1)
 
     # FA节点配置
     node_dict = Setup.load_api_p_out(company_code, api_code)
+    if other_obj.BIZ_NODE_LV1 not in node_dict:
+        raise NodeNotExistError(words.DataImport.param_out_setup_error(other_obj.BIZ_NODE_LV1))
+    if other_obj.BIZ_NODE_LV2 not in node_dict:
+        raise NodeNotExistError(words.DataImport.param_out_setup_error(other_obj.BIZ_NODE_LV2))
+
     other_node_dict = {**node_dict[other_obj.BIZ_NODE_LV1], **node_dict[other_obj.BIZ_NODE_LV2]}
 
     # 拼接fa数据

@@ -6,7 +6,7 @@ from src.dms.fa import FA
 from src.models import navdb
 from src.dms.setup import Setup
 
-company_code = "K302ZS"
+company_code = "K302ZH"
 api_code = "FA"
 check_repeat = False
 global_vars = {}
@@ -81,6 +81,7 @@ def test_4_save_FA(init_app):
     # FA节点配置
     node_dict = Setup.load_api_p_out(company_code, api_code)
     assert node_dict is not None
+    assert fa_obj.BIZ_NODE_LV1 in node_dict
     fa_node_dict = node_dict[fa_obj.BIZ_NODE_LV1]
     # 拼接fa数据
     fa_dict = fa_obj.splice_data_info(data, node_dict=fa_node_dict)

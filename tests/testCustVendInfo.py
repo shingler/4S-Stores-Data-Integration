@@ -6,7 +6,7 @@ from src.dms.custVend import CustVend
 from src.models import navdb
 from src.dms.base import WebServiceHandler
 
-company_code = "K302ZS"
+company_code = "K302ZH"
 api_code = "CustVendInfo"
 check_repeat = False
 global_vars = {}
@@ -16,7 +16,6 @@ nav = None
 
 # 根据公司列表和接口设置确定数据源
 def test_1_dms_source(init_app):
-    print("test_1_dms_source")
     app, db = init_app
     company_info = db.session.query(Company).filter(Company.Code == company_code).first()
     assert company_info is not None
@@ -81,6 +80,7 @@ def test_4_save_custVendInfo(init_app):
     # custVend节点配置
     node_dict = Setup.load_api_p_out(company_code, api_code)
     assert node_dict is not None
+    assert cv_obj.BIZ_NODE_LV1 in node_dict
     custVend_node_dict = node_dict[cv_obj.BIZ_NODE_LV1]
 
     # 拼接custVend数据
