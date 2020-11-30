@@ -1,6 +1,8 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
 # 从数据库读取各种配置
+import datetime
+
 from sqlalchemy import and_
 
 from src import db, SystemSetup
@@ -75,3 +77,39 @@ class Setup:
     @staticmethod
     def load_system_Value_Overlenth_Handle():
         return db.session.query(SystemSetup.Value_Overlenth_Handle).first().Value_Overlenth_Handle
+
+
+# 日期公式转换
+class ParamConvert:
+
+    # CD:当天日期
+    @property
+    def CD(self):
+        return datetime.date.today().isoformat()
+
+    # CDT:当前日期时间
+    @property
+    def CDT(self):
+        return datetime.datetime.today().strftime("%Y-%m-%d %H:%I:%S")
+
+    # TDTB:当天0点
+    @property
+    def TDTB(self):
+        return datetime.datetime.now().strftime("%Y-%m-%d 00:00:00")
+
+    # TDTE:当天24点
+    @property
+    def TDTE(self):
+        return datetime.datetime.now().strftime("%Y-%m-%d 23:59:59")
+
+    # PDTB:前一天0点
+    @property
+    def PDTB(self):
+        last_date = datetime.datetime.now() - datetime.timedelta(1)
+        return last_date.strftime("%Y-%m-%d 00:00:00")
+
+    # PDTE:前一天24点
+    @property
+    def PDTE(self):
+        last_date = datetime.datetime.now() - datetime.timedelta(1)
+        return last_date.strftime("%Y-%m-%d 23:59:59")
