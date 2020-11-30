@@ -134,7 +134,7 @@ def test_6_invoke_ws(init_app):
     result = wsh.call_web_service(ws_url, ws_env, direction=other_obj.DIRECT_NAV,
                                   soap_action=api_setup.CallBack_SoapAction)
     print(result)
-    assert result is not None
+    assert result == True
 
 
 # 清理测试数据

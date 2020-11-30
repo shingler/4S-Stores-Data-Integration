@@ -35,6 +35,7 @@ class DataImport:
     _content_is_too_big = "The length of content (field:{0} \"{3}\" ) exceeds the max length {1} in file: {2}"
     _node_not_exists = "Node:{0} is missing!"
     _json_is_empty = "JSON API return nothing"
+    _json_request_error = "JSON API request failed. reason is: {0}"
 
     @classmethod
     def field_is_empty(cls, field):
@@ -66,6 +67,10 @@ class DataImport:
     @classmethod
     def json_is_empty(cls):
         return cls._json_is_empty
+
+    @classmethod
+    def json_request_fail(cls, reason):
+        return cls._json_request_error.format(reason)
 
 
 # 程序运行时报错消息模板

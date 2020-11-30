@@ -45,7 +45,7 @@ def send_data(url, data, interface_instance: Interface) -> requests.Response:
     # 用于签名后的data
     # url = url.format(interface_instance.action.lower())
     sign_dict = get_signature_dict(params)
-    print(url, params)
+    # print(url, params)
     print("=======")
     print(sign_dict)
     return requests.post(url=url, data=json.dumps(sign_dict), headers=headers)
@@ -65,12 +65,12 @@ def api_dms(company_info: dms.Company, api_setup: dms.ApiSetup, p_in_list: list)
 
     data = {}
     for p in p_in_list:
-        data[p.P_Name] = p.Value
+        data[p.P_Code] = p.Value
 
     url = api_setup.API_Address1.format(dealer_group_code.lower())
 
     resp = send_data(url, data=data, interface_instance=interface_instance).json()
-    # print(resp)
+    print(resp)
     code = resp["Code"] if "Code" in resp else resp["status"]
 
     # 开始取数并解析数据
@@ -78,14 +78,13 @@ def api_dms(company_info: dms.Company, api_setup: dms.ApiSetup, p_in_list: list)
         jsonresp = resp['Message']
     else:
         jsonresp = resp["Data"]
-
-    if len(jsonresp) > 0:
-        # 为兼容XML格式，增加Transaction根节点
-        if "Transaction" not in jsonresp:
-            jsonresp = {"Transaction": jsonresp}
-        # other接口返回有错误，手动修正
-        if "Daybook" in jsonresp["Transaction"]:
-            jsonresp["Transaction"]["Daydook"] = jsonresp["Transaction"]["Daybook"]
-            del jsonresp["Transaction"]["Daybook"]
+        if len(jsonresp) > 0:
+            # 为兼容XML格式，增加Transaction根节点
+            if "Transaction" not in jsonresp:
+                jsonresp = {"Transaction": jsonresp}
+            # other接口返回有错误，手动修正
+            if "Daybook" in jsonresp["Transaction"]:
+                jsonresp["Transaction"]["Daydook"] = jsonresp["Transaction"]["Daybook"]
+                del jsonresp["Transaction"]["Daybook"]
 
     return code, jsonresp

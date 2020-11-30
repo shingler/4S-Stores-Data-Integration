@@ -158,7 +158,7 @@ def test_7_invoke_ws(init_app):
     ws_env = WebServiceHandler.soapEnvelope(entry_no=entry_no, command_code=api_setup.CallBack_Command_Code)
     result = wsh.call_web_service(ws_url, ws_env, direction=invoiceHeader_obj.DIRECT_NAV, soap_action=api_setup.CallBack_SoapAction)
     print(result)
-    assert result is not None
+    assert result == True
 
 
 # 清理测试数据
