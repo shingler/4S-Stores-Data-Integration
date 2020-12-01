@@ -89,9 +89,5 @@ def api_dms(company_info: dms.Company, api_setup: dms.ApiSetup, p_in_list: list)
             # 为兼容XML格式，增加Transaction根节点
             if "Transaction" not in jsonresp:
                 jsonresp = {"Transaction": jsonresp}
-            # other接口返回有错误，手动修正
-            if "Daybook" in jsonresp["Transaction"]:
-                jsonresp["Transaction"]["Daydook"] = jsonresp["Transaction"]["Daybook"]
-                del jsonresp["Transaction"]["Daybook"]
 
     return code, jsonresp

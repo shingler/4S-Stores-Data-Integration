@@ -135,7 +135,7 @@ class DMSBase:
         elif len(res) == 0:
             return InterfaceResult(status=self.STATUS_ERROR, error_msg=words.DataImport.json_is_empty())
         else:
-            return InterfaceResult(status=self.STATUS_FINISH, content=json.dumps(res, ensure_ascii=True), data=res)
+            return InterfaceResult(status=self.STATUS_FINISH, content=json.dumps(res, ensure_ascii=False), data=res)
 
     # 读取xml,返回InterfaceResult对象
     # @param string format 数据解析格式（JSON | XML）
