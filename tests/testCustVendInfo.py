@@ -16,7 +16,6 @@ nav = None
 
 # 根据公司列表和接口设置确定数据源
 def test_1_dms_source(init_app):
-    print("test_1_dms_source")
     app, db = init_app
     company_info = db.session.query(Company).filter(Company.Code == company_code).first()
     assert company_info is not None
@@ -81,6 +80,7 @@ def test_4_save_custVendInfo(init_app):
     # custVend节点配置
     node_dict = Setup.load_api_p_out(company_code, api_code)
     assert node_dict is not None
+    assert cv_obj.BIZ_NODE_LV1 in node_dict
     custVend_node_dict = node_dict[cv_obj.BIZ_NODE_LV1]
 
     # 拼接custVend数据
@@ -91,12 +91,14 @@ def test_4_save_custVendInfo(init_app):
         nav.insertCV(api_p_out=custVend_node_dict, data_dict=custVend_dict, entry_no=entry_no)
         # 读取文件，文件归档
     # 环境不同，归档路径不同
-    app, db = init_app
-    if app.config["ENV"] == "Development":
-        global_vars["api_setup"].Archived_Path = "/Users/shingler/PycharmProjects/platform20200916/archive/K302ZH"
-    cv_obj.archive_xml(global_vars["path"], global_vars["api_setup"].Archived_Path)
-    assert os.path.exists(global_vars["path"]) == False
-    assert os.path.exists(global_vars["api_setup"].Archived_Path) == True
+    api_setup = global_vars["api_setup"]
+    if api_setup.API_Type == cv_obj.TYPE_FILE or api_setup.Archived_Path != "":
+        app, db = init_app
+        if app.config["ENV"] == "Development":
+            global_vars["api_setup"].Archived_Path = "/Users/shingler/PycharmProjects/platform20200916/archive/K302ZH"
+        cv_obj.archive_xml(global_vars["path"], global_vars["api_setup"].Archived_Path)
+        assert os.path.exists(global_vars["path"]) == False
+        assert os.path.exists(global_vars["api_setup"].Archived_Path) == True
 
 
 # 检查数据正确性
@@ -129,7 +131,7 @@ def test_6_invoke_ws(init_app):
     ws_env = WebServiceHandler.soapEnvelope(entry_no=entry_no, command_code=api_setup.CallBack_Command_Code)
     result = wsh.call_web_service(ws_url, ws_env, direction=cv_obj.DIRECT_NAV,
                                   soap_action=api_setup.CallBack_SoapAction)
-    assert result is not None
+    assert result == True
 
 
 # 清理测试数据

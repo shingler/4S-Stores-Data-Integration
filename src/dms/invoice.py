@@ -5,7 +5,7 @@ from collections import OrderedDict
 from src import words, validator
 from src.dms.base import DMSBase
 from src.dms.setup import Setup
-from src.error import InvoiceEmptyError
+from src.error import InvoiceEmptyError, NodeNotExistError
 from src.validator import InvoiceHeaderValidator, InvoiceLineValidator
 
 
@@ -47,6 +47,31 @@ class Invoice(DMSBase):
 class InvoiceHeader(Invoice):
     BIZ_NODE_LV1 = "Invoice"
     BIZ_NODE_LV2 = "INVHeader"
+
+    # 从数据库读取一级二级节点
+    def __init__(self, company_code, api_code, force_secondary=False, check_repeat=True):
+        super().__init__(company_code, api_code, force_secondary, check_repeat)
+        # 加载0级节点
+        node_lv0 = Setup.load_api_p_out_nodes(company_code, api_code, "/", 0)
+        if node_lv0 == {}:
+            raise NodeNotExistError(words.DataImport.node_not_exists("Transaction"))
+        for node in node_lv0.values():
+            self.NODE_LV0 = node.P_Code
+
+        # 加载1级节点
+        node_lv1 = Setup.load_api_p_out_nodes(company_code, api_code, self.NODE_LV0, 1)
+        for node in node_lv1.values():
+            if node.Table_Name == "InvoiceHeaderBuffer":
+                self.BIZ_NODE_LV1 = node.P_Code
+
+        # 加载2级节点
+        node_lv2 = Setup.load_api_p_out_nodes(company_code, api_code, self.BIZ_NODE_LV1, 2)
+        for node in node_lv2.values():
+            if node.Table_Name == "InvoiceHeaderBuffer" and node.Value_Type == 6:
+                self.BIZ_NODE_LV2 = node.P_Code
+            elif node.Value_Type == 1:
+                self._COMMON_FILED = node.P_Code
+        print(self.BIZ_NODE_LV1, self.BIZ_NODE_LV2)
 
     # 根据节点名处理二级/三级层级数据
     def _splice_field_by_name(self, data, node_dict):
@@ -194,6 +219,30 @@ class InvoiceHeader(Invoice):
 class InvoiceLine(Invoice):
     BIZ_NODE_LV1 = "Invoice"
     BIZ_NODE_LV2 = "INVLine"
+
+    # 从数据库读取一级二级节点
+    def __init__(self, company_code, api_code, force_secondary=False, check_repeat=True):
+        super().__init__(company_code, api_code, force_secondary, check_repeat)
+        # 加载0级节点
+        node_lv0 = Setup.load_api_p_out_nodes(company_code, api_code, "/", 0)
+        if node_lv0 == {}:
+            raise NodeNotExistError(words.DataImport.node_not_exists("Transaction"))
+        for node in node_lv0.values():
+            self.NODE_LV0 = node.P_Code
+
+        # 加载1级节点
+        node_lv1 = Setup.load_api_p_out_nodes(company_code, api_code, self.NODE_LV0, 1)
+        for node in node_lv1.values():
+            if node.Table_Name == "InvoiceLineBuffer":
+                self.BIZ_NODE_LV1 = node.P_Code
+
+        # 加载2级节点
+        node_lv2 = Setup.load_api_p_out_nodes(company_code, api_code, self.BIZ_NODE_LV1, 2)
+        for node in node_lv2.values():
+            if node.Table_Name == "InvoiceLineBuffer" and node.Value_Type == 6:
+                self.BIZ_NODE_LV2 = node.P_Code
+            elif node.Value_Type == 1:
+                self._COMMON_FILED = node.P_Code
 
     # 根据节点名处理二级/三级层级数据
     def _splice_field_by_name(self, data, node_dict):

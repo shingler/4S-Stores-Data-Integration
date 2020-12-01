@@ -71,6 +71,9 @@ class DMSBase:
     # 接口类型：文件
     TYPE_FILE = 2
 
+    # 根节点名
+    NODE_LV0 = "Transaction"
+
     def __init__(self, company_code, api_code, force_secondary=False, check_repeat=True):
         self.company_code = company_code
         self.api_code = api_code
@@ -120,13 +123,19 @@ class DMSBase:
     def _load_data_from_dms_interface(self, apiSetup: dms.ApiSetup):
         p_in_list = Setup.load_api_p_in(apiSetup.Company_Code, apiSetup.API_Code)
         company_info = db.session.query(Company).filter(Company.Code == apiSetup.Company_Code).first()
-        code, res = interface.api_dms(company_info, api_setup=apiSetup, p_in_list=p_in_list)
+        try:
+            code, res = interface.api_dms(company_info, api_setup=apiSetup, p_in_list=p_in_list)
+        except Exception as ex:
+            return InterfaceResult(status=self.STATUS_ERROR, error_msg=words.DataImport.json_request_fail(ex))
+
+        if code != '200':
+            return InterfaceResult(status=self.STATUS_ERROR, error_msg=words.DataImport.json_request_fail(res))
         if res is None:
-            return InterfaceResult(status=self.STATUS_ERROR, content=res["Message"])
+            return InterfaceResult(status=self.STATUS_ERROR, content=words.DataImport.json_request_fail(res))
         elif len(res) == 0:
             return InterfaceResult(status=self.STATUS_ERROR, error_msg=words.DataImport.json_is_empty())
         else:
-            return InterfaceResult(status=self.STATUS_FINISH, content=res, data=json.dumps(res, ensure_ascii=True))
+            return InterfaceResult(status=self.STATUS_FINISH, content=json.dumps(res, ensure_ascii=False), data=res)
 
     # 读取xml,返回InterfaceResult对象
     # @param string format 数据解析格式（JSON | XML）
@@ -253,7 +262,7 @@ class DMSBase:
             # print(is_integrity, keys)
             if not is_integrity:
                 error_msg = words.DataImport.node_not_exists(keys)
-                logger.update_api_log_when_finish(status=self.STATUS_ERROR, error_msg=error_msg, data=str(res.content))
+                logger.update_api_log_when_finish(status=self.STATUS_ERROR, error_msg=error_msg, data=res.content)
                 raise NodeNotExistError(error_msg)
 
             # 处理成功，校验数据长度是否合法
@@ -261,11 +270,11 @@ class DMSBase:
             # print(is_valid, keys)
             if not is_valid:
                 error_msg = words.DataImport.content_is_too_big(path, keys, )
-                logger.update_api_log_when_finish(status=self.STATUS_ERROR, error_msg=error_msg, data=str(res.content))
+                logger.update_api_log_when_finish(status=self.STATUS_ERROR, error_msg=error_msg, data=res.content)
                 raise DataContentTooBig(error_msg)
 
             # 校验成功，更新日志
-            logger.update_api_log_when_finish(data=str(res.content), status=self.STATUS_FINISH)
+            logger.update_api_log_when_finish(data=res.content, status=self.STATUS_FINISH)
             return path, res.data
 
     # 根据文件名检查是否重复导入
@@ -491,10 +500,10 @@ class WebServiceHandler:
         # 更新日志（只有当状态码为40x，才认为发生错误）
         if 400 <= req.status_code < 500:
             logger.update_api_log_when_finish(status=DMSBase.STATUS_ERROR, error_msg=req.text)
-            return True
+            return False
         else:
             logger.update_api_log_when_finish(status=DMSBase.STATUS_FINISH, data=req.text)
-            return False
+            return True
 
     # 生成soap报文
     @staticmethod

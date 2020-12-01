@@ -1,6 +1,8 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
+from src import words
 from src.dms.setup import Setup
+from src.error import NodeNotExistError
 from src.validator import CustVendInfoValidator
 from .base import DMSBase
 
@@ -9,6 +11,22 @@ class CustVend(DMSBase):
     # 数据一级节点名
     BIZ_NODE_LV1 = "CustVendInfo"
     WS_METHOD = "HandleCVInfoWithEntryNo"
+
+    # 从数据库读取一级二级节点
+    def __init__(self, company_code, api_code, force_secondary=False, check_repeat=True):
+        super().__init__(company_code, api_code, force_secondary, check_repeat)
+        # 加载0级节点
+        node_lv0 = Setup.load_api_p_out_nodes(company_code, api_code, "/", 0)
+        if node_lv0 == {}:
+            raise NodeNotExistError(words.DataImport.node_not_exists("Transaction"))
+        for node in node_lv0.values():
+            self.NODE_LV0 = node.P_Code
+
+        # 加载1级节点
+        node_lv1 = Setup.load_api_p_out_nodes(company_code, api_code, self.NODE_LV0, 1)
+        for node in node_lv1.values():
+            if node.P_Name == "CustVendInfo":
+                self.BIZ_NODE_LV1 = node.P_Code
 
     # 从api_p_out获取数据
     def splice_data_info(self, data, node_dict):

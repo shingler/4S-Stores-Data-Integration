@@ -169,7 +169,7 @@ def test_data_for_setup():
             Company_Code="K302ZS",
             API_Code="CustVendInfo",
             API_Name="Customer/Vendor Interface",
-            API_Type=2,
+            API_Type=1,
             API_Address2="https://spark-dms-i.bmwgroup.com.cn/ddsp-api/api/g000035/adapterInterface",
             API_Address1="https://spark-dms-i.bmwgroup.com.cn/ddsp-api/api/g000035/adapterInterface",
             API_Version="v1",
@@ -267,7 +267,7 @@ def test_data_for_setup():
             File_Max_Size=10,
             Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'),
             Last_Modified_By="",
-            Archived_Path="/Users/shingler/PycharmProjects/platform20200916/archive/K302ZH"
+            Archived_Path=""
         ),
     ]
     setup_for_xml = [
@@ -444,7 +444,7 @@ def test_data_for_in_param(company_code):
             Sequence=1,
             Value_Type=5,
             Value_Source=1,
-            Value="2020-11-01 00:00:00",
+            Value="2020-11-25 00:00:00",
             Last_Modified_DT=datetime.datetime.utcnow().isoformat(timespec="seconds"),
             Last_Modified_By=""
         ),
@@ -456,7 +456,7 @@ def test_data_for_in_param(company_code):
             Sequence=2,
             Value_Type=5,
             Value_Source=1,
-            Value="2020-11-01 00:00:00",
+            Value="2020-11-25 23:59:59",
             Last_Modified_DT=datetime.datetime.utcnow().isoformat(timespec="seconds"),
             Last_Modified_By=""
         ),
@@ -468,7 +468,7 @@ def test_data_for_in_param(company_code):
             Sequence=1,
             Value_Type=5,
             Value_Source=1,
-            Value="2020-11-01 00:00:00",
+            Value="2020-11-25 00:00:00",
             Last_Modified_DT=datetime.datetime.utcnow().isoformat(timespec="seconds"),
             Last_Modified_By=""
         ),
@@ -480,7 +480,7 @@ def test_data_for_in_param(company_code):
             Sequence=2,
             Value_Type=5,
             Value_Source=1,
-            Value="2020-11-01 00:00:00",
+            Value="2020-11-25 23:59:59",
             Last_Modified_DT=datetime.datetime.utcnow().isoformat(timespec="seconds"),
             Last_Modified_By=""
         ),
@@ -492,7 +492,7 @@ def test_data_for_in_param(company_code):
             Sequence=1,
             Value_Type=5,
             Value_Source=1,
-            Value="2020-11-01 00:00:00",
+            Value="2020-11-25 00:00:00",
             Last_Modified_DT=datetime.datetime.utcnow().isoformat(timespec="seconds"),
             Last_Modified_By=""
         ),
@@ -504,7 +504,7 @@ def test_data_for_in_param(company_code):
             Sequence=2,
             Value_Type=5,
             Value_Source=1,
-            Value="2020-11-01 00:00:00",
+            Value="2020-11-25 23:59:59",
             Last_Modified_DT=datetime.datetime.utcnow().isoformat(timespec="seconds"),
             Last_Modified_By=""
         ),
@@ -516,7 +516,7 @@ def test_data_for_in_param(company_code):
             Sequence=1,
             Value_Type=5,
             Value_Source=1,
-            Value="2020-11-01 00:00:00",
+            Value="2020-11-25 00:00:00",
             Last_Modified_DT=datetime.datetime.utcnow().isoformat(timespec="seconds"),
             Last_Modified_By=""
         ),
@@ -528,7 +528,7 @@ def test_data_for_in_param(company_code):
             Sequence=2,
             Value_Type=5,
             Value_Source=1,
-            Value="2020-11-01 00:00:00",
+            Value="2020-11-25 23:59:59",
             Last_Modified_DT=datetime.datetime.utcnow().isoformat(timespec="seconds"),
             Last_Modified_By=""
         )
@@ -778,30 +778,6 @@ def test_data_for_out_param(company_code):
                 P_Name="ICPartnerCode", Level=2,
                 Parent_Node_Name="CustVendInfo", Value_Type=1,
                 Table_Name="CustVendBuffer", Column_Name="ICPartnerCode",
-                Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
-            ),
-            ApiPOutSetup(
-                Company_Code=company_code, API_Code="CustVendInfo",
-                Sequence=31, P_Code="",
-                P_Name="", Level=0,
-                Parent_Node_Name="", Value_Type=1,
-                Table_Name="CustVendBuffer", Column_Name="[Gen_ Bus_ Posting Group]",
-                Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
-            ),
-            ApiPOutSetup(
-                Company_Code=company_code, API_Code="CustVendInfo",
-                Sequence=32, P_Code="",
-                P_Name="", Level=0,
-                Parent_Node_Name="", Value_Type=1,
-                Table_Name="CustVendBuffer", Column_Name="[VAT Bus_ Posting Group]",
-                Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
-            ),
-            ApiPOutSetup(
-                Company_Code=company_code, API_Code="CustVendInfo",
-                Sequence=33, P_Code="",
-                P_Name="", Level=0,
-                Parent_Node_Name="", Value_Type=1,
-                Table_Name="CustVendBuffer", Column_Name="Cust_VendPostingGroup",
                 Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
             )
         ]
@@ -1342,30 +1318,6 @@ def test_data_for_out_param(company_code):
                 P_Name="ToCompanyName", Level=3,
                 Parent_Node_Name="INVLine", Value_Type=1,
                 Table_Name="InvoiceLineBuffer", Column_Name="ToCompanyName",
-                Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
-            ),
-            ApiPOutSetup(
-                Company_Code=company_code, API_Code="Invoice",
-                Sequence=42, P_Code="Location",
-                P_Name="Location", Level=3,
-                Parent_Node_Name="INVLine", Value_Type=1,
-                Table_Name="InvoiceLineBuffer", Column_Name="Location",
-                Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
-            ),
-            ApiPOutSetup(
-                Company_Code=company_code, API_Code="Invoice",
-                Sequence=43, P_Code="MovementType",
-                P_Name="MovementType", Level=3,
-                Parent_Node_Name="INVLine", Value_Type=1,
-                Table_Name="InvoiceLineBuffer", Column_Name="MovementType",
-                Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
-            ),
-            ApiPOutSetup(
-                Company_Code=company_code, API_Code="Invoice",
-                Sequence=44, P_Code="OEMCode",
-                P_Name="OEMCode", Level=3,
-                Parent_Node_Name="INVLine", Value_Type=1,
-                Table_Name="InvoiceLineBuffer", Column_Name="OEMCode",
                 Last_Modified_DT=datetime.datetime.now().isoformat(timespec='seconds'), Last_Modified_By=""
             ),
         ]

@@ -11,6 +11,8 @@ from bin import app, db
 from src.dms.other import Other
 from src.dms.setup import Setup
 from src.models.dms import Company
+from src import words
+from src.error import ObjectNotFoundError
 
 
 # @param string company_code 公司代码
@@ -21,8 +23,14 @@ from src.models.dms import Company
 def main(company_code, api_code, retry=False, file_path=None, async_ws=False):
     # 读取公司信息，创建业务对象
     company_info = db.session.query(Company).filter(Company.Code == company_code).first()
+    if company_info is None:
+        raise ObjectNotFoundError(words.WebApi.company_not_found(company_code))
+
     # 读取api设置
     api_setup = Setup.load_api_setup(company_code, api_code)
+    if api_setup is None:
+        raise ObjectNotFoundError(words.WebApi.api_not_found(company_code, api_code))
+
     # 连接nav数据库
     nav = navdb.NavDB(db_host=company_info.NAV_DB_Address, db_user=company_info.NAV_DB_UserID,
                       db_password=company_info.NAV_DB_Password, db_name=company_info.NAV_DB_Name,
@@ -48,7 +56,8 @@ def main(company_code, api_code, retry=False, file_path=None, async_ws=False):
         nav.insertOther(api_p_out=other_node_dict, data_dict=other_dict, entry_no=entry_no)
 
     # 读取文件，文件归档
-    other_obj.archive_xml(path, api_setup.Archived_Path)
+    if api_setup.API_Type == other_obj.TYPE_FILE or api_setup.Archived_Path != "":
+        other_obj.archive_xml(path, api_setup.Archived_Path)
 
     # 读取web service
     wsh = WebServiceHandler(api_setup, soap_username=company_info.NAV_WEB_UserID,
@@ -62,7 +71,7 @@ def main(company_code, api_code, retry=False, file_path=None, async_ws=False):
 
 if __name__ == '__main__':
     # 应由task提供
-    company_code = "K302ZH"
+    company_code = "K302ZS"
     api_code = "Other"
     entry_no = main(company_code, api_code, retry=False)
     print("脚本运行成功，EntryNo=%s" % entry_no)

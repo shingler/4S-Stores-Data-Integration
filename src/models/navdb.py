@@ -83,7 +83,10 @@ class NavDB:
         #     print(c, type(c))
 
     # 检查数据是否存在不合法的字段名
-    def checkFields(self, data_dict, table_name):
+    # @param data_dict dict 要插入的数据
+    # @param table_name str 表名
+    # @return dict
+    def checkFields(self, data_dict: dict, table_name: str) -> dict:
         insp = reflection.Inspector.from_engine(self.engine)
         columns = insp.get_columns(table_name)
         checked_dict = {}

@@ -65,7 +65,7 @@ def test_3_save_interface(init_app):
     assert len(general_dict) > 0
     assert "DMSCode" in general_dict
 
-    count = invoiceHeader_obj.get_count_from_data(data["Transaction"], "Invoice")
+    count = invoiceHeader_obj.get_count_from_data(data["Transaction"], invoiceHeader_obj.BIZ_NODE_LV1)
     global_vars["count"] = count
     entry_no = nav.insertGeneral(api_p_out=general_node_dict, data_dict=general_dict,
                                  Type=nav.DATA_TYPE_INV, Count=count, XMLFile=global_vars["path"])
@@ -83,6 +83,9 @@ def test_4_save_InvoiceHeader(init_app):
 
     # 节点配置
     inv_node_dict = Setup.load_api_p_out(company_code, api_code)
+    assert invoiceHeader_obj.BIZ_NODE_LV1 in inv_node_dict
+    assert invoiceHeader_obj.BIZ_NODE_LV2 in inv_node_dict
+
     inv_header_node_dict = {**inv_node_dict[InvoiceHeader.BIZ_NODE_LV1], **inv_node_dict[InvoiceHeader.BIZ_NODE_LV2]}
 
     # 拼接fa数据
@@ -105,6 +108,9 @@ def test_5_save_InvoiceLine(init_app):
 
     # FA节点配置
     inv_node_dict = Setup.load_api_p_out(company_code, api_code)
+    assert invoiceLine_obj.BIZ_NODE_LV1 in inv_node_dict
+    assert invoiceLine_obj.BIZ_NODE_LV2 in inv_node_dict
+
     inv_line_node_dict = {**inv_node_dict[InvoiceLine.BIZ_NODE_LV1], **inv_node_dict[InvoiceLine.BIZ_NODE_LV2]}
 
     # 拼接fa数据
@@ -115,12 +121,14 @@ def test_5_save_InvoiceLine(init_app):
         nav.insertInvLines(api_p_out=inv_line_node_dict, data_dict=il_dict, entry_no=entry_no)
     # 读取文件，文件归档
     # 环境不同，归档路径不同
-    app, db = init_app
-    if app.config["ENV"] == "Development":
-        global_vars["api_setup"].Archived_Path = "/Users/shingler/PycharmProjects/platform20200916/archive/K302ZH"
-    invoiceLine_obj.archive_xml(global_vars["path"], global_vars["api_setup"].Archived_Path)
-    assert os.path.exists(global_vars["path"]) == False
-    assert os.path.exists(global_vars["api_setup"].Archived_Path) == True
+    api_setup = global_vars["api_setup"]
+    if api_setup.API_Type == invoiceLine_obj.TYPE_FILE or api_setup.Archived_Path != "":
+        app, db = init_app
+        if app.config["ENV"] == "Development":
+            global_vars["api_setup"].Archived_Path = "/Users/shingler/PycharmProjects/platform20200916/archive/K302ZH"
+        invoiceLine_obj.archive_xml(global_vars["path"], global_vars["api_setup"].Archived_Path)
+        assert os.path.exists(global_vars["path"]) == False
+        assert os.path.exists(global_vars["api_setup"].Archived_Path) == True
 
 
 # 检查数据正确性
@@ -156,7 +164,7 @@ def test_7_invoke_ws(init_app):
     ws_env = WebServiceHandler.soapEnvelope(entry_no=entry_no, command_code=api_setup.CallBack_Command_Code)
     result = wsh.call_web_service(ws_url, ws_env, direction=invoiceHeader_obj.DIRECT_NAV, soap_action=api_setup.CallBack_SoapAction)
     print(result)
-    assert result is not None
+    assert result == True
 
 
 # 清理测试数据
