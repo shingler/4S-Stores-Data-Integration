@@ -35,6 +35,8 @@ class DataImport:
     _content_is_too_big = "The length of content (field:{0} \"{3}\" ) exceeds the max length {1} in file: {2}"
     _node_not_exists = "Node:{0} is missing!"
     _json_is_empty = "JSON API return nothing"
+    _json_request_error = "JSON API request failed. reason is: {0}"
+    _param_out_setup_error = "api out param setup error, missing: {0}!"
 
     @classmethod
     def field_is_empty(cls, field):
@@ -66,6 +68,14 @@ class DataImport:
     @classmethod
     def json_is_empty(cls):
         return cls._json_is_empty
+
+    @classmethod
+    def json_request_fail(cls, reason):
+        return cls._json_request_error.format(reason)
+
+    @classmethod
+    def param_out_setup_error(cls, p_name):
+        return cls._param_out_setup_error.format(p_name)
 
 
 # 程序运行时报错消息模板
@@ -109,6 +119,8 @@ class WebApi:
     _api_type_not_support = "the {0} is not supported"
     _other_error = "there's something wrong, please contact us."
     _method_error = "Request method is incorrect, please retry with POST"
+    _company_not_found = "The company code \"{0}\" is not found"
+    _api_not_found = "The company code \"{0}\" with api code \"{1}\" is not found"
 
     @classmethod
     def filed_empty(cls, field):
@@ -129,3 +141,11 @@ class WebApi:
     @classmethod
     def method_error(cls):
         return cls._method_error
+
+    @classmethod
+    def company_not_found(cls, company_code):
+        return cls._company_not_found.format(company_code)
+
+    @classmethod
+    def api_not_found(cls, company_code, api_code):
+        return cls._api_not_found.format(company_code, api_code)

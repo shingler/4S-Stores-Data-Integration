@@ -1,10 +1,8 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
 from gevent import monkey
-
-from src.error import NodeNotExistError
-
 monkey.patch_all()
+from src.error import NodeNotExistError
 import json
 from flask import jsonify, request, Response
 from src import create_app, words
@@ -58,36 +56,35 @@ def dms_interface_api():
         # xml模式下没提供file_path
         return jsonify({"status": 40002, "error_message": words.WebApi.filed_empty("file_path in options")})
 
-    if api_type == "1":
-        # 解析JSON API
-        return jsonify({"status": 40003, "error_message": words.WebApi.api_type_not_support("JSON API")})
-    else:
+    file_path = None
+    if api_type == "2":
+        # 解析XML文件
         file_path = options["file_path"] if "file_path" in options else None
 
-        if command_code == "01":
-            runner = cust_vend
-        elif command_code == "02":
-            runner = fa
-        elif command_code == "03":
-            runner = invoice
-        else:
-            runner = other
-        try:
-            entry_no = runner.main(company_code=company_code, api_code=api_code, file_path=file_path,
-                                   retry=True if retry else False)
-            res = {"status": 0, "entry_no": entry_no}
-        except error.DataFieldEmptyError as ex:
-            res = {"status": 50001, "error_message": str(ex)}
-        except error.InvoiceEmptyError as ex:
-            res = {"status": 50002, "error_message": str(ex)}
-        except (error.DataLoadError, NodeNotExistError) as ex:
-            res = {"status": 50003, "error_message": str(ex)}
-        except error.DataLoadTimeOutError as ex:
-            res = {"status": 50004, "error_message": str(ex)}
-        except error.DataImportRepeatError as ex:
-            res = {"status": 50005, "error_message": str(ex)}
-        except Exception as ex:
-            res = {"status": 50000, "error_message": str(ex)}
+    if command_code == "01":
+        runner = cust_vend
+    elif command_code == "02":
+        runner = fa
+    elif command_code == "03":
+        runner = invoice
+    else:
+        runner = other
+    try:
+        entry_no = runner.main(company_code=company_code, api_code=api_code, file_path=file_path,
+                               retry=True if retry else False)
+        res = {"status": 0, "entry_no": entry_no}
+    except error.DataFieldEmptyError as ex:
+        res = {"status": 50001, "error_message": str(ex)}
+    except error.InvoiceEmptyError as ex:
+        res = {"status": 50002, "error_message": str(ex)}
+    except (error.DataLoadError, NodeNotExistError) as ex:
+        res = {"status": 50003, "error_message": str(ex)}
+    except error.DataLoadTimeOutError as ex:
+        res = {"status": 50004, "error_message": str(ex)}
+    except error.DataImportRepeatError as ex:
+        res = {"status": 50005, "error_message": str(ex)}
+    except Exception as ex:
+        res = {"status": 50000, "error_message": str(ex)}
 
     return jsonify(res)
 

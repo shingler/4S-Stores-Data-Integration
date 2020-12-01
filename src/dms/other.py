@@ -1,7 +1,9 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
+from src import words
 from src.dms.base import DMSBase
 from src.dms.setup import Setup
+from src.error import NodeNotExistError
 from src.validator import OtherValidator
 
 
@@ -14,6 +16,30 @@ class Other(DMSBase):
     BIZ_NODE_LV2 = "Line"
     # 通用字段
     _COMMON_FILED = "DaydookNo"
+
+    # 从数据库读取一级二级节点
+    def __init__(self, company_code, api_code, force_secondary=False, check_repeat=True):
+        super().__init__(company_code, api_code, force_secondary, check_repeat)
+        # 加载0级节点
+        node_lv0 = Setup.load_api_p_out_nodes(company_code, api_code, "/", 0)
+        if node_lv0 == {}:
+            raise NodeNotExistError(words.DataImport.node_not_exists("Transaction"))
+        for node in node_lv0.values():
+            self.NODE_LV0 = node.P_Code
+
+        # 加载1级节点
+        node_lv1 = Setup.load_api_p_out_nodes(company_code, api_code, self.NODE_LV0, 1)
+        for node in node_lv1.values():
+            if node.Table_Name == "OtherBuffer":
+                self.BIZ_NODE_LV1 = node.P_Code
+
+        # 加载2级节点
+        node_lv2 = Setup.load_api_p_out_nodes(company_code, api_code, self.BIZ_NODE_LV1, 2)
+        for node in node_lv2.values():
+            if node.Value_Type == 6:
+                self.BIZ_NODE_LV2 = node.P_Code
+            elif node.Value_Type == 1:
+                self._COMMON_FILED = node.P_Code
 
     # 读取出参配置配置
     def load_api_p_out_nodes(self, company_code, api_code, node_type="general"):

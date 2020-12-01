@@ -11,6 +11,8 @@ from bin import app, db
 from src.dms.custVend import CustVend
 from src.dms.setup import Setup
 from src.models.dms import Company
+from src import words
+from src.error import ObjectNotFoundError
 
 
 # @param string company_code 公司代码
@@ -21,6 +23,8 @@ from src.models.dms import Company
 def main(company_code, api_code, retry=False, file_path=None, async_ws=False):
     # 读取公司信息，创建业务对象
     company_info = db.session.query(Company).filter(Company.Code == company_code).first()
+    if company_info is None:
+        raise ObjectNotFoundError(words.WebApi.company_not_found(company_code))
 
     # 连接nav库
     nav = navdb.NavDB(db_host=company_info.NAV_DB_Address, db_user=company_info.NAV_DB_UserID,
@@ -29,6 +33,8 @@ def main(company_code, api_code, retry=False, file_path=None, async_ws=False):
     nav.prepare()
 
     api_setup = Setup.load_api_setup(company_code, api_code)
+    if api_setup is None:
+        raise ObjectNotFoundError(words.WebApi.api_not_found(company_code, api_code))
     # 读取数据
     cv_obj = CustVend(company_code, api_code, force_secondary=retry)
     path, data = cv_obj.load_data(api_setup, file_path=file_path)
@@ -50,7 +56,8 @@ def main(company_code, api_code, retry=False, file_path=None, async_ws=False):
         nav.insertCV(api_p_out=custVend_node_dict, data_dict=custVend_dict, entry_no=entry_no)
 
     # 读取文件，文件归档
-    cv_obj.archive_xml(path, api_setup.Archived_Path)
+    if api_setup.API_Type == cv_obj.TYPE_FILE or api_setup.Archived_Path != "":
+        cv_obj.archive_xml(path, api_setup.Archived_Path)
 
     # 读取web service
     wsh = WebServiceHandler(api_setup, soap_username=company_info.NAV_WEB_UserID, soap_password=company_info.NAV_WEB_Password)

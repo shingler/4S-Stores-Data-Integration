@@ -8,7 +8,10 @@ from sqlalchemy.dialects.mssql import VARBINARY
 
 
 # 去掉时间字符串日期与时间中间的T后面可能带的空格，只取到秒
-def to_local_time(dt_str):
+def to_local_time(dt_str: str) -> str:
+    # 兼容意外情况
+    if dt_str is None:
+        return ""
     if dt_str.find("T ") != -1:
         dt_str = dt_str.replace("T ", "T")
     # # YYYY-mm-ddTHH:MM:SS

@@ -1,8 +1,9 @@
 import os
 import pytest
-from src import Company
+from src import Company, words
 from src.dms.base import WebServiceHandler
 from src.dms.other import Other
+from src.error import NodeNotExistError
 from src.models import navdb
 from src.dms.setup import Setup
 
@@ -62,7 +63,7 @@ def test_3_save_interface(init_app):
     assert len(general_dict) > 0
     assert "DMSCode" in general_dict
 
-    count = other_obj.get_count_from_data(data["Transaction"], "Daydook")
+    count = other_obj.get_count_from_data(data["Transaction"], other_obj.BIZ_NODE_LV1)
     global_vars["count"] = count
 
     entry_no = nav.insertGeneral(api_p_out=general_node_dict, data_dict=general_dict,
@@ -77,9 +78,15 @@ def test_3_save_interface(init_app):
 def test_4_save_Other(init_app):
     data = global_vars["data"]
     entry_no = global_vars["entry_no"]
+    print(other_obj.BIZ_NODE_LV1)
 
     # FA节点配置
     node_dict = Setup.load_api_p_out(company_code, api_code)
+    if other_obj.BIZ_NODE_LV1 not in node_dict:
+        raise NodeNotExistError(words.DataImport.param_out_setup_error(other_obj.BIZ_NODE_LV1))
+    if other_obj.BIZ_NODE_LV2 not in node_dict:
+        raise NodeNotExistError(words.DataImport.param_out_setup_error(other_obj.BIZ_NODE_LV2))
+
     other_node_dict = {**node_dict[other_obj.BIZ_NODE_LV1], **node_dict[other_obj.BIZ_NODE_LV2]}
 
     # 拼接fa数据
@@ -92,12 +99,14 @@ def test_4_save_Other(init_app):
         nav.insertOther(api_p_out=other_node_dict, data_dict=other_dict, entry_no=entry_no)
     # 读取文件，文件归档
     # 环境不同，归档路径不同
-    app, db = init_app
-    if app.config["ENV"] == "Development":
-        global_vars["api_setup"].Archived_Path = "/Users/shingler/PycharmProjects/platform20200916/archive/K302ZH"
-    other_obj.archive_xml(global_vars["path"], global_vars["api_setup"].Archived_Path)
-    assert os.path.exists(global_vars["path"]) == False
-    assert os.path.exists(global_vars["api_setup"].Archived_Path) == True
+    api_setup = global_vars["api_setup"]
+    if api_setup.API_Type == other_obj.TYPE_FILE or api_setup.Archived_Path != "":
+        app, db = init_app
+        if app.config["ENV"] == "Development":
+            global_vars["api_setup"].Archived_Path = "/Users/shingler/PycharmProjects/platform20200916/archive/K302ZH"
+        other_obj.archive_xml(global_vars["path"], global_vars["api_setup"].Archived_Path)
+        assert os.path.exists(global_vars["path"]) == False
+        assert os.path.exists(global_vars["api_setup"].Archived_Path) == True
 
 
 # 检查数据正确性
@@ -132,7 +141,7 @@ def test_6_invoke_ws(init_app):
     result = wsh.call_web_service(ws_url, ws_env, direction=other_obj.DIRECT_NAV,
                                   soap_action=api_setup.CallBack_SoapAction)
     print(result)
-    assert result is not None
+    assert result == True
 
 
 # 清理测试数据
