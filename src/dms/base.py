@@ -7,6 +7,7 @@
 # 4. 根据配置字段将数据里的数据写入InterfaceInfo并返回entry no
 import datetime
 import json
+import logging
 import os
 import threading
 import time
@@ -124,18 +125,25 @@ class DMSBase:
         p_in_list = Setup.load_api_p_in(apiSetup.Company_Code, apiSetup.API_Code)
         company_info = db.session.query(Company).filter(Company.Code == apiSetup.Company_Code).first()
         try:
-            code, res = interface.api_dms(company_info, api_setup=apiSetup, p_in_list=p_in_list)
+            resp = interface.api_dms(company_info, api_setup=apiSetup, p_in_list=p_in_list)
+        except requests.ConnectTimeout as ex:
+            return InterfaceResult(status=self.STATUS_TIMEOUT, error_msg=words.DataImport.load_timeout(ex))
         except Exception as ex:
             return InterfaceResult(status=self.STATUS_ERROR, error_msg=words.DataImport.json_request_fail(ex))
-
+        if resp.status_code != 200:
+            return InterfaceResult(status=self.STATUS_ERROR, error_msg=words.DataImport.json_http_error(resp.status_code))
+        # 完整的返回内容，用于入日志表
+        original_result = resp.text
+        # 业务处理需要做一些加工
+        code, res = interface.parse(resp.json())
         if code != '200':
-            return InterfaceResult(status=self.STATUS_ERROR, error_msg=words.DataImport.json_request_fail(res))
+            return InterfaceResult(status=self.STATUS_ERROR, content=original_result, error_msg=words.DataImport.json_request_fail(res))
         if res is None:
-            return InterfaceResult(status=self.STATUS_ERROR, content=words.DataImport.json_request_fail(res))
+            return InterfaceResult(status=self.STATUS_ERROR, content=original_result)
         elif len(res) == 0:
-            return InterfaceResult(status=self.STATUS_ERROR, error_msg=words.DataImport.json_is_empty())
+            return InterfaceResult(status=self.STATUS_ERROR, content=original_result, error_msg=words.DataImport.json_is_empty())
         else:
-            return InterfaceResult(status=self.STATUS_FINISH, content=json.dumps(res, ensure_ascii=False), data=res)
+            return InterfaceResult(status=self.STATUS_FINISH, content=original_result, data=res)
 
     # 读取xml,返回InterfaceResult对象
     # @param string format 数据解析格式（JSON | XML）
@@ -219,8 +227,9 @@ class DMSBase:
 
     # 读取数据
     def load_data(self, apiSetup, userID=None, file_path=None) -> (str, dict):
+        p_in_list = Setup.load_api_p_in(apiSetup.Company_Code, apiSetup.API_Code)
         # 先写一条日志，记录执行时间
-        logger = self.add_new_api_log_when_start(apiSetup, direction=self.DIRECT_DMS, userID=userID)
+        logger = self.add_new_api_log_when_start(apiSetup, apiPIn=p_in_list, direction=self.DIRECT_DMS, userID=userID)
 
         path = ""
         res = None
@@ -285,7 +294,6 @@ class DMSBase:
                           company_nav_code=company_info.NAV_Company_Code, only_tables=["DMSInterfaceInfo"])
         nav.prepare()
         return nav.checkRepeatImport(path)
-
 
     # 获取指定节点的数量（xml可以节点同名。在json这里，则判断节点是否是数组。是，则返回长度；非，则返回1。
     def get_count_from_data(self, data, node_name) -> int:
@@ -425,7 +433,7 @@ class DMSBase:
 
     # 访问接口/文件时先新增一条API日志，并返回API_Log的主键用于后续更新
     @staticmethod
-    def add_new_api_log_when_start(apiSetup: ApiSetup, direction: int = 1, apiPIn: ApiPInSetup = None,
+    def add_new_api_log_when_start(apiSetup: ApiSetup, direction: int = 1, apiPIn: list = None,
                                    userID: str = None) -> object:
         return Logger.add_new_api_log(apiSetup, direction, apiPIn, userID)
 
@@ -481,14 +489,24 @@ class WebServiceHandler:
     auth = None
     # 接口设置 @see src.models.dms.ApiSetup
     api_setup = None
+    # 日志对象
+    logger = None
 
     # 构造认证器
     def __init__(self, api_setup: ApiSetup, soap_username: str, soap_password: str):
         self.api_setup = api_setup
         self.auth = HttpNtlmAuth(soap_username, soap_password)
 
+    # 设置了日志对象才写文件日志
+    def setLogger(self, logger: logging.Logger):
+        self.logger = logger
+        self.logger.info("logger of web service handler is active")
+
     # 将entry_no作为参数写入指定的ws
     def call_web_service(self, ws_url, envelope, direction, soap_action, async_invoke=False):
+        if self.logger is not None:
+            self.logger.info("web service calling start: ws_url='{0}', envelope='{1}', soap_action='{2}'".format(ws_url, envelope, soap_action))
+
         # 新插入一条日志
         logger = DMSBase.add_new_api_log_when_start(self.api_setup, direction=direction)
 
@@ -527,19 +545,27 @@ class WebServiceHandler:
             "SOAPAction": soap_action
         }
         req = requests.post(url, headers=headers, auth=self.auth, data=data.encode('utf-8'))
-        # print(req)
+        if self.logger is not None:
+            self.logger.info("web service calling result: status_code='{0}', text='{1}'".format(req.status_code, req.text))
         return req
 
     # 将entry_no作为参数写入指定的ws（异步版本）
     def invoke_async(self, url, soap_action, data):
-        # print("async ver")
         headers = {
             "Content-Type": "text/xml",
             "SOAPAction": soap_action
         }
+
+        if self.logger is not None:
+            self.logger.info(
+                "sync web service is calling, url='{0}', headers='{1}', auth='{2}', data='{3}'".format(url, headers, self.auth, data))
+
         rs = [grequests.post(url, headers=headers, auth=self.auth, data=data.encode('utf-8'))]
         res = grequests.map(rs)
-        # print(res)
+
+        if self.logger is not None:
+            self.logger.info("sync web service calling result: {0}".format(res))
+
         if len(res) > 0:
             return res[0]
         return None

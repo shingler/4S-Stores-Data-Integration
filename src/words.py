@@ -34,6 +34,7 @@ class DataImport:
     _load_timeout = "Timeout for reading file:{0}"
     _content_is_too_big = "The length of content (field:{0} \"{3}\" ) exceeds the max length {1} in file: {2}"
     _node_not_exists = "Node:{0} is missing!"
+    _json_http_error = "dms request http error, status_code={0}"
     _json_is_empty = "JSON API return nothing"
     _json_request_error = "JSON API request failed. reason is: {0}"
     _param_out_setup_error = "api out param setup error, missing: {0}!"
@@ -76,6 +77,10 @@ class DataImport:
     @classmethod
     def param_out_setup_error(cls, p_name):
         return cls._param_out_setup_error.format(p_name)
+
+    @classmethod
+    def json_http_error(cls, http_code):
+        return cls._json_http_error.format(http_code)
 
 
 # 程序运行时报错消息模板

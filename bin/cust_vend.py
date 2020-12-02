@@ -2,6 +2,7 @@
 # -*- coding:utf-8 -*-
 import os
 import sys
+import logging
 curPath = os.path.abspath(os.path.dirname(__file__))
 rootPath = os.path.split(curPath)[0]
 sys.path.append(rootPath)
@@ -61,6 +62,8 @@ def main(company_code, api_code, retry=False, file_path=None, async_ws=False):
 
     # 读取web service
     wsh = WebServiceHandler(api_setup, soap_username=company_info.NAV_WEB_UserID, soap_password=company_info.NAV_WEB_Password)
+    if app.config["LOG_ON"] == 1:
+        wsh.setLogger(logging.getLogger(__name__))
     ws_url = wsh.soapAddress(company_info.NAV_Company_Code)
     ws_env = WebServiceHandler.soapEnvelope(entry_no=entry_no, command_code=api_setup.CallBack_Command_Code)
     wsh.call_web_service(ws_url, ws_env, direction=cv_obj.DIRECT_NAV, soap_action=api_setup.CallBack_SoapAction, async_invoke=async_ws)

@@ -39,7 +39,7 @@ class Interface:
 
 
 # 调用接口，请求宝马接口发送调用信息
-def send_data(url, data, interface_instance: Interface) -> requests.Response:
+def send_data(url, data, interface_instance: Interface, timeout: int) -> requests.Response:
     headers = {'Content-Type': 'application/json;charset=UTF-8'}
     # 原始请求数据
     params = interface_instance.get_interface_params(data)
@@ -49,11 +49,11 @@ def send_data(url, data, interface_instance: Interface) -> requests.Response:
     # print(url, params)
     print("=======")
     print(sign_dict)
-    return requests.post(url=url, data=json.dumps(sign_dict), headers=headers)
+    return requests.post(url=url, data=json.dumps(sign_dict), headers=headers, timeout=timeout*60)
 
 
 # DMS接口调用，同步后返回对象
-def api_dms(company_info: dms.Company, api_setup: dms.ApiSetup, p_in_list: list):
+def api_dms(company_info: dms.Company, api_setup: dms.ApiSetup, p_in_list: list) -> requests.Response:
     dealer_group_code = company_info.DMS_Group_Code  # 经销商集团代码
     dealer_entity_code = company_info.DMS_Company_Code  # 4S店编号
 
@@ -76,8 +76,12 @@ def api_dms(company_info: dms.Company, api_setup: dms.ApiSetup, p_in_list: list)
 
     url = api_setup.API_Address1.format(dealer_group_code.lower())
 
-    resp = send_data(url, data=data, interface_instance=interface_instance).json()
-    print(data, resp)
+    resp = send_data(url, data=data, interface_instance=interface_instance, timeout=api_setup.Time_out)
+    return resp
+
+
+# 解析DMS接口返回的内容
+def parse(resp: dict):
     code = resp["Code"] if "Code" in resp else resp["status"]
 
     # 开始取数并解析数据
