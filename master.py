@@ -1,11 +1,10 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
 # 定时任务调度器
-import argparse
-
 from gevent import monkey
 monkey.patch_all()
-
+import argparse
+import datetime
 import threading
 import time
 import logging
@@ -14,7 +13,7 @@ from bin.task import Handler
 from src import ApiTaskSetup, words
 from src.dms.task import Task
 
-logging.basicConfig(filename="%s.log" % __file__, level=logging.INFO,
+logging.basicConfig(filename="%s_%s.log" % (__file__, datetime.date.today().isoformat()), level=logging.INFO,
                     format='%(asctime)s - %(filename)s - %(levelname)s - %(message)s')
 
 
