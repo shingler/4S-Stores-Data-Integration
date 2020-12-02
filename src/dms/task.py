@@ -7,7 +7,7 @@ import math
 from sqlalchemy import asc
 from sqlalchemy.sql.elements import and_
 
-from src import ApiTaskSetup, db, Company, ApiSetup
+from src import ApiTaskSetup, db, Company, ApiSetup, create_app
 
 
 class Task:
@@ -52,6 +52,9 @@ class Task:
 
     # 根据间隔天数和开始时间，判断内嵌的任务是否该被执行
     def is_valid(self):
+        app = create_app()
+        scan_interval = app.config["TASK_SCAN_INTERVAL"]
+
         date_is_valid = True
         # 先验证日期是否正确
         last_run_dt_str = self.api_task_setup.Last_Executed_Time
@@ -83,7 +86,7 @@ class Task:
             interval_seconds = math.fabs(delta.seconds)
             # print(execute_dt, datetime.datetime.now())
             # print(delta.seconds, interval_seconds)
-            if interval_seconds/60 > 5:
+            if interval_seconds/60 > scan_interval:
                 return False
 
         return True
