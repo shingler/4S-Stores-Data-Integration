@@ -22,6 +22,10 @@ class Base:
     DATABASE_SUFFIX = ""
     # 多库连接绑定
     SQLALCHEMY_BINDS = {}
+    # 任务扫描时间冗余（分钟）
+    TASK_SCAN_INTERVAL = 5
+    # 是否开启日志（1=开启，0=不开启）
+    LOG_ON = 1
 
 
 class Development(Base):
@@ -40,7 +44,8 @@ class Test(Base):
     DATABASE_ENGINE = "mssql+pyodbc"
     DATABASE_PORT = 1433
     DATABASE_SUFFIX = "driver=ODBC+Driver+17+for+SQL+Server"
-    # SQLALCHEMY_ECHO = False
+    SQLALCHEMY_ECHO = False
+    TASK_SCAN_INTERVAL = 10
 
 
 # windows下的测试环境
@@ -62,3 +67,7 @@ class Production(Base):
     SQLALCHEMY_DATABASE_URI = "mssql+pyodbc://NavDBUser:Hytc_1qaz@WSX@62.234.26.35:1433/PH_DMSInterface?driver=ODBC+Driver+17+for+SQL+Server"
     # 关闭sql回显
     SQLALCHEMY_ECHO = False
+    # 任务扫描时间冗余（分钟）
+    TASK_SCAN_INTERVAL = 10
+    # 是否开启日志（1=开启，0=不开启）
+    LOG_ON = 1

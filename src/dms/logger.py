@@ -2,7 +2,10 @@
 # -*- coding:utf-8 -*-
 # 操作日志的类
 import datetime
+import json
+
 from src import APILog, db
+from src.dms.setup import ParamConvert
 
 
 class Logger:
@@ -13,12 +16,21 @@ class Logger:
 
     @staticmethod
     def add_new_api_log(apiSetup, direction=1, apiPIn=None, userID=None):
-        # print(apiSetup)
+        p_in = {}
+        if apiPIn is not None and type(apiPIn) == list:
+            pc = ParamConvert()
+            for p in apiPIn:
+                if p.Value_Type in [4, 5] and p.Value_Source == 2:
+                    if hasattr(pc, p.Value.upper()):
+                        p_in[p.P_Code] = pc.__getattribute__(p.Value.upper())
+                else:
+                    p_in[p.P_Code] = p.Value
+
         api_log = APILog(
             Company_Code=apiSetup.Company_Code,
             API_Code=apiSetup.API_Code,
             API_Direction=direction,
-            API_P_In=apiPIn if apiPIn is not None else "",
+            API_P_In=json.dumps(p_in, ensure_ascii=False) if len(p_in) > 0 else "",
             API_Content="",
             Content_Type=apiSetup.Data_Format,
             Status=1,
