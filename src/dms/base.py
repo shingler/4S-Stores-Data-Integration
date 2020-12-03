@@ -129,19 +129,19 @@ class DMSBase:
         except requests.ConnectTimeout as ex:
             return InterfaceResult(status=self.STATUS_TIMEOUT, error_msg=words.DataImport.load_timeout(ex))
         except Exception as ex:
-            return InterfaceResult(status=self.STATUS_ERROR, error_msg=words.DataImport.json_request_fail(ex))
+            return InterfaceResult(status=self.STATUS_ERROR, error_msg=words.DataImport.json_request_fail(self.company_code, self.api_code, ex))
         if resp.status_code != 200:
-            return InterfaceResult(status=self.STATUS_ERROR, error_msg=words.DataImport.json_http_error(resp.status_code))
+            return InterfaceResult(status=self.STATUS_ERROR, error_msg=words.DataImport.json_http_error(self.company_code, self.api_code, resp.status_code))
         # 完整的返回内容，用于入日志表
         original_result = resp.text
         # 业务处理需要做一些加工
         code, res = interface.parse(resp.json())
         if code != '200':
-            return InterfaceResult(status=self.STATUS_ERROR, content=original_result, error_msg=words.DataImport.json_request_fail(res))
+            return InterfaceResult(status=self.STATUS_ERROR, content=original_result, error_msg=words.DataImport.json_request_fail(self.company_code, self.api_code, res))
         if res is None:
             return InterfaceResult(status=self.STATUS_ERROR, content=original_result)
         elif len(res) == 0:
-            return InterfaceResult(status=self.STATUS_ERROR, content=original_result, error_msg=words.DataImport.json_is_empty())
+            return InterfaceResult(status=self.STATUS_ERROR, content=original_result, error_msg=words.DataImport.json_is_empty(self.company_code, self.api_code))
         else:
             return InterfaceResult(status=self.STATUS_FINISH, content=original_result, data=res)
 

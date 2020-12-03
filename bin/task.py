@@ -45,9 +45,9 @@ class Handler:
             elif self.current_task.API_Command_Code == "04":
                 self.runner = other
 
-            self.entry_no = self.runner.main(company_code=company_code, api_code=api_code, async_ws=True)
-            print(words.RunResult.success(self.entry_no))
-            self.logger.info(words.RunResult.success(self.entry_no))
+            self.entry_no = self.runner.main(company_code=company_code, api_code=api_code, async_ws=False)
+            print(words.RunResult.success(company_code, api_code, self.entry_no))
+            self.logger.info(words.RunResult.success(company_code, api_code, self.entry_no))
             # 更新成功执行时间
             self.current_task.update_execute_time()
 
@@ -58,27 +58,27 @@ class Handler:
             # 失败处理，主要读取task里的Fail_Handle字段
             if not self.retry and self.current_task.api_task_setup.Fail_Handle == 1:
                 # 第一次执行失败了，且不重试
-                print(words.RunResult.fail(ex))
-                self.logger.error(words.RunResult.fail(ex))
+                print(words.RunResult.fail(company_code, api_code, ex))
+                self.logger.error(words.RunResult.fail(company_code, api_code, ex))
                 self.retry = False
                 self.notify = False
                 return False
             elif not self.retry and self.current_task.api_task_setup.Fail_Handle == 4:
                 # 第一次执行失败了，且不重试
-                print(words.RunResult.fail(ex))
-                print(words.RunResult.send_notify())
-                self.logger.error(words.RunResult.fail(ex))
-                self.logger.info(words.RunResult.send_notify())
+                print(words.RunResult.fail(company_code, api_code, ex))
+                print(words.RunResult.send_notify(company_code, api_code))
+                self.logger.error(words.RunResult.fail(company_code, api_code, ex))
+                self.logger.info(words.RunResult.send_notify(company_code, api_code))
                 self.notify = True
                 self.retry = False
                 self.load_error = ex
                 return False
             elif not self.retry:
                 # 仍然是第一次执行，失败将重试
-                print(words.RunResult.fail(ex))
-                print(words.RunResult.retry())
-                self.logger.error(words.RunResult.fail(ex))
-                self.logger.warning(words.RunResult.retry())
+                print(words.RunResult.fail(company_code, api_code, ex))
+                print(words.RunResult.retry(company_code, api_code))
+                self.logger.error(words.RunResult.fail(company_code, api_code, ex))
+                self.logger.warning(words.RunResult.retry(company_code, api_code))
                 self.retry = True
                 self.notify = False
                 self.run_task()
@@ -86,10 +86,10 @@ class Handler:
             # retry=True，表示这是第二次执行了
             if self.retry and self.current_task.api_task_setup.Fail_Handle == 3:
                 # 重试后依然失败，如果Fail_Handle=3则发送提醒邮件
-                print(words.RunResult.fail(ex))
-                print(words.RunResult.send_notify())
-                self.logger.error(words.RunResult.fail(ex))
-                self.logger.info(words.RunResult.send_notify())
+                print(words.RunResult.fail(company_code, api_code, ex))
+                print(words.RunResult.send_notify(company_code, api_code))
+                self.logger.error(words.RunResult.fail(company_code, api_code, ex))
+                self.logger.info(words.RunResult.send_notify(company_code, api_code))
                 self.notify = True
                 self.load_error = ex
                 return False

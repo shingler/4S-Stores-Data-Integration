@@ -34,10 +34,10 @@ class DataImport:
     _load_timeout = "Timeout for reading file:{0}"
     _content_is_too_big = "The length of content (field:{0} \"{3}\" ) exceeds the max length {1} in file: {2}"
     _node_not_exists = "Node:{0} is missing!"
-    _json_http_error = "dms request http error, status_code={0}"
-    _json_is_empty = "JSON API return nothing"
-    _json_request_error = "JSON API request failed. reason is: {0}"
-    _param_out_setup_error = "api out param setup error, parent node {0} is missing!"
+    _json_http_error = "Task<{0}, {1}> dms request http error, status_code={0}"
+    _json_is_empty = "Task<{0}, {1}> JSON API return nothing"
+    _json_request_error = "Task<{0}, {1}> JSON API request failed. reason is: {0}"
+    _param_out_setup_error = "Task<{0}, {1}> api out param setup error, parent node {2} is missing!"
 
     @classmethod
     def field_is_empty(cls, field):
@@ -67,46 +67,46 @@ class DataImport:
         return message
 
     @classmethod
-    def json_is_empty(cls):
-        return cls._json_is_empty
+    def json_is_empty(cls, company_code, api_code):
+        return cls._json_is_empty.format(company_code, api_code)
 
     @classmethod
-    def json_request_fail(cls, reason):
-        return cls._json_request_error.format(reason)
+    def json_request_fail(cls, company_code, api_code, reason):
+        return cls._json_request_error.format(company_code, api_code, reason)
 
     @classmethod
-    def param_out_setup_error(cls, p_name):
-        return cls._param_out_setup_error.format(p_name)
+    def param_out_setup_error(cls, company_code, api_code, p_name):
+        return cls._param_out_setup_error.format(company_code, api_code, p_name)
 
     @classmethod
-    def json_http_error(cls, http_code):
-        return cls._json_http_error.format(http_code)
+    def json_http_error(cls, company_code, api_code, http_code):
+        return cls._json_http_error.format(company_code, api_code, http_code)
 
 
 # 程序运行时报错消息模板
 class RunResult:
-    _sucess = "Operation successful, Entry No:{0}"
-    _fail = "Task failed, reason is {0}"
-    _retry = "According to system setting, the task will be tried again"
-    _send_notify = "According to system setting, the task will send notification email"
+    _sucess = "Task<{0}, {1}> Operation successful, Entry No:{2}"
+    _fail = "Task<{0}, {1}> failed, reason is {2}"
+    _retry = "According to system setting, the task<{0}, {1}> will be tried again"
+    _send_notify = "According to system setting, the task<{0}, {1}> will send notification email"
     _task_start = "Task<{0}, {1}> is running"
     _task_not_reach_time = "The Time for Task<{0}, {1}> is not arrived"
 
     @classmethod
-    def success(cls, entry_no):
-        return cls._sucess.format(entry_no)
+    def success(cls, company_code, api_code, entry_no):
+        return cls._sucess.format(company_code, api_code, entry_no)
 
     @classmethod
-    def fail(cls, reason):
-        return cls._fail.format(reason)
+    def fail(cls, company_code, api_code, reason):
+        return cls._fail.format(company_code, api_code, reason)
 
     @classmethod
-    def retry(cls):
-        return cls._retry
+    def retry(cls, company_code, api_code):
+        return cls._retry.format(company_code, api_code)
 
     @classmethod
-    def send_notify(cls):
-        return cls._send_notify
+    def send_notify(cls, company_code, api_code):
+        return cls._send_notify.format(company_code, api_code)
 
     @classmethod
     def task_start(cls, company_code, api_code):
