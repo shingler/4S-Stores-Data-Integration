@@ -54,24 +54,28 @@ class InvoiceHeader(Invoice):
         # 加载0级节点
         node_lv0 = Setup.load_api_p_out_nodes(company_code, api_code, "/", 0)
         if node_lv0 == {}:
-            raise NodeNotExistError(words.DataImport.node_not_exists("Transaction"))
+            raise NodeNotExistError(words.DataImport.param_out_setup_error(["/"]))
         for node in node_lv0.values():
             self.NODE_LV0 = node.P_Code
 
         # 加载1级节点
         node_lv1 = Setup.load_api_p_out_nodes(company_code, api_code, self.NODE_LV0, 1)
+        if node_lv1 == {}:
+            raise NodeNotExistError(words.DataImport.param_out_setup_error(self.NODE_LV0))
         for node in node_lv1.values():
             if node.Table_Name == "InvoiceHeaderBuffer":
                 self.BIZ_NODE_LV1 = node.P_Code
 
         # 加载2级节点
         node_lv2 = Setup.load_api_p_out_nodes(company_code, api_code, self.BIZ_NODE_LV1, 2)
+        if node_lv2 == {}:
+            raise NodeNotExistError(words.DataImport.param_out_setup_error(self.BIZ_NODE_LV1))
         for node in node_lv2.values():
             if node.Table_Name == "InvoiceHeaderBuffer" and node.Value_Type == 6:
                 self.BIZ_NODE_LV2 = node.P_Code
             elif node.Value_Type == 1:
                 self._COMMON_FILED = node.P_Code
-        print(self.BIZ_NODE_LV1, self.BIZ_NODE_LV2)
+        # print(self.BIZ_NODE_LV1, self.BIZ_NODE_LV2)
 
     # 根据节点名处理二级/三级层级数据
     def _splice_field_by_name(self, data, node_dict):
@@ -226,18 +230,22 @@ class InvoiceLine(Invoice):
         # 加载0级节点
         node_lv0 = Setup.load_api_p_out_nodes(company_code, api_code, "/", 0)
         if node_lv0 == {}:
-            raise NodeNotExistError(words.DataImport.node_not_exists("Transaction"))
+            raise NodeNotExistError(words.DataImport.param_out_setup_error("/"))
         for node in node_lv0.values():
             self.NODE_LV0 = node.P_Code
 
         # 加载1级节点
         node_lv1 = Setup.load_api_p_out_nodes(company_code, api_code, self.NODE_LV0, 1)
+        if node_lv1 == {}:
+            raise NodeNotExistError(words.DataImport.param_out_setup_error(self.NODE_LV0))
         for node in node_lv1.values():
             if node.Table_Name == "InvoiceLineBuffer":
                 self.BIZ_NODE_LV1 = node.P_Code
 
         # 加载2级节点
         node_lv2 = Setup.load_api_p_out_nodes(company_code, api_code, self.BIZ_NODE_LV1, 2)
+        if node_lv2 == {}:
+            raise NodeNotExistError(words.DataImport.param_out_setup_error(self.BIZ_NODE_LV1))
         for node in node_lv2.values():
             if node.Table_Name == "InvoiceLineBuffer" and node.Value_Type == 6:
                 self.BIZ_NODE_LV2 = node.P_Code
