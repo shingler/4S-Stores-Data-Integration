@@ -17,14 +17,14 @@ class FA(DMSBase):
         # 加载0级节点
         node_lv0 = Setup.load_api_p_out_nodes(company_code, api_code, "/", 0)
         if node_lv0 == {}:
-            raise NodeNotExistError(words.DataImport.param_out_setup_error(["/"]))
+            raise NodeNotExistError(words.DataImport.param_out_setup_error(company_code, api_code, "/"))
         for node in node_lv0.values():
             self.NODE_LV0 = node.P_Code
 
         # 加载1级节点
         node_lv1 = Setup.load_api_p_out_nodes(company_code, api_code, self.NODE_LV0, 1)
         if node_lv1 == {}:
-            raise NodeNotExistError(words.DataImport.param_out_setup_error(self.NODE_LV0))
+            raise NodeNotExistError(words.DataImport.param_out_setup_error(company_code, api_code, self.NODE_LV0))
         for node in node_lv1.values():
             if node.P_Name == "FA":
                 self.BIZ_NODE_LV1 = node.P_Code

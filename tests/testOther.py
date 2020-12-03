@@ -82,11 +82,8 @@ def test_4_save_Other(init_app):
 
     # FA节点配置
     node_dict = Setup.load_api_p_out(company_code, api_code)
-    if other_obj.BIZ_NODE_LV1 not in node_dict:
-        raise NodeNotExistError(words.DataImport.param_out_setup_error(other_obj.BIZ_NODE_LV1))
-    if other_obj.BIZ_NODE_LV2 not in node_dict:
-        raise NodeNotExistError(words.DataImport.param_out_setup_error(other_obj.BIZ_NODE_LV2))
-
+    assert other_obj.BIZ_NODE_LV1 in node_dict
+    assert other_obj.BIZ_NODE_LV2 in node_dict
     other_node_dict = {**node_dict[other_obj.BIZ_NODE_LV1], **node_dict[other_obj.BIZ_NODE_LV2]}
 
     # 拼接fa数据
