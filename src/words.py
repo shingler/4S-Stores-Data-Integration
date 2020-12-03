@@ -37,7 +37,7 @@ class DataImport:
     _json_http_error = "dms request http error, status_code={0}"
     _json_is_empty = "JSON API return nothing"
     _json_request_error = "JSON API request failed. reason is: {0}"
-    _param_out_setup_error = "api out param setup error, missing: {0}!"
+    _param_out_setup_error = "api out param setup error, parent node {0} is missing!"
 
     @classmethod
     def field_is_empty(cls, field):

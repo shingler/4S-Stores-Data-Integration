@@ -419,17 +419,19 @@ class DMSBase:
     # @param string archive_path 要归档的目录（不含文件名及公司名）
     @staticmethod
     def archive_xml(xml_path, archive_path):
-        # 如果目录不存在，就创建
-        if not os.path.exists(archive_path):
-            os.makedirs(archive_path, 0o777)
+        # 如果归档目录为空，则什么都不做
+        if archive_path != "":
+            # 如果目录不存在，就创建
+            if not os.path.exists(archive_path):
+                os.makedirs(archive_path, 0o777)
 
-        archive_file_path = os.path.join(archive_path, os.path.basename(xml_path))
-        # 如果文件存在则附加当前时间
-        if os.path.exists(archive_file_path):
-            file_name = "%s_%s%s" % (os.path.splitext(os.path.basename(xml_path))[0], datetime.datetime.now().strftime("%Y%m%d_%H.%M.%S"), os.path.splitext(os.path.basename(xml_path))[1])
-            archive_file_path = os.path.join(archive_path, file_name)
+            archive_file_path = os.path.join(archive_path, os.path.basename(xml_path))
+            # 如果文件存在则附加当前时间
+            if os.path.exists(archive_file_path):
+                file_name = "%s_%s%s" % (os.path.splitext(os.path.basename(xml_path))[0], datetime.datetime.now().strftime("%Y%m%d_%H.%M.%S"), os.path.splitext(os.path.basename(xml_path))[1])
+                archive_file_path = os.path.join(archive_path, file_name)
 
-        os.replace(xml_path, archive_file_path)
+            os.replace(xml_path, archive_file_path)
 
     # 访问接口/文件时先新增一条API日志，并返回API_Log的主键用于后续更新
     @staticmethod
@@ -496,6 +498,8 @@ class WebServiceHandler:
     def __init__(self, api_setup: ApiSetup, soap_username: str, soap_password: str):
         self.api_setup = api_setup
         self.auth = HttpNtlmAuth(soap_username, soap_password)
+        if self.logger is not None:
+            self.logger.info("web service auth username is {0}, password is {1}".format(soap_username, soap_password))
 
     # 设置了日志对象才写文件日志
     def setLogger(self, logger: logging.Logger):
@@ -558,7 +562,7 @@ class WebServiceHandler:
 
         if self.logger is not None:
             self.logger.info(
-                "sync web service is calling, url='{0}', headers='{1}', auth='{2}', data='{3}'".format(url, headers, self.auth, data))
+                "sync web service is calling, url='{0}', headers='{1}', data='{2}'".format(url, headers, data))
 
         rs = [grequests.post(url, headers=headers, auth=self.auth, data=data.encode('utf-8'))]
         res = grequests.map(rs)
