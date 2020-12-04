@@ -4,6 +4,7 @@
 from gevent import monkey
 monkey.patch_all()
 import argparse
+import os
 from logging import config
 import threading
 import time
@@ -13,7 +14,7 @@ from bin.task import Handler
 from src import ApiTaskSetup, words
 from src.dms.task import Task
 
-config.fileConfig("logging.conf")
+config.fileConfig(os.path.join(os.path.dirname(os.path.abspath(__file__)), "logging.conf"))
 
 
 # 处理任务的线程

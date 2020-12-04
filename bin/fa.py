@@ -17,7 +17,7 @@ from src.models.dms import Company
 from src import words
 from src.error import ObjectNotFoundError
 
-config.fileConfig("logging.conf")
+config.fileConfig(os.path.join(rootPath, "logging.conf"))
 
 
 # @param string company_code 公司代码
