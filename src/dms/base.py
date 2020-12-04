@@ -165,8 +165,8 @@ class DMSBase:
             data = xml_handler.read()
         # 模拟超时
         # time.sleep(90)
-        if time_out > 0 and time.perf_counter() >= time_out * 60:
-            return InterfaceResult(status=self.STATUS_TIMEOUT, error_msg=words.DataImport.load_timeout(path))
+        # if time_out > 0 and time.perf_counter() >= time_out * 60:
+        #     return InterfaceResult(status=self.STATUS_TIMEOUT, error_msg=words.DataImport.load_timeout(path))
 
         # print(data, type(data))
         res = InterfaceResult(status=self.STATUS_FINISH, content=data)
