@@ -4,7 +4,7 @@
 from gevent import monkey
 monkey.patch_all()
 import argparse
-import datetime
+from logging import config
 import threading
 import time
 import logging
@@ -13,8 +13,7 @@ from bin.task import Handler
 from src import ApiTaskSetup, words
 from src.dms.task import Task
 
-logging.basicConfig(filename="%s_%s.log" % (__file__, datetime.date.today().isoformat()), level=logging.INFO,
-                    format='%(asctime)s - %(filename)s - %(levelname)s - %(message)s')
+config.fileConfig("logging.conf")
 
 
 # 处理任务的线程
@@ -25,7 +24,7 @@ def do(one_task: ApiTaskSetup):
 
     try:
         print(words.RunResult.task_start(one_task.Company_Code, one_task.API_Code))
-        logging.getLogger(__name__).info(words.RunResult.task_start(one_task.Company_Code, one_task.API_Code))
+        logging.getLogger("master").info(words.RunResult.task_start(one_task.Company_Code, one_task.API_Code))
         res = handler.run_task()
         if not res and handler.notify:
             handler.send_notification()
@@ -50,7 +49,7 @@ if __name__ == '__main__':
         task = Task(one_task)
         if args.time_check and not task.is_valid():
             print(words.RunResult.task_not_reach_time(one_task.Company_Code, one_task.API_Code))
-            logging.getLogger(__name__).info(words.RunResult.task_not_reach_time(one_task.Company_Code, one_task.API_Code))
+            logging.getLogger("master").info(words.RunResult.task_not_reach_time(one_task.Company_Code, one_task.API_Code))
         else:
             task_can_run_list.append(one_task)
 

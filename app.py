@@ -2,15 +2,17 @@
 # -*- coding:utf-8 -*-
 from gevent import monkey
 monkey.patch_all()
-from src.error import NodeNotExistError
 import json
+import logging
+from logging import config
 from flask import jsonify, request, Response
 from src import create_app, words
 from bin import cust_vend, fa, invoice, other
 from src import error
+from src.error import NodeNotExistError
 
 app = create_app()
-
+config.fileConfig("logging.conf")
 
 # 接口状态获取
 @app.route("/")
@@ -27,6 +29,7 @@ def default():
 # @param string options 指定参数，格式为JSON，详见说明文档
 @app.route("/dms_interface", methods=["POST"])
 def dms_interface_api():
+    logger = logging.getLogger("dms_interface_api")
     if request.method != "POST":
         return jsonify({"status": 40000, "error_message": words.WebApi.method_error()})
 
@@ -36,6 +39,8 @@ def dms_interface_api():
     retry = request.form.get("retry", 0)
     api_type = request.form.get("api_type", 0)
     option_str = request.form.get("options", "")
+
+    logger.info("company_code=%s, api_code=%s" % (company_code, api_code))
 
     try:
         options = json.loads(option_str, encoding="UTF-8") if len(option_str) > 0 else None

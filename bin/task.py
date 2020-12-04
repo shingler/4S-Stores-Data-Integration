@@ -11,6 +11,8 @@ from src import UserList, words
 from src.dms.notification import Notification
 from src.dms.task import Task
 from src.models.dms import ApiTaskSetup, NotificationUser
+from logging import config
+config.fileConfig("logging.conf")
 
 
 class Handler:
@@ -23,7 +25,7 @@ class Handler:
 
     def __init__(self, task: ApiTaskSetup):
         self.current_task = Task(task)
-        self.logger = logging.getLogger(__name__)
+        self.logger = logging.getLogger("Task<%s, %s>" % (task.Company_Code, task.Sequence))
 
     # 检查这个任务是否可用
     def check_task(self) -> bool:

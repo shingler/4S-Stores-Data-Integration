@@ -504,7 +504,6 @@ class WebServiceHandler:
     # 设置了日志对象才写文件日志
     def setLogger(self, logger: logging.Logger):
         self.logger = logger
-        self.logger.info("logger of web service handler is active")
 
     # 将entry_no作为参数写入指定的ws
     def call_web_service(self, ws_url, envelope, direction, soap_action, async_invoke=False):
