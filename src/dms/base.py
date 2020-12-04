@@ -493,10 +493,14 @@ class WebServiceHandler:
     api_setup = None
     # 日志对象
     logger = None
+    # 超时时间
+    timeout = None
 
     # 构造认证器
     def __init__(self, api_setup: ApiSetup, soap_username: str, soap_password: str):
         self.api_setup = api_setup
+        if api_setup.Time_out > 0:
+            self.timeout = 60 * api_setup.Time_out
         self.auth = HttpNtlmAuth(soap_username, soap_password)
         if self.logger is not None:
             self.logger.info("web service auth username is {0}, password is {1}".format(soap_username, soap_password))
@@ -547,7 +551,7 @@ class WebServiceHandler:
             "Content-Type": "text/xml",
             "SOAPAction": soap_action
         }
-        req = requests.post(url, headers=headers, auth=self.auth, data=data.encode('utf-8'), timeout=300)
+        req = requests.post(url, headers=headers, auth=self.auth, data=data.encode('utf-8'), timeout=self.timeout)
         if self.logger is not None:
             self.logger.info("web service calling result: status_code='{0}', text='{1}'".format(req.status_code, req.text))
         return req
@@ -563,7 +567,7 @@ class WebServiceHandler:
             self.logger.info(
                 "sync web service is calling, url='{0}', headers='{1}', data='{2}'".format(url, headers, data))
 
-        rs = [grequests.post(url, headers=headers, auth=self.auth, data=data.encode('utf-8'), time=300)]
+        rs = [grequests.post(url, headers=headers, auth=self.auth, data=data.encode('utf-8'), time=self.timeout)]
         res = grequests.map(rs)
 
         if self.logger is not None:
