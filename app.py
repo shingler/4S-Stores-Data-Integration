@@ -3,6 +3,7 @@
 from gevent import monkey
 monkey.patch_all()
 import json
+import os
 import logging
 from logging import config
 from flask import jsonify, request, Response
@@ -12,7 +13,7 @@ from src import error
 from src.error import NodeNotExistError
 
 app = create_app()
-config.fileConfig("logging.conf")
+config.fileConfig(os.path.join(os.path.dirname(os.path.abspath(__file__)), "logging.conf"))
 
 # 接口状态获取
 @app.route("/")

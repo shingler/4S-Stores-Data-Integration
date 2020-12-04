@@ -12,7 +12,7 @@ from src.dms.notification import Notification
 from src.dms.task import Task
 from src.models.dms import ApiTaskSetup, NotificationUser
 from logging import config
-config.fileConfig("logging.conf")
+config.fileConfig(os.path.join(rootPath, "logging.conf"))
 
 
 class Handler:
