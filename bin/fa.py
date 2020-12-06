@@ -53,7 +53,7 @@ def main(company_code, api_code, retry=False, file_path=None, async_ws=False):
     # 拼接数据
     general_dict = fa_obj.splice_general_info(data, node_dict=general_node_dict)
     fa_dict = fa_obj.splice_data_info(data, node_dict=fa_node_dict)
-    count = fa_obj.get_count_from_data(data["Transaction"], "FA")
+    count = fa_obj.get_count_from_data(data["Transaction"], fa_obj.BIZ_NODE_LV1)
 
     # 写入数据
     entry_no = nav.insertGeneral(api_p_out=general_node_dict, data_dict=general_dict, Type=1, Count=count, XMLFile=path)

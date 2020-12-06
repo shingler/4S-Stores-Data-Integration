@@ -17,7 +17,15 @@ from src.dms.task import Task
 config.fileConfig(os.path.join(os.path.dirname(os.path.abspath(__file__)), "logging.conf"))
 
 
-# 处理任务的线程
+# 按公司进行线程任务
+def companyThread(company_tasks: list):
+    if len(company_tasks) == 0:
+        return
+    for task in company_tasks:
+        do(task)
+
+
+# 单任务的执行
 # @param ApiTaskSetup one_task 一个任务设置
 def do(one_task: ApiTaskSetup):
     app.app_context().push()
@@ -43,7 +51,7 @@ if __name__ == '__main__':
 
     # 读取任务列表
     task_list = Task.load_tasks()
-    task_can_run_list = []
+    companies_tasks = {}
 
     # 先判断时间，再执行任务分发
     for one_task in task_list:
@@ -52,11 +60,13 @@ if __name__ == '__main__':
             print(words.RunResult.task_not_reach_time(one_task.Company_Code, one_task.API_Code))
             logging.getLogger("master").info(words.RunResult.task_not_reach_time(one_task.Company_Code, one_task.API_Code))
         else:
-            task_can_run_list.append(one_task)
+            if one_task.Company_Code not in companies_tasks:
+                companies_tasks[one_task.Company_Code] = []
+            companies_tasks[one_task.Company_Code].append(one_task)
 
     # 启用多线程做任务分发
-    for one_task in task_can_run_list:
-        threading_name = "%s-%s(%s)" % (one_task.Company_Code, one_task.API_Code, one_task.Sequence)
-        sub = threading.Thread(target=do, name=threading_name, kwargs={"one_task": one_task})
+    for company_code, one_company_tasks in companies_tasks.items():
+        threading_name = "thread-%s" % company_code
+        sub = threading.Thread(target=companyThread, name=threading_name, kwargs={"company_tasks": one_company_tasks})
         sub.start()
         time.sleep(0.1)
