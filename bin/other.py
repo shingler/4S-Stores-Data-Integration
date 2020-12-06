@@ -51,7 +51,7 @@ def main(company_code, api_code, retry=False, file_path=None, async_ws=False):
     # 拼接数据
     general_dict = other_obj.splice_general_info(data, node_dict=general_node_dict)
     other_dict = other_obj.splice_data_info(data, node_dict=other_node_dict)
-    count = other_obj.get_count_from_data(data["Transaction"], "Daydook")
+    count = other_obj.get_count_from_data(data["Transaction"], other_obj.BIZ_NODE_LV1)
 
     # 写入数据
     entry_no = nav.insertGeneral(api_p_out=general_node_dict, data_dict=general_dict, Type=3, Count=count, XMLFile=path)

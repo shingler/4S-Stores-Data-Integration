@@ -315,7 +315,7 @@ class NavDB:
                       "DateTime Imported": datetime.datetime.utcnow().isoformat(timespec="seconds"),
                       "DateTime handled": "1753-01-01 00:00:00.000", "Handled by": ""}
 
-        table_name = self.tables["InvoiceHeaderBuffer"]
+        table_name = self._getTableName(self.company_nav_code, "InvoiceHeaderBuffer")
 
         # 写cv
         if type(data_dict) == OrderedDict:
@@ -367,7 +367,7 @@ class NavDB:
                       "DateTime Imported": datetime.datetime.utcnow().isoformat(timespec="seconds"),
                       "DateTime Handled": "1753-01-01 00:00:00.000", "Handled by": ""}
 
-        table_name = self.tables["InvoiceLineBuffer"]
+        table_name = self._getTableName(self.company_nav_code, "InvoiceLineBuffer")
 
         # 写cv
         if type(data_dict) == OrderedDict:
