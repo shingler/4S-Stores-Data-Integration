@@ -55,4 +55,5 @@ class Logger:
             "Finished_DT": datetime.datetime.now().isoformat(timespec="milliseconds"),
             "Error_Message": error_msg
         })
+        db.session.commit()
 
