@@ -163,8 +163,7 @@ class DMSBase:
         # 读取文件内容
         with open(path, "r", encoding="UTF-8") as xml_handler:
             data = xml_handler.read()
-        # 模拟超时
-        # time.sleep(90)
+
         # if time_out > 0 and time.perf_counter() >= time_out * 60:
         #     return InterfaceResult(status=self.STATUS_TIMEOUT, error_msg=words.DataImport.load_timeout(path))
 
@@ -342,77 +341,9 @@ class DMSBase:
     def splice_general_info(self, data, node_dict):
         return self._splice_field(data, node_dict, node_lv0="Transaction", node_lv1="General", node_type="node")
 
-    # 写入interfaceinfo获得entry_no
-    def save_data_to_interfaceinfo(self, general_data, Type, Count, XMLFile=""):
-        # 用数据初始化对象
-        InterfaceClass = self.GENERAL_CLASS
-        # 处理sql server的identity_insert问题
-        # db.session.execute("SET IDENTITY_INSERT [%s] ON" % InterfaceClass.__tablename__)
-        interfaceInfo = InterfaceClass(
-            DMSCode=general_data["DMSCode"],
-            DMSTitle=general_data["DMSTitle"],
-            CompanyCode=general_data["CompanyCode"],
-            CompanyTitle=general_data["CompanyTitle"],
-            CreateDateTime=to_local_time(general_data["CreateDateTime"]),
-            Creator=general_data["Creator"],
-            XMLFileName=XMLFile,
-            Type=Type,
-            Customer_Vendor_Total_Count=0,
-            Other_Transaction_Total_Count=0,
-            FA_Total_Count=0,
-            Invoice_Total_Count=0
-        )
-
-        # 再补充一些默认值
-        interfaceInfo.DateTime_Imported = datetime.datetime.utcnow().isoformat(timespec="seconds")
-
-        if Type == 0:
-            interfaceInfo.Customer_Vendor_Total_Count = Count
-        elif Type == 1:
-            interfaceInfo.FA_Total_Count = Count
-        elif Type == 2:
-            interfaceInfo.Invoice_Total_Count = Count
-        else:
-            interfaceInfo.Other_Transaction_Total_Count = Count
-
-        # 加线程锁
-        lock = threading.Lock()
-        lock.acquire()
-        time.sleep(0.5)
-        # print("%s已上锁" % threading.current_thread().name)
-        interfaceInfo.Entry_No_ = interfaceInfo.getLatestEntryNo()
-        lock.release()
-        # print("%s的锁已释放" % threading.current_thread().name)
-
-        db.session.add(interfaceInfo)
-        # db.session.execute("SET IDENTITY_INSERT [%s] OFF" % InterfaceClass.__tablename__)
-        db.session.commit()
-        db.session.flush()
-        # db.session.query(interfaceInfo.Entry_No_ == interfaceInfo.Entry_No_).first()
-        db.session.expire_all()
-
-        return interfaceInfo.Entry_No_
-
     # 从api_p_out获取数据
     def splice_data_info(self, data, node_dict):
         pass
-
-    # 根据API_P_Out写入nav表
-    def save_data_to_nav(self, nav_data, entry_no, TABLE_CLASS):
-        if type(nav_data) == OrderedDict:
-            nav_data = [nav_data]
-
-        for row in nav_data:
-            try:
-                model_obj = TABLE_CLASS(Entry_No_=entry_no)
-                model_obj.Record_ID = model_obj.getLatestRecordId()
-                for key, value in row.items():
-                    # 自动赋值
-                    model_obj.__setattr__(key, value)
-                db.session.add(model_obj)
-                db.session.commit()
-            except InvalidRequestError:
-                db.session.rollback()
 
     # xml文件归档
     # @param string xml_path xml源文件路径（完整路径）

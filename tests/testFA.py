@@ -16,7 +16,6 @@ nav = None
 
 # 根据公司列表和接口设置确定数据源
 def test_1_dms_source(init_app):
-    print("test_1_dms_source")
     app, db = init_app
     company_info = db.session.query(Company).filter(Company.Code == company_code).first()
     assert company_info is not None
@@ -63,7 +62,7 @@ def test_3_save_interface(init_app):
     assert len(general_dict) > 0
     assert "DMSCode" in general_dict
 
-    count = fa_obj.get_count_from_data(data["Transaction"], "FA")
+    count = fa_obj.get_count_from_data(data["Transaction"], fa_obj.BIZ_NODE_LV1)
     global_vars["count"] = count
     entry_no = nav.insertGeneral(api_p_out=general_node_dict, data_dict=general_dict,
                                  Type=nav.DATA_TYPE_FA, Count=count, XMLFile=global_vars["path"])
@@ -92,7 +91,7 @@ def test_4_save_FA(init_app):
     # 读取文件，文件归档
     # 环境不同，归档路径不同
     api_setup = global_vars["api_setup"]
-    if api_setup.API_Type == fa_obj.TYPE_FILE or api_setup.Archived_Path != "":
+    if api_setup.API_Type == fa_obj.TYPE_FILE and api_setup.Archived_Path != "":
         app, db = init_app
         if app.config["ENV"] == "Development":
             global_vars["api_setup"].Archived_Path = "/Users/shingler/PycharmProjects/platform20200916/archive/K302ZH"

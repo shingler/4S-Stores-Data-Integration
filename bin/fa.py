@@ -62,7 +62,7 @@ def main(company_code, api_code, retry=False, file_path=None, async_ws=False):
                  entry_no=entry_no)
 
     # 读取文件，文件归档
-    if api_setup.API_Type == fa_obj.TYPE_FILE or api_setup.Archived_Path != "":
+    if api_setup.API_Type == fa_obj.TYPE_FILE and api_setup.Archived_Path != "":
         fa_obj.archive_xml(path, api_setup.Archived_Path)
 
     # 读取web service
