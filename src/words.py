@@ -34,9 +34,9 @@ class DataImport:
     _load_timeout = "Timeout for reading file:{0}"
     _content_is_too_big = "The length of content (field:{0} \"{3}\" ) exceeds the max length {1} in file: {2}"
     _node_not_exists = "Node:{0} is missing!"
-    _json_http_error = "Task<{0}, {1}> dms request http error, status_code={0}"
+    _json_http_error = "Task<{0}, {1}> dms request http error, status_code={2}"
     _json_is_empty = "Task<{0}, {1}> JSON API return nothing"
-    _json_request_error = "Task<{0}, {1}> JSON API request failed. reason is: {0}"
+    _json_request_error = "Task<{0}, {1}> JSON API request failed. reason is: {2}"
     _param_out_setup_error = "Task<{0}, {1}> api out param setup error, parent node {2} is missing!"
 
     @classmethod

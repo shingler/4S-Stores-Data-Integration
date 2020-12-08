@@ -122,7 +122,7 @@ def test_5_save_InvoiceLine(init_app):
     # 读取文件，文件归档
     # 环境不同，归档路径不同
     api_setup = global_vars["api_setup"]
-    if api_setup.API_Type == invoiceLine_obj.TYPE_FILE or api_setup.Archived_Path != "":
+    if api_setup.API_Type == invoiceLine_obj.TYPE_FILE and api_setup.Archived_Path != "":
         app, db = init_app
         if app.config["ENV"] == "Development":
             global_vars["api_setup"].Archived_Path = "/Users/shingler/PycharmProjects/platform20200916/archive/K302ZH"
