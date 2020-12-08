@@ -22,7 +22,15 @@ def companyThread(company_tasks: list):
     if len(company_tasks) == 0:
         return
     for task in company_tasks:
-        do(task)
+        if task.API_Command_Code == "01":
+            # 单线程运行CustVend
+            do(task.api_task_setup)
+        else:
+            # 多线程运行其他任务
+            threading_name = "thread-%s-%s-%s" % (task.Company_Code, task.API_Code, task.API_Command_Code)
+            sub = threading.Thread(target=do, name=threading_name, kwargs={"one_task": task.api_task_setup})
+            sub.start()
+            time.sleep(0.1)
 
 
 # 单任务的执行
@@ -57,16 +65,17 @@ if __name__ == '__main__':
     for one_task in task_list:
         task = Task(one_task)
         if args.time_check and not task.is_valid():
-            print(words.RunResult.task_not_reach_time(one_task.Company_Code, one_task.API_Code))
-            logging.getLogger("master").info(words.RunResult.task_not_reach_time(one_task.Company_Code, one_task.API_Code))
+            print(words.RunResult.task_not_reach_time(task.Company_Code, task.API_Code))
+            logging.getLogger("master").info(words.RunResult.task_not_reach_time(task.Company_Code, task.API_Code))
         else:
-            if one_task.Company_Code not in companies_tasks:
-                companies_tasks[one_task.Company_Code] = []
-            companies_tasks[one_task.Company_Code].append(one_task)
+            if task.Company_Code not in companies_tasks:
+                companies_tasks[task.Company_Code] = []
+            companies_tasks[task.Company_Code].append(task)
 
     # 启用多线程做任务分发
     for company_code, one_company_tasks in companies_tasks.items():
-        threading_name = "thread-%s" % company_code
-        sub = threading.Thread(target=companyThread, name=threading_name, kwargs={"company_tasks": one_company_tasks})
-        sub.start()
-        time.sleep(0.1)
+        # threading_name = "thread-%s" % company_code
+        # sub = threading.Thread(target=companyThread, name=threading_name, kwargs={"company_tasks": one_company_tasks})
+        # sub.start()
+        # time.sleep(0.1)
+        companyThread(one_company_tasks)
