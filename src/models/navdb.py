@@ -171,9 +171,8 @@ class NavDB:
 
         ins = Insert(General, values=data_dict)
         # print(ins)
-        trans = self.conn.begin()
         self.conn.execute(ins)
-        trans.commit()
+        # print(result)
 
         lock.release()
 
@@ -205,8 +204,8 @@ class NavDB:
         if type(data_dict) == OrderedDict:
             data_dict = [data_dict]
 
-        trans = self.conn.begin()
         for row_dict in data_dict:
+
             # 对xml的数据做处理
             if row_dict["Type"] == "Customer":
                 row_dict["Type"] = 0
@@ -254,7 +253,6 @@ class NavDB:
             ins = Insert(CustVendTable, values=ins_data)
             # print(ins, ins.compile().params)
             self.conn.execute(ins)
-        trans.commit()
 
     # 写入FA部分
     def insertFA(self, data_dict: dict, api_p_out: dict, entry_no: int):
@@ -273,7 +271,6 @@ class NavDB:
         if type(data_dict) == OrderedDict:
             data_dict = [data_dict]
 
-        trans = self.conn.begin()
         for row_dict in data_dict:
             # 合并数据
             row_dict = {**row_dict, **other_data}
@@ -308,7 +305,6 @@ class NavDB:
             ins = Insert(FaTable, values=ins_data)
             # print(ins, ins.compile().params)
             self.conn.execute(ins)
-        trans.commit()
 
     # 写入发票头部分
     def insertInvHeader(self, data_dict: dict, api_p_out: dict, entry_no: int):
@@ -325,7 +321,6 @@ class NavDB:
         if type(data_dict) == OrderedDict:
             data_dict = [data_dict]
 
-        trans = self.conn.begin()
         for row_dict in data_dict:
             # 合并数据
             row_dict = {**row_dict, **other_data}
@@ -361,7 +356,6 @@ class NavDB:
             ins = Insert(FaTable, values=ins_data)
             # print(ins, ins.compile().params)
             self.conn.execute(ins)
-        trans.commit()
 
     # 写入发票行部分
     def insertInvLines(self, data_dict: dict, api_p_out: dict, entry_no: int):
@@ -379,7 +373,6 @@ class NavDB:
         if type(data_dict) == OrderedDict:
             data_dict = [data_dict]
 
-        trans = self.conn.begin()
         for row_dict in data_dict:
             # 合并数据
             row_dict = {**row_dict, **other_data}
@@ -415,7 +408,6 @@ class NavDB:
             FaTable = self.base.classes[table_name]
             ins = Insert(FaTable, values=ins_data)
             self.conn.execute(ins)
-        trans.commit()
 
     # 写入other部分
     def insertOther(self, data_dict: dict, api_p_out: dict, entry_no: int):
@@ -434,7 +426,6 @@ class NavDB:
         if type(data_dict) == OrderedDict:
             data_dict = [data_dict]
 
-        trans = self.conn.begin()
         for row_dict in data_dict:
             # 合并数据
             row_dict = {**row_dict, **other_data}
@@ -468,7 +459,6 @@ class NavDB:
             ins = Insert(FaTable, values=ins_data)
             # print(ins, ins.compile().params)
             self.conn.execute(ins)
-        trans.commit()
 
     # 用于验证的查询
     def getNavDataByEntryNo(self, entry_no, table_name="DMSInterfaceInfo", return_list=True):

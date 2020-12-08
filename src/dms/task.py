@@ -98,4 +98,3 @@ class Task:
             and_(ApiTaskSetup.Company_Code == self.api_task_setup.Company_Code,
                  ApiTaskSetup.Sequence == self.api_task_setup.Sequence)) \
             .update({"Last_Executed_Time": now_time})
-        db.session.commit()
