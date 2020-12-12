@@ -15,22 +15,12 @@ class Logger:
         self.api_log = api_log
 
     @staticmethod
-    def add_new_api_log(apiSetup, direction=1, apiPIn=None, userID=None):
-        p_in = {}
-        if apiPIn is not None and type(apiPIn) == list:
-            pc = ParamConvert()
-            for p in apiPIn:
-                if p.Value_Type in [4, 5] and p.Value_Source == 2:
-                    if hasattr(pc, p.Value.upper()):
-                        p_in[p.P_Code] = pc.__getattribute__(p.Value.upper())
-                else:
-                    p_in[p.P_Code] = p.Value
-
+    def add_new_api_log(apiSetup, direction=1, p_in=None, userID=None):
         api_log = APILog(
             Company_Code=apiSetup.Company_Code,
             API_Code=apiSetup.API_Code,
             API_Direction=direction,
-            API_P_In=json.dumps(p_in, ensure_ascii=False) if len(p_in) > 0 else "",
+            API_P_In=json.dumps(p_in, ensure_ascii=False) if p_in is not None and len(p_in) > 0 else "",
             API_Content="",
             Content_Type=apiSetup.Data_Format,
             Status=1,
@@ -47,12 +37,15 @@ class Logger:
         return me
 
     # 读取接口/文件成功后，通过主键更新日志
-    def update_api_log_when_finish(self, status, data=None, error_msg=""):
+    def update_api_log_when_finish(self, status, data=None, p_in=None, error_msg=""):
         pk = self.api_log.ID
-        db.session.query(APILog).filter(APILog.ID == pk).update({
+        update_dict = {
             "Status": status,
             "API_Content": data,
             "Finished_DT": datetime.datetime.now().isoformat(timespec="milliseconds"),
             "Error_Message": error_msg
-        })
+        }
+        if p_in is not None and len(p_in) > 0:
+            update_dict["API_P_In"] = json.dumps(p_in, ensure_ascii=False)
+        db.session.query(APILog).filter(APILog.ID == pk).update(update_dict)
 
