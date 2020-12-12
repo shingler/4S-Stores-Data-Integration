@@ -11,9 +11,7 @@ class Base:
     SQLALCHEMY_MAX_OVERFLOW = 20
     SQLALCHEMY_TRACK_MODIFICATIONS = True
     SQLALCHEMY_ECHO = True
-    # SQLALCHEMY_COMMIT_ON_TEARDOWN = True
     SQLALCHEMY_ENGINE_OPTIONS = {"isolation_level": "AUTOCOMMIT"}
-    # SQLALCHEMY_ENGINE_OPTIONS = {"isolation_level": "SERIALIZABLE"}
     # 数据库引擎
     DATABASE_ENGINE = "mysql+pymysql"
     # 数据库端口
@@ -26,6 +24,8 @@ class Base:
     TASK_SCAN_INTERVAL = 5
     # 是否开启日志（1=开启，0=不开启）
     LOG_ON = 1
+    # 非CV任务是否开启多线程
+    THREADING = 1
 
 
 class Development(Base):
@@ -71,3 +71,5 @@ class Production(Base):
     TASK_SCAN_INTERVAL = 10
     # 是否开启日志（1=开启，0=不开启）
     LOG_ON = 1
+    # 非CV任务是否开启多线程
+    THREADING = 1
