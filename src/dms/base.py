@@ -124,26 +124,27 @@ class DMSBase:
     def _load_data_from_dms_interface(self, apiSetup: dms.ApiSetup):
         p_in_list = Setup.load_api_p_in(apiSetup.Company_Code, apiSetup.API_Code)
         company_info = db.session.query(Company).filter(Company.Code == apiSetup.Company_Code).first()
+        req = {}
         try:
-            resp = interface.api_dms(company_info, api_setup=apiSetup, p_in_list=p_in_list)
+            req, resp = interface.api_dms(company_info, api_setup=apiSetup, p_in_list=p_in_list)
         except requests.ConnectTimeout as ex:
-            return InterfaceResult(status=self.STATUS_TIMEOUT, error_msg=words.DataImport.load_timeout(ex))
+            return InterfaceResult(status=self.STATUS_TIMEOUT, request=req, error_msg=words.DataImport.load_timeout(ex))
         except Exception as ex:
-            return InterfaceResult(status=self.STATUS_ERROR, error_msg=words.DataImport.json_request_fail(self.company_code, self.api_code, ex))
+            return InterfaceResult(status=self.STATUS_ERROR, request=req, error_msg=words.DataImport.json_request_fail(self.company_code, self.api_code, ex))
         if resp.status_code != 200:
-            return InterfaceResult(status=self.STATUS_ERROR, error_msg=words.DataImport.json_http_error(self.company_code, self.api_code, resp.status_code))
+            return InterfaceResult(status=self.STATUS_ERROR, request=req, error_msg=words.DataImport.json_http_error(self.company_code, self.api_code, resp.status_code))
         # 完整的返回内容，用于入日志表
         original_result = resp.text
         # 业务处理需要做一些加工
         code, res = interface.parse(resp.json())
         if code != '200':
-            return InterfaceResult(status=self.STATUS_ERROR, content=original_result, error_msg=words.DataImport.json_request_fail(self.company_code, self.api_code, res))
+            return InterfaceResult(status=self.STATUS_ERROR, content=original_result, request=req, error_msg=words.DataImport.json_request_fail(self.company_code, self.api_code, res))
         if res is None:
-            return InterfaceResult(status=self.STATUS_ERROR, content=original_result)
+            return InterfaceResult(status=self.STATUS_ERROR, content=original_result, request=req)
         elif len(res) == 0:
-            return InterfaceResult(status=self.STATUS_ERROR, content=original_result, error_msg=words.DataImport.json_is_empty(self.company_code, self.api_code))
+            return InterfaceResult(status=self.STATUS_ERROR, content=original_result, request=req, error_msg=words.DataImport.json_is_empty(self.company_code, self.api_code))
         else:
-            return InterfaceResult(status=self.STATUS_FINISH, content=original_result, data=res)
+            return InterfaceResult(status=self.STATUS_FINISH, content=original_result, request=req, data=res)
 
     # 读取xml,返回InterfaceResult对象
     # @param string format 数据解析格式（JSON | XML）
@@ -226,9 +227,8 @@ class DMSBase:
 
     # 读取数据
     def load_data(self, apiSetup, userID=None, file_path=None) -> (str, dict):
-        p_in_list = Setup.load_api_p_in(apiSetup.Company_Code, apiSetup.API_Code)
         # 先写一条日志，记录执行时间
-        logger = self.add_new_api_log_when_start(apiSetup, apiPIn=p_in_list, direction=self.DIRECT_DMS, userID=userID)
+        logger = self.add_new_api_log_when_start(apiSetup, direction=self.DIRECT_DMS, userID=userID)
 
         path = ""
         res = None
@@ -254,15 +254,15 @@ class DMSBase:
         # 根据结果进行后续处理
         if res.status == self.STATUS_ERROR:
             # 记录错误日志并抛出异常
-            logger.update_api_log_when_finish(status=self.STATUS_ERROR, error_msg=res.error_msg)
+            logger.update_api_log_when_finish(status=self.STATUS_ERROR, error_msg=res.error_msg, p_in=res.request)
             raise DataLoadError(res.error_msg)
         elif res.status == self.STATUS_TIMEOUT:
             # 记录错误日志并抛出异常
-            logger.update_api_log_when_finish(status=self.STATUS_ERROR, error_msg=res.error_msg)
+            logger.update_api_log_when_finish(status=self.STATUS_ERROR, error_msg=res.error_msg, p_in=res.request)
             raise DataLoadTimeOutError(res.error_msg)
         elif res.status == self.STATUS_REPEAT:
             # 记录错误日志并抛出异常
-            logger.update_api_log_when_finish(status=self.STATUS_ERROR, error_msg=res.error_msg)
+            logger.update_api_log_when_finish(status=self.STATUS_ERROR, error_msg=res.error_msg, p_in=res.request)
             raise DataImportRepeatError(res.error_msg)
         else:
             # 处理成功，校验数据完整性
@@ -270,7 +270,7 @@ class DMSBase:
             # print(is_integrity, keys)
             if not is_integrity:
                 error_msg = words.DataImport.node_not_exists(keys)
-                logger.update_api_log_when_finish(status=self.STATUS_ERROR, error_msg=error_msg, data=res.content)
+                logger.update_api_log_when_finish(status=self.STATUS_ERROR, error_msg=error_msg, data=res.content, p_in=res.request)
                 raise NodeNotExistError(error_msg)
 
             # 处理成功，校验数据长度是否合法
@@ -278,11 +278,11 @@ class DMSBase:
             # print(is_valid, keys)
             if not is_valid:
                 error_msg = words.DataImport.content_is_too_big(path, keys, )
-                logger.update_api_log_when_finish(status=self.STATUS_ERROR, error_msg=error_msg, data=res.content)
+                logger.update_api_log_when_finish(status=self.STATUS_ERROR, error_msg=error_msg, data=res.content, p_in=res.request)
                 raise DataContentTooBig(error_msg)
 
             # 校验成功，更新日志
-            logger.update_api_log_when_finish(data=res.content, status=self.STATUS_FINISH)
+            logger.update_api_log_when_finish(data=res.content, status=self.STATUS_FINISH, p_in=res.request)
             return path, res.data
 
     # 根据文件名检查是否重复导入
@@ -399,14 +399,17 @@ class InterfaceResult:
     error_msg = ""
     # 消息内容，对应xml或json文本
     content = ""
-    # 消息数据，基本上是字典
+    # 返回的消息数据，基本上是字典
     data = None
+    # 请求的数据
+    request = None
 
-    def __init__(self, status, error_msg="", content="", data=None):
+    def __init__(self, status, error_msg="", content="", data=None, request=None):
         self.status = status
         self.error_msg = error_msg
         self.content = content
         self.data = data
+        self.request = request
 
     def __repr__(self):
         return "<%s> {status=%d, error_msg=%s, length of content=%d}" \

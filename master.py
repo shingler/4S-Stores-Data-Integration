@@ -23,14 +23,17 @@ def companyThread(company_tasks: list):
         return
     for task in company_tasks:
         if task.API_Command_Code == "01":
-            # 单线程运行CustVend
+            # CustVend必须单线程运行
             do(task.api_task_setup)
         else:
-            # 多线程运行其他任务
-            threading_name = "thread-%s-%s-%s" % (task.Company_Code, task.API_Code, task.API_Command_Code)
-            sub = threading.Thread(target=do, name=threading_name, kwargs={"one_task": task.api_task_setup})
-            sub.start()
-            time.sleep(0.1)
+            # 其他任务根据配置选择是否多线程
+            if app.config["THREADING"] == 1:
+                threading_name = "thread-%s-%s-%s" % (task.Company_Code, task.API_Code, task.API_Command_Code)
+                sub = threading.Thread(target=do, name=threading_name, kwargs={"one_task": task.api_task_setup})
+                sub.start()
+                time.sleep(0.1)
+            else:
+                do(task.api_task_setup)
 
 
 # 单任务的执行
