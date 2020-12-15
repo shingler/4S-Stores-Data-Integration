@@ -21,9 +21,10 @@ config.fileConfig(os.path.join(rootPath, "logging.conf"))
 # @param string company_code 公司代码
 # @param string api_code 执行代码
 # @param bool retry 是否重试。retry=false将按照地址1执行；为true则按照地址2执行。
-# @param string file_path xml的绝对路径
+# @param string file_path xml的绝对路径（手动调用时）
+# @param dict p_in 输入参数（手动调用时）
 # @param bool async_ws 是否异步调用web service
-def main(company_code, api_code, retry=False, file_path=None, async_ws=False):
+def main(company_code, api_code, retry=False, file_path=None, p_in: dict = None, async_ws=False):
     # 读取公司信息，创建业务对象
     company_info = db.session.query(Company).filter(Company.Code == company_code).first()
     if company_info is None:
@@ -50,6 +51,9 @@ def main(company_code, api_code, retry=False, file_path=None, async_ws=False):
     inv_line_node_dict = {**inv_node_dict[InvoiceLine.BIZ_NODE_LV1], **inv_node_dict[InvoiceLine.BIZ_NODE_LV2]}
 
     # 读取数据
+    # 手动调用时设置输入参数
+    if p_in is not None:
+        invh_obj.set_p_in(p_in)
     path, data = invh_obj.load_data(api_setup, file_path=file_path)
 
     general_dict = invh_obj.splice_general_info(data, node_dict=general_node_dict)

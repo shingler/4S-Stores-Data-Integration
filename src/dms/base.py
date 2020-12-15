@@ -75,11 +75,15 @@ class DMSBase:
     # 根节点名
     NODE_LV0 = "Transaction"
 
+    # DMS接口输入参数
+    P_IN = []
+
     def __init__(self, company_code, api_code, force_secondary=False, check_repeat=True):
         self.company_code = company_code
         self.api_code = api_code
         self.force_secondary = force_secondary
         self.check_repeat = check_repeat
+        self.P_IN = []
 
     # 拼接xml文件路径
     # @param src.models.dms.ApiSetup apiSetup
@@ -118,11 +122,24 @@ class DMSBase:
             xml_src = "%s/%s" % (apiSetUp.API_Address2, file_name)
         return xml_src
 
+    # 根据手动设置的输入参数，构建APIPIn对象列表
+    def set_p_in(self, p_in: dict):
+        if len(p_in) == 0:
+            return
+        for k, v in p_in.items():
+            p_in_obj = ApiPInSetup(P_Code=k, Value_Type=5, Value_Source=1, Value=v)
+            self.P_IN.append(p_in_obj)
+
     # 读取接口
     # @param string format 数据解析格式（JSON | XML）
     # @param int time_out 超时时间，单位为秒。为0表示不判断超时
     def _load_data_from_dms_interface(self, apiSetup: dms.ApiSetup):
-        p_in_list = Setup.load_api_p_in(apiSetup.Company_Code, apiSetup.API_Code)
+        print(self.P_IN)
+        if len(self.P_IN) == 0:
+            p_in_list = Setup.load_api_p_in(apiSetup.Company_Code, apiSetup.API_Code)
+        else:
+            p_in_list = self.P_IN
+
         company_info = db.session.query(Company).filter(Company.Code == apiSetup.Company_Code).first()
         req = {}
         try:
@@ -148,12 +165,22 @@ class DMSBase:
 
     # 读取xml,返回InterfaceResult对象
     # @param string format 数据解析格式（JSON | XML）
-    # @param int time_out 超时时间，单位为秒。为0表示不判断超时
-    def _load_data_from_file(self, path, format="xml", time_out=0):
+    # @param int file_size_limit 文件大小限制，单位为M。为0表示无限制
+    def _load_data_from_file(self, path, format="xml", file_size_limit=0):
         # 文件是否存在
         if not os.path.exists(path):
             error_msg = words.DataImport.file_not_exist(path)
             return InterfaceResult(status=self.STATUS_ERROR, error_msg=error_msg)
+        # 文件大小检查
+        try:
+            filesize = os.path.getsize(path)
+        except OSError:
+            error_msg = words.DataImport.file_not_exist(path)
+            return InterfaceResult(status=self.STATUS_ERROR, error_msg=error_msg)
+        filesize = filesize / 1024 / 1024
+
+        if 0 < file_size_limit < filesize:
+            return InterfaceResult(status=self.STATUS_ERROR, error_msg=words.DataImport.file_too_big(file_size_limit, round(filesize, 2)))
 
         # 重复性检查
         repeated = self.checkRepeatImport(path)
@@ -165,10 +192,6 @@ class DMSBase:
         with open(path, "r", encoding="UTF-8") as xml_handler:
             data = xml_handler.read()
 
-        # if time_out > 0 and time.perf_counter() >= time_out * 60:
-        #     return InterfaceResult(status=self.STATUS_TIMEOUT, error_msg=words.DataImport.load_timeout(path))
-
-        # print(data, type(data))
         res = InterfaceResult(status=self.STATUS_FINISH, content=data)
         if format == self.FORMAT_XML:
             res.data = xmltodict.parse(data)
@@ -239,7 +262,7 @@ class DMSBase:
         elif apiSetup.API_Type == self.TYPE_FILE and file_path is not None:
             # 直接提供XML地址
             path = file_path
-            res = self._load_data_from_file(file_path, format=apiSetup.Data_Format, time_out=apiSetup.Time_out * 60)
+            res = self._load_data_from_file(file_path, format=apiSetup.Data_Format, file_size_limit=apiSetup.File_Max_Size)
         elif apiSetup.API_Type == self.TYPE_FILE:
             # 使用当天的XML文件
             try:
@@ -248,7 +271,7 @@ class DMSBase:
                 # 记录错误日志并再次抛出异常
                 logger.update_api_log_when_finish(status=self.STATUS_ERROR, error_msg=str(dfe))
                 raise DataFieldEmptyError(str(dfe))
-            res = self._load_data_from_file(path, format=apiSetup.Data_Format, time_out=apiSetup.Time_out * 60)
+            res = self._load_data_from_file(path, format=apiSetup.Data_Format, file_size_limit=apiSetup.File_Max_Size)
         # print(res)
 
         # 根据结果进行后续处理
@@ -348,8 +371,7 @@ class DMSBase:
     # xml文件归档
     # @param string xml_path xml源文件路径（完整路径）
     # @param string archive_path 要归档的目录（不含文件名及公司名）
-    @staticmethod
-    def archive_xml(xml_path, archive_path):
+    def archive_xml(self, xml_path, archive_path):
         # 如果归档目录为空，则什么都不做
         if archive_path != "":
             # 如果目录不存在，就创建
@@ -362,7 +384,12 @@ class DMSBase:
                 file_name = "%s_%s%s" % (os.path.splitext(os.path.basename(xml_path))[0], datetime.datetime.now().strftime("%Y%m%d_%H.%M.%S"), os.path.splitext(os.path.basename(xml_path))[1])
                 archive_file_path = os.path.join(archive_path, file_name)
 
-            os.replace(xml_path, archive_file_path)
+            try:
+                os.replace(xml_path, archive_file_path)
+            except OSError:
+                # 归档失败不要影响后续流程
+                logger = logging.getLogger("%s-%s" % (self.company_code, self.api_code))
+                logger.warning("file archive failed! src={0}, dest={1}".format(xml_path, archive_file_path))
 
     # 访问接口/文件时先新增一条API日志，并返回API_Log的主键用于后续更新
     @staticmethod
