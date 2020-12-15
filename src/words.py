@@ -31,6 +31,7 @@ class DataImport:
     _some_field_is_empty = "{0} can not be null!"
     _file_repeat = "XML file:{0} is already existing in system, can not import again! "
     _file_not_exist = "There is no XML file:{0}!"
+    _file_too_big = "The XML file size {0}M is beyond system allowed size {1}M, please check XML file!"
     _load_timeout = "Timeout for reading file:{0}"
     _content_is_too_big = "The length of content (field:{0} \"{3}\" ) exceeds the max length {1} in file: {2}"
     _node_not_exists = "Node:{0} is missing!"
@@ -50,6 +51,10 @@ class DataImport:
     @classmethod
     def file_not_exist(cls, file_path):
         return cls._file_not_exist.format(file_path)
+
+    @classmethod
+    def file_too_big(cls, expect, actual):
+        return cls._file_too_big.format(actual, expect)
 
     @classmethod
     def load_timeout(cls, file_path):

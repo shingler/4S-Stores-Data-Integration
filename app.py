@@ -77,7 +77,7 @@ def dms_interface_api():
         runner = other
     try:
         entry_no = runner.main(company_code=company_code, api_code=api_code, file_path=file_path,
-                               retry=True if retry else False)
+                               p_in=options, retry=True if retry else False)
         res = {"status": 0, "entry_no": entry_no}
     except error.DataFieldEmptyError as ex:
         res = {"status": 50001, "error_message": str(ex)}
