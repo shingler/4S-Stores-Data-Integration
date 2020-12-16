@@ -79,16 +79,18 @@ class NavDB:
         Base = automap_base(metadata=self.meta)
         Base.prepare()
         self.base = Base
-        # for c in Base.classes:
-        #     print(c, type(c))
+
+    # 通过反射拿到表结构
+    def getColumns(self, table_name: str) -> list:
+        insp = reflection.Inspector.from_engine(self.engine)
+        columns = insp.get_columns(table_name)
+        return columns
 
     # 检查数据是否存在不合法的字段名
     # @param data_dict dict 要插入的数据
     # @param table_name str 表名
     # @return dict
-    def checkFields(self, data_dict: dict, table_name: str) -> dict:
-        insp = reflection.Inspector.from_engine(self.engine)
-        columns = insp.get_columns(table_name)
+    def checkFields(self, data_dict: dict, columns: list) -> dict:
         checked_dict = {}
         # 去掉表结构不存在的字段
         for dk in data_dict.keys():
@@ -96,15 +98,13 @@ class NavDB:
                 checked_dict[dk] = data_dict[dk]
         # 为表结构存在但数据里没有的字段设置默认值（timestamp除外）
         for field in columns:
-            # print(field["name"], field["type"], field["type"] == Numeric, isinstance(field["type"], Numeric))
             if field["name"] not in checked_dict and isinstance(field["type"], Numeric):
                 checked_dict[field["name"]] = 0
             elif field["name"] not in checked_dict and isinstance(field["type"], DateTime):
                 checked_dict[field["name"]] = "1753-01-01 00:00:00.000"
             elif field["name"] not in checked_dict and field["name"] != "timestamp":
                 checked_dict[field["name"]] = ""
-        # print("======")
-        # print(checked_dict)
+
         return checked_dict
 
     # 写入General部分
@@ -199,13 +199,14 @@ class NavDB:
                       "DateTime Handled": "1753-01-01 00:00:00.000", "Handled by": ""}
 
         table_name = self._getTableName(self.company_nav_code, "CustVendBuffer")
+        table_columns = self.getColumns(table_name)
 
         # 写cv
         if type(data_dict) == OrderedDict:
             data_dict = [data_dict]
 
         for row_dict in data_dict:
-
+            # print("every node start", time.perf_counter())
             # 对xml的数据做处理
             if row_dict["Type"] == "Customer":
                 row_dict["Type"] = 0
@@ -247,12 +248,14 @@ class NavDB:
                     ins_data[f] = v if v is not None else ""
                 else:
                     ins_data[k] = v if v is not None else ""
-            # print(ins_data)
-            ins_data = self.checkFields(ins_data, table_name)
-            CustVendTable = self.base.classes[table_name]
-            ins = Insert(CustVendTable, values=ins_data)
+
+            ins_data = self.checkFields(ins_data, table_columns)
+            FaTable = self.base.classes[table_name]
+            ins = Insert(FaTable, values=ins_data)
             # print(ins, ins.compile().params)
+            # print("write start", time.perf_counter())
             self.conn.execute(ins)
+            # print("write done", time.perf_counter())
 
     # 写入FA部分
     def insertFA(self, data_dict: dict, api_p_out: dict, entry_no: int):
@@ -266,6 +269,7 @@ class NavDB:
                       }
 
         table_name = self._getTableName(self.company_nav_code, "FABuffer")
+        table_columns = self.getColumns(table_name)
 
         # 写cv
         if type(data_dict) == OrderedDict:
@@ -299,12 +303,14 @@ class NavDB:
                     ins_data[f] = v if v is not None else ""
                 else:
                     ins_data[k] = v if v is not None else ""
-            # print(ins_data)
-            ins_data = self.checkFields(ins_data, table_name)
+
+            ins_data = self.checkFields(ins_data, table_columns)
             FaTable = self.base.classes[table_name]
             ins = Insert(FaTable, values=ins_data)
             # print(ins, ins.compile().params)
+            # print("write start", time.perf_counter())
             self.conn.execute(ins)
+            # print("write done", time.perf_counter())
 
     # 写入发票头部分
     def insertInvHeader(self, data_dict: dict, api_p_out: dict, entry_no: int):
@@ -316,12 +322,14 @@ class NavDB:
                       "DateTime handled": "1753-01-01 00:00:00.000", "Handled by": ""}
 
         table_name = self._getTableName(self.company_nav_code, "InvoiceHeaderBuffer")
+        table_columns = self.getColumns(table_name)
 
         # 写cv
         if type(data_dict) == OrderedDict:
             data_dict = [data_dict]
 
         for row_dict in data_dict:
+            # print("every node start", time.perf_counter())
             # 合并数据
             row_dict = {**row_dict, **other_data}
 
@@ -349,13 +357,14 @@ class NavDB:
                     ins_data[f] = v if v is not None else ""
                 else:
                     ins_data[k] = v if v is not None else ""
-            # print(ins_data)
-            ins_data = self.checkFields(ins_data, table_name)
-            # print(ins_data)
+
+            ins_data = self.checkFields(ins_data, table_columns)
             FaTable = self.base.classes[table_name]
             ins = Insert(FaTable, values=ins_data)
             # print(ins, ins.compile().params)
+            # print("write start", time.perf_counter())
             self.conn.execute(ins)
+            # print("write done", time.perf_counter())
 
     # 写入发票行部分
     def insertInvLines(self, data_dict: dict, api_p_out: dict, entry_no: int):
@@ -368,6 +377,7 @@ class NavDB:
                       "DateTime Handled": "1753-01-01 00:00:00.000", "Handled by": ""}
 
         table_name = self._getTableName(self.company_nav_code, "InvoiceLineBuffer")
+        table_columns = self.getColumns(table_name)
 
         # 写cv
         if type(data_dict) == OrderedDict:
@@ -404,7 +414,7 @@ class NavDB:
                 else:
                     ins_data[k] = v if v is not None else ""
             # print(ins_data)
-            ins_data = self.checkFields(ins_data, table_name)
+            ins_data = self.checkFields(ins_data, table_columns)
             FaTable = self.base.classes[table_name]
             ins = Insert(FaTable, values=ins_data)
             self.conn.execute(ins)
@@ -421,12 +431,14 @@ class NavDB:
                       "NotDuplicated": 0, "NAVDocumentNo_": ""}
 
         table_name = self._getTableName(self.company_nav_code, "OtherBuffer")
+        table_columns = self.getColumns(table_name)
 
         # 写cv
         if type(data_dict) == OrderedDict:
             data_dict = [data_dict]
 
         for row_dict in data_dict:
+            # print("every node start", time.perf_counter())
             # 合并数据
             row_dict = {**row_dict, **other_data}
 
@@ -453,12 +465,15 @@ class NavDB:
                     ins_data[f] = v if v is not None else ""
                 else:
                     ins_data[k] = v if v is not None else ""
-            # print(ins_data)
-            ins_data = self.checkFields(ins_data, table_name)
+
+            ins_data = self.checkFields(ins_data, table_columns)
+
             FaTable = self.base.classes[table_name]
             ins = Insert(FaTable, values=ins_data)
             # print(ins, ins.compile().params)
+            # print("write start", time.perf_counter())
             self.conn.execute(ins)
+            # print("write done", time.perf_counter())
 
     # 用于验证的查询
     def getNavDataByEntryNo(self, entry_no, table_name="DMSInterfaceInfo", return_list=True):

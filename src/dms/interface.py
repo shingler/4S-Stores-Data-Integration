@@ -49,7 +49,11 @@ def send_data(url, data, interface_instance: Interface, timeout: int) -> (dict, 
     # print(url, params)
     print("=======")
     print(sign_dict)
-    return sign_dict, requests.post(url=url, data=json.dumps(sign_dict), headers=headers, timeout=timeout*60)
+    # 这里的异常需要提前捕获，不然无法返回sign_dict
+    try:
+        return sign_dict, requests.post(url=url, data=json.dumps(sign_dict), headers=headers, timeout=timeout*60)
+    except Exception as ex:
+        return sign_dict, ex
 
 
 # DMS接口调用，同步后返回对象

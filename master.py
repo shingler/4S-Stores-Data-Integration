@@ -31,7 +31,7 @@ def companyThread(company_tasks: list):
                 threading_name = "thread-%s-%s-%s" % (task.Company_Code, task.API_Code, task.API_Command_Code)
                 sub = threading.Thread(target=do, name=threading_name, kwargs={"one_task": task.api_task_setup})
                 sub.start()
-                time.sleep(0.1)
+                time.sleep(0.5)
             else:
                 do(task.api_task_setup)
 
