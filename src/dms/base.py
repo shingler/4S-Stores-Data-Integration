@@ -134,20 +134,22 @@ class DMSBase:
     # @param string format 数据解析格式（JSON | XML）
     # @param int time_out 超时时间，单位为秒。为0表示不判断超时
     def _load_data_from_dms_interface(self, apiSetup: dms.ApiSetup):
-        print(self.P_IN)
+        # print(self.P_IN)
         if len(self.P_IN) == 0:
             p_in_list = Setup.load_api_p_in(apiSetup.Company_Code, apiSetup.API_Code)
         else:
             p_in_list = self.P_IN
 
         company_info = db.session.query(Company).filter(Company.Code == apiSetup.Company_Code).first()
-        req = {}
-        try:
-            req, resp = interface.api_dms(company_info, api_setup=apiSetup, p_in_list=p_in_list)
-        except requests.ConnectTimeout as ex:
-            return InterfaceResult(status=self.STATUS_TIMEOUT, request=req, error_msg=words.DataImport.load_timeout(ex))
-        except Exception as ex:
-            return InterfaceResult(status=self.STATUS_ERROR, request=req, error_msg=words.DataImport.json_request_fail(self.company_code, self.api_code, ex))
+        # 请求接口
+        req, resp = interface.api_dms(company_info, api_setup=apiSetup, p_in_list=p_in_list)
+
+        # 如果resp是Exception的子类，则说明发生异常被捕获了
+        if isinstance(resp, requests.ConnectTimeout):
+            return InterfaceResult(status=self.STATUS_TIMEOUT, request=req, error_msg=words.DataImport.load_timeout(resp))
+        elif isinstance(resp, Exception):
+            return InterfaceResult(status=self.STATUS_ERROR, request=req, error_msg=words.DataImport.json_request_fail(self.company_code, self.api_code, resp))
+
         if resp.status_code != 200:
             return InterfaceResult(status=self.STATUS_ERROR, request=req, error_msg=words.DataImport.json_http_error(self.company_code, self.api_code, resp.status_code))
         # 完整的返回内容，用于入日志表
