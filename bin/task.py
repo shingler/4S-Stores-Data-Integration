@@ -114,11 +114,14 @@ class Handler:
                                                                              self.current_task.API_Code,
                                                                              error_message=self.load_error)
 
-            result = notify_obj.send_mail(email_title, email_content)
-            # print(result)
-            # 写入提醒日志
-            if result:
+            try:
+                notify_obj.send_mail(email_title, email_content)
+                # 发送成功写提醒日志
                 notify_obj.save_notification_log(",".join(notify_obj.receivers), email_title, email_content)
+            except Exception as ex:
+                # 发送失败写文件日志
+                self.logger.warning("Task<%s, %s> notification email send failed. %s" %
+                                    (self.current_task.Company_Code, self.current_task.API_Code, ex))
 
 
 if __name__ == '__main__':
