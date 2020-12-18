@@ -73,9 +73,7 @@ class Notification:
             "user_pwd": self.smtp_config.Email_Password,
             "use_ssl": self.smtp_config.Use_SSL
         }
-        ret = mail(smtp_config=smtp_conf, to_addr=self.receivers, email_title=email_title, email_body=email_content)
-        # ret = True
-        return ret
+        mail(smtp_config=smtp_conf, to_addr=self.receivers, email_title=email_title, email_body=email_content)
 
     # 写入发送日志
     def save_notification_log(self, to_address, email_title, email_content):
