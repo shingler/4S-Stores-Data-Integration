@@ -120,8 +120,9 @@ class Handler:
                 notify_obj.save_notification_log(",".join(notify_obj.receivers), email_title, email_content)
             except Exception as ex:
                 # 发送失败写文件日志
-                self.logger.warning("notification email send failed. %s" % ex)
-                
+                self.logger.warning("Task<%s, %s> notification email send failed. %s" %
+                                    (self.current_task.Company_Code, self.current_task.API_Code, ex))
+
 
 if __name__ == '__main__':
     # 参数处理
