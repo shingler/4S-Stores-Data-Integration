@@ -64,7 +64,7 @@ class FA(DMSBase):
                     elif not is_valid and validator.overleng_handle == validator.OVERLENGTH_CUT:
                         # 按长度截断
                         line[k] = v.encode("gbk")[0:validator.expect_length(k)].decode(
-                            "gbk")
+                            "gbk", 'ignore')
                 i += 1
 
         return res_bool, res_keys
