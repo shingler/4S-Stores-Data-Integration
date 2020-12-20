@@ -152,7 +152,7 @@ class InvoiceHeader(Invoice):
                         elif not is_valid and line_validator.overleng_handle == line_validator.OVERLENGTH_CUT:
                             # 按长度截断
                             line[k] = v.encode("gbk")[0:line_validator.expect_length(k)].decode(
-                                "gbk")
+                                "gbk", 'ignore')
                     j += 1
                 i += 1
 
