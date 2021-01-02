@@ -1,7 +1,5 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
-from gevent import monkey
-monkey.patch_all()
 import pytest
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
