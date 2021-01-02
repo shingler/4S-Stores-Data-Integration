@@ -25,8 +25,7 @@ config.fileConfig(os.path.join(rootPath, "logging.conf"))
 # @param bool retry 是否重试。retry=false将按照地址1执行；为true则按照地址2执行。
 # @param string file_path xml的绝对路径（手动调用时）
 # @param dict p_in 输入参数（手动调用时）
-# @param bool async_ws 是否异步调用web service
-def main(company_code, api_code, retry=False, file_path=None, p_in: dict = None, async_ws=False):
+def main(company_code, api_code, retry=False, file_path=None, p_in: dict = None):
     # 读取公司信息，创建业务对象
     company_info = db.session.query(Company).filter(Company.Code == company_code).first()
     if company_info is None:
@@ -76,8 +75,7 @@ def main(company_code, api_code, retry=False, file_path=None, p_in: dict = None,
         wsh.setLogger(logging.getLogger("%s-%s" % (company_code, api_code)))
     ws_url = wsh.soapAddress(company_info.NAV_Company_Code)
     ws_env = WebServiceHandler.soapEnvelope(entry_no=entry_no, command_code=api_setup.CallBack_Command_Code)
-    wsh.call_web_service(ws_url, ws_env, direction=fa_obj.DIRECT_NAV, async_invoke=async_ws,
-                         soap_action=api_setup.CallBack_SoapAction)
+    wsh.call_web_service(ws_url, ws_env, direction=fa_obj.DIRECT_NAV, soap_action=api_setup.CallBack_SoapAction)
     return entry_no
 
 

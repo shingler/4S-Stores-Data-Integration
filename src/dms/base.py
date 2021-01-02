@@ -445,9 +445,6 @@ class InterfaceResult:
                % (self.__class__, self.status, self.error_msg, len(self.content))
 
 
-import grequests
-
-
 # 把对web service的操作封装起来吧
 class WebServiceHandler:
     # 认证器
@@ -473,17 +470,14 @@ class WebServiceHandler:
         self.logger = logger
 
     # 将entry_no作为参数写入指定的ws
-    def call_web_service(self, ws_url, envelope, direction, soap_action, async_invoke=False):
+    def call_web_service(self, ws_url, envelope, direction, soap_action):
         if self.logger is not None:
             self.logger.info("web service calling start: ws_url='{0}', envelope='{1}', soap_action='{2}'".format(ws_url, envelope, soap_action))
 
         # 新插入一条日志
         logger = DMSBase.add_new_api_log_when_start(self.api_setup, direction=direction)
 
-        if async_invoke:
-            req = self.invoke_async(ws_url, soap_action=soap_action, data=envelope)
-        else:
-            req = self.invoke(ws_url, soap_action=soap_action, data=envelope)
+        req = self.invoke(ws_url, soap_action=soap_action, data=envelope)
 
         # 更新日志（只有当状态码为40x，才认为发生错误）
         if 400 <= req.status_code < 500:
@@ -518,24 +512,3 @@ class WebServiceHandler:
         if self.logger is not None:
             self.logger.info("web service calling result: status_code='{0}', text='{1}'".format(req.status_code, req.text))
         return req
-
-    # 将entry_no作为参数写入指定的ws（异步版本）
-    def invoke_async(self, url, soap_action, data):
-        headers = {
-            "Content-Type": "text/xml",
-            "SOAPAction": soap_action
-        }
-
-        if self.logger is not None:
-            self.logger.info(
-                "sync web service is calling, url='{0}', headers='{1}', data='{2}'".format(url, headers, data))
-
-        rs = [grequests.post(url, headers=headers, auth=self.auth, data=data.encode('utf-8'), time=self.timeout)]
-        res = grequests.map(rs)
-
-        if self.logger is not None:
-            self.logger.info("sync web service calling result: {0}".format(res))
-
-        if len(res) > 0:
-            return res[0]
-        return None
