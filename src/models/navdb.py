@@ -141,8 +141,13 @@ class NavDB:
         lock.acquire()
         time.sleep(0.5)
         # print("%s已上锁" % threading.current_thread().name)
-        trans = self.conn.begin()
-        entry_no = self.getLatestEntryNo(table_name, "Entry No_")
+        trans = self.conn.execution_options(isolation_level="SERIALIZABLE").begin()
+        # entry_no = self.getLatestEntryNo(table_name, "Entry No_")
+        sql = "SELECT MAX([{1}]) as pk FROM [{0}] WITH (TABLOCKX)".format(table_name, "Entry No_")
+        # print(sql)
+        max_entry_id = self.conn.execute(sql).scalar()
+        # print(max_entry_id)
+        entry_no = max_entry_id + 1 if max_entry_id is not None else 1
 
         # 拼接sql
         data_dict["Entry No_"] = entry_no
