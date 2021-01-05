@@ -141,6 +141,7 @@ class NavDB:
         lock.acquire()
         time.sleep(0.5)
         # print("%s已上锁" % threading.current_thread().name)
+        trans = self.conn.begin()
         entry_no = self.getLatestEntryNo(table_name, "Entry No_")
 
         # 拼接sql
@@ -172,6 +173,7 @@ class NavDB:
         ins = Insert(General, values=data_dict)
         # print(ins)
         self.conn.execute(ins)
+        trans.commit()
         # print(result)
 
         lock.release()
