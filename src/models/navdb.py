@@ -212,8 +212,10 @@ class NavDB:
         if type(data_dict) == OrderedDict:
             data_dict = [data_dict]
 
+        # 改成批量写数据
+        batch = []
+        counter = 0
         for row_dict in data_dict:
-            # print("every node start", time.perf_counter())
             # 对xml的数据做处理
             if row_dict["Type"] == "Customer":
                 row_dict["Type"] = 0
@@ -230,10 +232,13 @@ class NavDB:
             # 合并数据
             row_dict = {**row_dict, **other_data}
 
-            record_id = self.getLatestEntryNo(table_name, "Record ID")
+            # 获取主键
+            if len(batch) == 0:
+                record_id = self.getLatestEntryNo(table_name, "Record ID")
+            else:
+                record_id = batch[len(batch) - 1]["Record ID"] + 1
             row_dict["Record ID"] = record_id
 
-            # 处理中文转码和字段更名
             ins_data = {}
             for k in row_dict.keys():
                 v = row_dict[k]
@@ -257,12 +262,16 @@ class NavDB:
                     ins_data[k] = v if v is not None else ""
 
             ins_data = self.checkFields(ins_data, table_columns)
-            FaTable = self.base.classes[table_name]
-            ins = Insert(FaTable, values=ins_data)
-            # print(ins, ins.compile().params)
-            # print("write start", time.perf_counter())
-            self.conn.execute(ins)
-            # print("write done", time.perf_counter())
+
+            batch.append(ins_data)
+            counter += 1
+            if len(batch) >= 10 or counter == len(data_dict):
+                FaTable = self.base.classes[table_name]
+                ins = Insert(FaTable, values=batch)
+                # print("write start", time.perf_counter())
+                self.conn.execute(ins)
+                # print("write done", time.perf_counter())
+                batch.clear()
 
     # 写入FA部分
     def insertFA(self, data_dict: dict, api_p_out: dict, entry_no: int):
@@ -282,11 +291,18 @@ class NavDB:
         if type(data_dict) == OrderedDict:
             data_dict = [data_dict]
 
+        # 改成批量写数据
+        batch = []
+        counter = 0
         for row_dict in data_dict:
             # 合并数据
             row_dict = {**row_dict, **other_data}
 
-            record_id = self.getLatestEntryNo(table_name, "Record ID")
+            # 获取主键
+            if len(batch) == 0:
+                record_id = self.getLatestEntryNo(table_name, "Record ID")
+            else:
+                record_id = batch[len(batch) - 1]["Record ID"] + 1
             row_dict["Record ID"] = record_id
 
             # 处理中文转码和字段更名
@@ -312,12 +328,15 @@ class NavDB:
                     ins_data[k] = v if v is not None else ""
 
             ins_data = self.checkFields(ins_data, table_columns)
-            FaTable = self.base.classes[table_name]
-            ins = Insert(FaTable, values=ins_data)
-            # print(ins, ins.compile().params)
-            # print("write start", time.perf_counter())
-            self.conn.execute(ins)
-            # print("write done", time.perf_counter())
+            batch.append(ins_data)
+            counter += 1
+            if len(batch) >= 10 or counter == len(data_dict):
+                FaTable = self.base.classes[table_name]
+                ins = Insert(FaTable, values=batch)
+                # print("write start", time.perf_counter())
+                self.conn.execute(ins)
+                # print("write done", time.perf_counter())
+                batch.clear()
 
     # 写入发票头部分
     def insertInvHeader(self, data_dict: dict, api_p_out: dict, entry_no: int):
@@ -335,12 +354,18 @@ class NavDB:
         if type(data_dict) == OrderedDict:
             data_dict = [data_dict]
 
+        # 改成批量写数据
+        batch = []
+        counter = 0
         for row_dict in data_dict:
-            # print("every node start", time.perf_counter())
             # 合并数据
             row_dict = {**row_dict, **other_data}
 
-            record_id = self.getLatestEntryNo(table_name, "Record ID")
+            # 获取主键
+            if len(batch) == 0:
+                record_id = self.getLatestEntryNo(table_name, "Record ID")
+            else:
+                record_id = batch[len(batch) - 1]["Record ID"] + 1
             row_dict["Record ID"] = record_id
 
             # 处理中文转码和字段更名
@@ -366,12 +391,15 @@ class NavDB:
                     ins_data[k] = v if v is not None else ""
 
             ins_data = self.checkFields(ins_data, table_columns)
-            FaTable = self.base.classes[table_name]
-            ins = Insert(FaTable, values=ins_data)
-            # print(ins, ins.compile().params)
-            # print("write start", time.perf_counter())
-            self.conn.execute(ins)
-            # print("write done", time.perf_counter())
+            batch.append(ins_data)
+            counter += 1
+            if len(batch) >= 10 or counter == len(data_dict):
+                FaTable = self.base.classes[table_name]
+                ins = Insert(FaTable, values=batch)
+                # print("write start", time.perf_counter())
+                self.conn.execute(ins)
+                # print("write done", time.perf_counter())
+                batch.clear()
 
     # 写入发票行部分
     def insertInvLines(self, data_dict: dict, api_p_out: dict, entry_no: int):
@@ -390,11 +418,18 @@ class NavDB:
         if type(data_dict) == OrderedDict:
             data_dict = [data_dict]
 
+        # 改成批量写数据
+        batch = []
+        counter = 0
         for row_dict in data_dict:
             # 合并数据
             row_dict = {**row_dict, **other_data}
 
-            record_id = self.getLatestEntryNo(table_name, "Record ID")
+            # 获取主键
+            if len(batch) == 0:
+                record_id = self.getLatestEntryNo(table_name, "Record ID")
+            else:
+                record_id = batch[len(batch) - 1]["Record ID"] + 1
             row_dict["Record ID"] = record_id
 
             # 处理中文转码和字段更名
@@ -422,9 +457,15 @@ class NavDB:
                     ins_data[k] = v if v is not None else ""
             # print(ins_data)
             ins_data = self.checkFields(ins_data, table_columns)
-            FaTable = self.base.classes[table_name]
-            ins = Insert(FaTable, values=ins_data)
-            self.conn.execute(ins)
+            batch.append(ins_data)
+            counter += 1
+            if len(batch) >= 10 or counter == len(data_dict):
+                FaTable = self.base.classes[table_name]
+                ins = Insert(FaTable, values=batch)
+                # print("write start", time.perf_counter())
+                self.conn.execute(ins)
+                # print("write done", time.perf_counter())
+                batch.clear()
 
     # 写入other部分
     def insertOther(self, data_dict: dict, api_p_out: dict, entry_no: int):
@@ -444,12 +485,18 @@ class NavDB:
         if type(data_dict) == OrderedDict:
             data_dict = [data_dict]
 
+        # 改成批量写数据
+        batch = []
+        counter = 0
         for row_dict in data_dict:
             # print("every node start", time.perf_counter())
             # 合并数据
             row_dict = {**row_dict, **other_data}
 
-            record_id = self.getLatestEntryNo(table_name, "Record ID")
+            if len(batch) == 0:
+                record_id = self.getLatestEntryNo(table_name, "Record ID")
+            else:
+                record_id = batch[len(batch)-1]["Record ID"] + 1
             row_dict["Record ID"] = record_id
 
             # 处理中文转码和字段更名
@@ -475,12 +522,15 @@ class NavDB:
 
             ins_data = self.checkFields(ins_data, table_columns)
 
-            FaTable = self.base.classes[table_name]
-            ins = Insert(FaTable, values=ins_data)
-            # print(ins, ins.compile().params)
-            # print("write start", time.perf_counter())
-            self.conn.execute(ins)
-            # print("write done", time.perf_counter())
+            batch.append(ins_data)
+            counter += 1
+            if len(batch) >= 10 or counter == len(data_dict):
+                FaTable = self.base.classes[table_name]
+                ins = Insert(FaTable, values=batch)
+                # print("write start", time.perf_counter())
+                self.conn.execute(ins)
+                # print("write done", time.perf_counter())
+                batch.clear()
 
     # 用于验证的查询
     def getNavDataByEntryNo(self, entry_no, table_name="DMSInterfaceInfo", return_list=True):
