@@ -470,12 +470,12 @@ class WebServiceHandler:
         self.logger = logger
 
     # 将entry_no作为参数写入指定的ws
-    def call_web_service(self, ws_url, envelope, direction, soap_action):
+    def call_web_service(self, ws_url, envelope, direction, soap_action, userID=None):
         if self.logger is not None:
             self.logger.info("web service calling start: ws_url='{0}', envelope='{1}', soap_action='{2}'".format(ws_url, envelope, soap_action))
 
         # 新插入一条日志
-        logger = DMSBase.add_new_api_log_when_start(self.api_setup, direction=direction)
+        logger = DMSBase.add_new_api_log_when_start(self.api_setup, direction=direction, userID=userID)
 
         req = self.invoke(ws_url, soap_action=soap_action, data=envelope)
 
