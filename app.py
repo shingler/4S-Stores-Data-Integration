@@ -25,7 +25,7 @@ def default():
 # @param string command_code 01=cust_vend, 02=fa, 03=invoice, 04=other
 # @param int retry 是否重试。retry=0将按照地址1执行；为1则按照地址2执行。
 # @param int api_type 接口类型：1=JSON API，2=XML
-# @param string options 指定参数，格式为JSON，详见说明文档
+# @param string options 指定参数，格式为JSON
 @app.route("/dms_interface", methods=["POST"])
 def dms_interface_api():
     logger = logging.getLogger("dms_interface_api")
@@ -38,6 +38,7 @@ def dms_interface_api():
     retry = request.form.get("retry", 0)
     api_type = request.form.get("api_type", 0)
     option_str = request.form.get("options", "")
+    userID = None
 
     logger.info("company_code=%s, api_code=%s" % (company_code, api_code))
 
@@ -59,6 +60,9 @@ def dms_interface_api():
     if api_type == "2" and (options is None or "file_path" not in options):
         # xml模式下没提供file_path
         return jsonify({"status": 40002, "error_message": words.WebApi.filed_empty("file_path in options")})
+    if "user_id" in options:
+        userID = options["user_id"]
+        del options["user_id"]
 
     file_path = None
     if api_type == "2":
@@ -75,7 +79,7 @@ def dms_interface_api():
         runner = other
     try:
         entry_no = runner.main(company_code=company_code, api_code=api_code, file_path=file_path,
-                               p_in=options, retry=True if retry else False)
+                               p_in=options, retry=True if retry else False, userID=userID)
         res = {"status": 0, "entry_no": entry_no}
     except error.DataFieldEmptyError as ex:
         res = {"status": 50001, "error_message": str(ex)}
