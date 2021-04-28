@@ -179,6 +179,10 @@ class Other(DMSBase):
 
                 # 检查3级节点
                 lines = dd[self.BIZ_NODE_LV2]
+                # 如果line为空，则发出错误提醒
+                if len(lines) == 0:
+                    return False, ["Line"]
+
                 if type(lines) != list:
                     lines = [lines]
                 for line in lines:
