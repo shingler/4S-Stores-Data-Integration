@@ -188,6 +188,10 @@ class InvoiceHeader(Invoice):
 
                 # 再检查发票头
                 inv_header_data = invoice[InvoiceHeader.BIZ_NODE_LV2]
+                # 检查INVLine和INVHeader
+                if len(inv_header_data) == 0:
+                    return False, [InvoiceHeader.BIZ_NODE_LV2]
+
                 # print(inv_header_dict)
                 for hd in inv_header_dict.values():
                     if hd.Level == 2:
@@ -202,6 +206,10 @@ class InvoiceHeader(Invoice):
                 if res_bool:
                     # print(inv_line_dict, type(inv_line_dict))
                     inv_lines_data = invoice[InvoiceLine.BIZ_NODE_LV2]
+                    # 检查INVLine和INVHeader
+                    if len(inv_lines_data) == 0 or len(inv_lines_data[0]) == 0:
+                        return False, [InvoiceLine.BIZ_NODE_LV2]
+
                     if type(inv_lines_data) != list:
                         inv_lines_data = [inv_lines_data]
 
