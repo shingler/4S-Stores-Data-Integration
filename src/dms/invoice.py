@@ -207,13 +207,15 @@ class InvoiceHeader(Invoice):
                     # print(inv_line_dict, type(inv_line_dict))
                     inv_lines_data = invoice[InvoiceLine.BIZ_NODE_LV2]
                     # 检查INVLine和INVHeader
-                    if len(inv_lines_data) == 0 or len(inv_lines_data[0]) == 0:
+                    if len(inv_lines_data) == 0:
                         return False, [InvoiceLine.BIZ_NODE_LV2]
 
                     if type(inv_lines_data) != list:
                         inv_lines_data = [inv_lines_data]
 
                     for one_line in inv_lines_data:
+                        if len(one_line) == 0:
+                            return False, [InvoiceLine.BIZ_NODE_LV2]
                         one_line_keys = one_line.keys()
                         for ld in inv_line_dict.values():
                             if ld.Level != 3:
