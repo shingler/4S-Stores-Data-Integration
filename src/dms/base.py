@@ -195,7 +195,7 @@ class DMSBase:
             data = xml_handler.read()
 
         res = InterfaceResult(status=self.STATUS_FINISH, content=data)
-        if format == "xml":
+        if format == self.FORMAT_XML:
             res.data = xmltodict.parse(data)
         else:
             res.data = json.loads(data, encoding="utf-8")
@@ -257,13 +257,9 @@ class DMSBase:
 
         path = ""
         res = None
-        if apiSetup.API_Type == self.TYPE_API and file_path is not None:
-            path = file_path
-            res = self._load_data_from_file(file_path, format="json",
-                                            file_size_limit=apiSetup.File_Max_Size)
-        elif apiSetup.API_Type == self.TYPE_API:
+        if apiSetup.API_Type == self.TYPE_API:
             # 读取JSON API
-            path = apiSetup.API_Address1
+            path = apiSetup.API_Address1 if not self.force_secondary else apiSetup.API_Address2
             res = self._load_data_from_dms_interface(apiSetup)
         elif apiSetup.API_Type == self.TYPE_FILE and file_path is not None:
             # 直接提供XML地址
