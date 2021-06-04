@@ -142,7 +142,7 @@ class DMSBase:
 
         company_info = db.session.query(Company).filter(Company.Code == apiSetup.Company_Code).first()
         # 请求接口
-        req, resp = interface.api_dms(company_info, api_setup=apiSetup, p_in_list=p_in_list)
+        req, resp = interface.api_dms(company_info, api_setup=apiSetup, p_in_list=p_in_list, sencondary=self.force_secondary)
 
         # 如果resp是Exception的子类，则说明发生异常被捕获了
         if isinstance(resp, requests.ConnectTimeout):
