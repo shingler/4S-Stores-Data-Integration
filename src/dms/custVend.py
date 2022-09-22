@@ -1,5 +1,7 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
+import re
+
 from src import words
 from src.dms.setup import Setup
 from src.error import NodeNotExistError
@@ -62,6 +64,9 @@ class CustVend(DMSBase):
                         res_bool = False
                         return res_bool, res_keys
                     elif not is_valid and validator.overleng_handle == validator.OVERLENGTH_CUT:
+                        # 替换非换行字符0xa0
+                        v = re.sub(r'\s+', '', v)
+                        # print(v)
                         # 按长度截断
                         line[k] = v.encode("gbk")[0:validator.expect_length(k)].decode(
                             "gbk", 'ignore')

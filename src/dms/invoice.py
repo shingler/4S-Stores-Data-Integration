@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
+import re
 from collections import OrderedDict
 
 from src import words, validator
@@ -130,6 +131,9 @@ class InvoiceHeader(Invoice):
                         }
                         return res_bool, res_keys
                     elif not is_valid and header_validator.overleng_handle == header_validator.OVERLENGTH_CUT:
+                        # 替换非换行字符0xa0
+                        v = re.sub(r'\s+', '', v)
+                        # print(v)
                         # 按长度截断
                         inv_header[k] = v.encode("gbk")[0:header_validator.expect_length(k)].decode(
                                 "gbk", "ignore")
@@ -151,6 +155,9 @@ class InvoiceHeader(Invoice):
                             }
                             return res_bool, res_keys
                         elif not is_valid and line_validator.overleng_handle == line_validator.OVERLENGTH_CUT:
+                            # 替换非换行字符0xa0
+                            v = re.sub(r'\s+', '', v)
+                            # print(v)
                             # 按长度截断
                             line[k] = v.encode("gbk")[0:line_validator.expect_length(k)].decode(
                                 "gbk", 'ignore')

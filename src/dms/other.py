@@ -1,5 +1,7 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
+import re
+
 from src import words
 from src.dms.base import DMSBase
 from src.dms.setup import Setup
@@ -130,6 +132,7 @@ class Other(DMSBase):
                 j = 0
                 for line in lines:
                     for k, v in line.items():
+
                         is_valid = validator.check_chn_length(k, v)
                         if not is_valid and validator.overleng_handle == validator.OVERLENGTH_WARNING:
                             res_bool = False
@@ -140,6 +143,9 @@ class Other(DMSBase):
                             }
                             return res_bool, res_keys
                         elif not is_valid and validator.overleng_handle == validator.OVERLENGTH_CUT:
+                            # 替换非换行字符0xa0
+                            v = re.sub(r'\s+', '', v)
+                            # print(v)
                             # 按长度截断
                             line[k] = v.encode("gbk")[0:validator.expect_length(k)].decode(
                                 "gbk", 'ignore')
