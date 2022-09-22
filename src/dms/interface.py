@@ -57,7 +57,7 @@ def send_data(url, data, interface_instance: Interface, timeout: int) -> (dict, 
 
 
 # DMS接口调用，同步后返回对象
-def api_dms(company_info: dms.Company, api_setup: dms.ApiSetup, p_in_list: list) -> (dict, requests.Response):
+def api_dms(company_info: dms.Company, api_setup: dms.ApiSetup, p_in_list: list, sencondary=False) -> (dict, requests.Response):
     dealer_group_code = company_info.DMS_Group_Code  # 经销商集团代码
     dealer_entity_code = company_info.DMS_Company_Code  # 4S店编号
 
@@ -78,7 +78,11 @@ def api_dms(company_info: dms.Company, api_setup: dms.ApiSetup, p_in_list: list)
         else:
             data[p.P_Code] = p.Value
 
-    url = api_setup.API_Address1.format(dealer_group_code.lower())
+    # 是否使用备用地址
+    if not sencondary:
+        url = api_setup.API_Address1.format(dealer_group_code.lower())
+    else:
+        url = api_setup.API_Address2.format(dealer_group_code.lower())
 
     sign_dict, resp = send_data(url, data=data, interface_instance=interface_instance, timeout=api_setup.Time_out)
     return sign_dict, resp

@@ -47,7 +47,7 @@ class Handler:
             elif self.current_task.API_Command_Code == "04":
                 self.runner = other
 
-            self.entry_no = self.runner.main(company_code=company_code, api_code=api_code)
+            self.entry_no = self.runner.main(company_code=company_code, api_code=api_code, retry=self.retry)
             print(words.RunResult.success(company_code, api_code, self.entry_no))
             self.logger.info(words.RunResult.success(company_code, api_code, self.entry_no))
             # 更新成功执行时间

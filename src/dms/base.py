@@ -142,7 +142,7 @@ class DMSBase:
 
         company_info = db.session.query(Company).filter(Company.Code == apiSetup.Company_Code).first()
         # 请求接口
-        req, resp = interface.api_dms(company_info, api_setup=apiSetup, p_in_list=p_in_list)
+        req, resp = interface.api_dms(company_info, api_setup=apiSetup, p_in_list=p_in_list, sencondary=self.force_secondary)
 
         # 如果resp是Exception的子类，则说明发生异常被捕获了
         if isinstance(resp, requests.ConnectTimeout):
@@ -195,7 +195,7 @@ class DMSBase:
             data = xml_handler.read()
 
         res = InterfaceResult(status=self.STATUS_FINISH, content=data)
-        if format == "xml":
+        if format == self.FORMAT_XML:
             res.data = xmltodict.parse(data)
         else:
             res.data = json.loads(data, encoding="utf-8")
@@ -257,13 +257,9 @@ class DMSBase:
 
         path = ""
         res = None
-        if apiSetup.API_Type == self.TYPE_API and file_path is not None:
-            path = file_path
-            res = self._load_data_from_file(file_path, format="json",
-                                            file_size_limit=apiSetup.File_Max_Size)
-        elif apiSetup.API_Type == self.TYPE_API:
+        if apiSetup.API_Type == self.TYPE_API:
             # 读取JSON API
-            path = apiSetup.API_Address1
+            path = apiSetup.API_Address1 if not self.force_secondary else apiSetup.API_Address2
             res = self._load_data_from_dms_interface(apiSetup)
         elif apiSetup.API_Type == self.TYPE_FILE and file_path is not None:
             # 直接提供XML地址
